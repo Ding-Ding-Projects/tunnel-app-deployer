@@ -74,4 +74,6 @@ Review the checked-in API and tests before renderer changes. Terminal backend fa
 - Automatic updates: built, checks every 4 hours after a 15 s start delay. Not yet proven updating a real installed copy; that needs an installed v0.2.6 to pick up a newer release.
 - Authenticator: TOTP (SHA-1/256/512) with secrets sealed by Electron safeStorage. Tested against RFC 6238 vectors; the vault itself is mocked in screenshots.
 - Utility tabs: Workspace plus catalogue tabs, persisted, Ctrl+T/Ctrl+W/Ctrl+Tab.
-- Still planned: live chart in Sessions, automated clipping matrix.
+- Sessions chart: 14-day outcome chart (partly built; no streaming chart of a running session).
+- Clipping matrix: `npm run clip` (Playwright with Chromium) checks 6 screens x 3 widths x 3 languages; first run found and fixed the Guide overflowing a 360 px phone. Not in CI yet.
+- GitHub cancels a queued Release run when a newer push queues behind it, so a quick series of pushes tags only the newest commit; that release contains every earlier change.

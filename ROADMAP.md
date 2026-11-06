@@ -89,7 +89,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 - [ ] **Screen recording**: Not built yet.
 - [~] **Design reference parity**: The interface follows the checked-in design in design/canvas; a pixel comparison is not automated.
 - [x] **Design files in the repository**: All design artboards and notes live in design/.
-- [ ] **Clipping checks**: Not built yet.
+- [~] **Clipping checks**: npm run clip opens all six screens at 360, 768 and 1280 pixels in English, Cantonese and both, and reports cut-off or off-screen text. It needs Playwright with Chromium and is not run in CI yet.
 - [~] **Public screenshot gallery**: The website has a gallery of interface renders. They are rendered with a scripted backend, not captured from live hosting.
 
 ## Website and shared links

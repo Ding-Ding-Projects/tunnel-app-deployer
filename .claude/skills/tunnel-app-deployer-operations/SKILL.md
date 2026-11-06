@@ -30,6 +30,8 @@ Edit sources, then regenerate; never edit generated files by hand.
 
 `scripts/screens/shoot.sh docs/assets/screens` renders the real renderer in headless Chrome with `scripts/screens/scripted-backend.js` standing in for the backend, and `scripts/screens/drive.js` performing the clicks for each state. The images show interface states only; never describe them as live hosting.
 
+`npm run clip` runs `scripts/screens/clip-matrix.js`: every screen at 360, 768 and 1280 pixels in English, Cantonese and both languages, reporting text that is cut off or pushed past the window edge. It exits 1 on any finding. Run it after layout or wording changes.
+
 ## Release
 
 Every push to `main` runs `.github/workflows/release.yml`: it picks the next `v<major>.<minor>.<n>` tag, stamps `package.json` and `src/build-info.json`, builds the Windows portable executable and publishes the release with timing and line counts. `checks.yml` runs the tests separately. Confirm with `gh api repos/Ding-Ding-Projects/tunnel-app-deployer/releases/latest`.

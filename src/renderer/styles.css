@@ -381,7 +381,7 @@ mark{background:var(--pc);color:var(--onpc);border-radius:4px;padding:0 2px}
 @media (max-width:860px){
   .rail{display:none}
   .main{padding:8px 16px 96px}
-  .host-grid,.guide,.settings{grid-template-columns:1fr}
+  .host-grid,.guide,.settings{grid-template-columns:minmax(0,1fr)}
   #card-link:not(.inactive){order:-1}
   .groups{position:static;flex-direction:row;overflow-x:auto;gap:4px}
   .g{white-space:nowrap}

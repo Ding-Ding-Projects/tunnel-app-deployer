@@ -17,7 +17,8 @@
     "content:check": "node scripts/build-content.mjs --check",
     "vendor": "node scripts/vendor-assets.mjs",
     "build-info": "node scripts/write-build-info.mjs",
-    "package:win": "electron-builder --win squirrel --x64"
+    "package:win": "electron-builder --win squirrel --x64",
+    "clip": "node scripts/screens/clip-matrix.js"
   },
   "devDependencies": {
     "@fontsource-variable/roboto-flex": "5.3.0",

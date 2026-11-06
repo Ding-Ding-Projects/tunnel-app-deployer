@@ -507,8 +507,8 @@
   {
    "id": "clipping-matrix",
    "title": "Clipping checks",
-   "status": "planned",
-   "note": "Not built yet.",
+   "status": "partial",
+   "note": "npm run clip opens all six screens at 360, 768 and 1280 pixels in English, Cantonese and both, and reports cut-off or off-screen text. It needs Playwright with Chromium and is not run in CI yet.",
    "group": "evidence"
   },
   {
