@@ -170,6 +170,28 @@
    "w": 800,
    "h": 800,
    "title": "Original app icon"
+  },
+  "Updates.dc.html": {
+   "x": 0,
+   "y": 9820,
+   "w": 1280,
+   "h": 800,
+   "title": "Installer updates, ready banner and release code name"
+  },
+  "Auth.dc.html": {
+   "x": 1360,
+   "y": 9820,
+   "w": 1280,
+   "h": 800,
+   "title": "Authenticator in Tools",
+   "is_interactive": true
+  },
+  "Tabs.dc.html": {
+   "x": 2720,
+   "y": 9820,
+   "w": 1280,
+   "h": 800,
+   "title": "Utility tabs and New tab catalogue"
   }
  },
  "order": [
@@ -193,7 +215,10 @@
   "Tools.dc.html",
   "Voice.dc.html",
   "Schedule.dc.html",
-  "Icon.dc.html"
+  "Icon.dc.html",
+  "Updates.dc.html",
+  "Auth.dc.html",
+  "Tabs.dc.html"
  ],
  "notes": {
   "appTitle": {
@@ -230,6 +255,13 @@
    "text": "Required features · wave 2",
    "kind": "title1",
    "maxW": 4880
+  },
+  "wave3": {
+   "x": 0,
+   "y": 9520,
+   "text": "Required features · wave 3",
+   "kind": "title1",
+   "maxW": 4000
   }
  },
  "designSystems": []

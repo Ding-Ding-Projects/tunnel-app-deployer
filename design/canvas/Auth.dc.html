@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Authenticator</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--warn:#f3bf6e;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);width:1280px;height:800px;display:flex;flex-direction:column;gap:16px;padding:24px 24px 24px 112px;box-sizing:border-box;font-size:14px;line-height:1.45;overflow:hidden}
+.ms{font-family:"Material Symbols Rounded";font-size:22px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0}
+.h1{font-size:32px;line-height:40px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--s3)}
+.tab{height:48px;padding:0 20px;border:0;background:none;color:var(--onv);font:inherit;font-weight:500;display:flex;gap:8px;align-items:center;border-bottom:3px solid transparent}
+.tab.on{color:var(--p);border-bottom-color:var(--p)}
+.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.search{flex:1;max-width:420px;height:44px;border-radius:22px;background:var(--s3);display:flex;align-items:center;gap:8px;padding:0 6px 0 14px;color:var(--onv)}
+.chip{min-height:32px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font:inherit;font-size:13px;background:none;cursor:pointer}
+.btn{height:44px;border-radius:22px;border:0;font:inherit;font-weight:600;padding:0 20px;display:inline-flex;align-items:center;gap:8px;background:var(--p);color:var(--onp)}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.acc{background:var(--s1);border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:8px;animation:in .4s var(--e) both}
+.acc:nth-child(2){animation-delay:.05s}.acc:nth-child(3){animation-delay:.1s}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.top{display:flex;justify-content:space-between;align-items:center}
+.code{font-family:"Roboto Mono",monospace;font-size:34px;font-weight:500;letter-spacing:.06em;color:var(--p)}
+.ring{width:36px;height:36px;border-radius:50%;background:conic-gradient(var(--p) 0 62%,var(--s4) 62% 100%);display:grid;place-items:center;font-size:11px;font-weight:600}
+.ring span{width:28px;height:28px;border-radius:50%;background:var(--s1);display:grid;place-items:center}
+.next{font-size:12px;color:var(--onv);font-family:"Roboto Mono",monospace}
+.note{display:flex;gap:10px;align-items:center;background:var(--s2);border-radius:16px;padding:12px 16px;color:var(--onv);font-size:13px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</helmet>
+<div class="app">
+<div><h1 class="h1">Tools</h1><p class="muted">Small local helpers. Nothing you paste here leaves this computer.</p></div>
+<div class="tabs"><button class="tab"><span class="ms">data_object</span>Base64</button><button class="tab"><span class="ms">swap_horiz</span>Convert</button><button class="tab on"><span class="ms">password</span>Authenticator</button></div>
+<div class="bar"><label class="search"><span class="ms">search</span><span style="flex:1">Search accounts</span><span class="chip">.*</span></label><button class="btn"><span class="ms">add</span>Add account</button><button class="chip"><span class="ms">content_paste</span>Paste otpauth link</button><button class="chip"><span class="ms">download</span>Export list</button></div>
+<div class="grid">
+<sc-for list="{{accs}}" as="a" hint-placeholder-count="3">
+<article class="acc"><div class="top"><div><strong>{{a.name}}</strong><div class="muted" style="font-size:12px">{{a.issuer}} · {{a.algo}}</div></div><span class="ring" aria-label="{{a.left}} seconds left"><span>{{a.left}}</span></span></div>
+<div class="code">{{a.code}}</div>
+<div class="top"><span class="next">next {{a.next}}</span><button class="chip" onClick="{{a.copy}}"><span class="ms">{{a.icon}}</span>{{a.label}}</button></div></article>
+</sc-for>
+</div>
+<div class="note"><span class="ms">lock</span>Secrets are encrypted with your Windows account through the system credential protection and never leave this computer. Exports list accounts without their secrets.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+const c = (this.state && this.state.copied) || '';
+const rows = [['GitHub', 'personal account', 'SHA-1 · 30 s', '287 082', '081 804', 19], ['Cloudflare', 'work', 'SHA-256 · 30 s', '461 520', '119 873', 19], ['Docker Hub', 'team', 'SHA-1 · 30 s', '005 924', '279 037', 19]];
+return { accs: rows.map(r => ({ name: r[0], issuer: r[1], algo: r[2], code: r[3], next: r[4], left: r[5], icon: c === r[0] ? 'check' : 'content_copy', label: c === r[0] ? 'Copied' : 'Copy', copy: () => this.setState({ copied: r[0] }) })) };
+}
+}
+</script>
+</body>
+</html>
