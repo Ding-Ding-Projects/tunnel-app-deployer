@@ -41,6 +41,11 @@ function createHostManager(options = {}) {
     throw new Error('HTTP readiness timed out');
   }
   async function cleanup(s) {
+    if (s.cleanupPromise) return s.cleanupPromise;
+    s.cleanupPromise = cleanupResources(s);
+    return s.cleanupPromise;
+  }
+  async function cleanupResources(s) {
     clearInterval(s.monitor);
     s.controller.abort();
     if (s.tunnel) {
@@ -56,12 +61,16 @@ function createHostManager(options = {}) {
   async function stop() {
     const s = session;
     if (!s) { state = { phase: 'idle', localUrl: null, publicUrl: null }; return status(); }
-    emit('stopping', 'Stopping hosting', { publicUrl: null });
+    s.stopping = true;
+    emit('stopping', 'Stopping hosting', { publicUrl: null, verified: false });
+    s.controller.abort();
+    await s.hostSettled;
     await cleanup(s);
     if (session === s) { session = null; state = { phase: 'idle', localUrl: null, publicUrl: null }; }
     return status();
   }
   async function startTunnel(s) {
+    if (s.controller.signal.aborted) throw new Error('Operation cancelled');
     const child = spawnImpl(s.cloudflared, ['tunnel', '--url', state.localUrl, '--no-autoupdate'], { shell: false, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     s.tunnel = child;
     s.alive = true;
@@ -91,6 +100,19 @@ function createHostManager(options = {}) {
     await untilHealthy(url, s.controller.signal, () => s.alive);
     if (!s.alive || s.controller.signal.aborted) throw new Error('Tunnel process exited');
     emit('ready', 'Public HTTPS link verified', { publicUrl: url, verified: true });
+    if (!s.monitor) {
+      s.monitor = setInterval(async () => {
+        if (s.monitorBusy || state.phase !== 'ready' || s.controller.signal.aborted) return;
+        s.monitorBusy = true;
+        const ok = await healthy(state.localUrl, s.controller.signal);
+        s.monitorBusy = false;
+        if (!ok && session === s && state.phase === 'ready' && !s.controller.signal.aborted) {
+          emit('error', 'Application stopped responding; stop and host again', { publicUrl: null, verified: false, error: 'Application HTTP health check failed' });
+          s.tunnel?.kill();
+        }
+      }, options.monitorIntervalMs || 10000);
+      s.monitor.unref?.();
+    }
   }
   async function recover(s) {
     for (let attempt = 0; attempt < 2 && !s.controller.signal.aborted; attempt++) {
@@ -102,6 +124,7 @@ function createHostManager(options = {}) {
     if (busy || session) throw new Error('Stop the current hosting session first');
     busy = true;
     const s = { controller: new AbortController(), onProgress };
+    s.hostSettled = new Promise(resolve => { s.resolveHostSettled = resolve; });
     session = s;
     const abort = () => s.controller.abort();
     signal?.addEventListener('abort', abort, { once: true });
@@ -124,7 +147,12 @@ function createHostManager(options = {}) {
       } else {
         const config = source.config;
         delete config.name;
-        for (const service of Object.values(config.services)) { delete service.ports; service.labels = { ...service.labels, 'app.tunnel-deployer.managed': 'true' }; }
+        for (const [name, service] of Object.entries(config.services)) {
+          delete service.ports;
+          service.labels = { ...service.labels, 'app.tunnel-deployer.managed': 'true' };
+          // Building must never overwrite an image tag used by the original project.
+          if (service.build) service.image = `${id}-${name}`.toLowerCase();
+        }
         config.services[source.service].ports = [{ target: source.containerPort, published: '0', host_ip: '127.0.0.1', protocol: 'tcp' }];
         s.file = path.join(options.stateDir, `${id}.json`);
         // Compose reads generated files again; protect already resolved literal dollars.
@@ -146,9 +174,9 @@ function createHostManager(options = {}) {
       return status();
     } catch (error) {
       await cleanup(s);
-      if (session === s) { emit('error', error.message, { publicUrl: null, localUrl: null, verified: false, error: error.message }); session = null; }
+      if (session === s && !s.stopping) { emit('error', error.message, { publicUrl: null, localUrl: null, verified: false, error: error.message }); session = null; }
       throw error;
-    } finally { busy = false; signal?.removeEventListener('abort', abort); }
+    } finally { busy = false; signal?.removeEventListener('abort', abort); s.resolveHostSettled(); }
   }
   return { prerequisites, inspectSource: async input => { const result = await inspectSource(input, run); const { config, ...safe } = result; return safe; }, host, stop, status };
 }

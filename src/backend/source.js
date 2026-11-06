@@ -13,7 +13,9 @@ async function inspectSource(input, run, signal) {
     const dockerfilePath = path.resolve(contextPath, input.dockerfilePath || 'Dockerfile');
     if (!(await fs.stat(contextPath)).isDirectory()) throw new Error('Build context must be a directory');
     const contents = await fs.readFile(dockerfilePath, 'utf8');
-    const exposed = [...contents.matchAll(/^\s*EXPOSE\s+([^\r\n]+)/gim)].flatMap(m => m[1].split(/\s+/)).filter(v => /^\d+(\/tcp)?$/.test(v)).map(v => port(v.split('/')[0]));
+    const stages = [...contents.matchAll(/^\s*FROM\s+/gim)];
+    const finalStage = stages.length ? contents.slice(stages.at(-1).index) : contents;
+    const exposed = [...finalStage.matchAll(/^\s*EXPOSE\s+([^\r\n]+)/gim)].flatMap(m => m[1].split(/\s+/)).filter(v => /^\d+(\/tcp)?$/.test(v)).map(v => port(v.split('/')[0]));
     const unique = [...new Set(exposed)];
     const containerPort = input.containerPort ? port(input.containerPort) : unique.length === 1 ? unique[0] : null;
     return { kind: 'dockerfile', contextPath, dockerfilePath, containerPort, needsPort: !containerPort };
@@ -21,7 +23,9 @@ async function inspectSource(input, run, signal) {
   const composePath = path.resolve(input.composePath || 'compose.yaml');
   await fs.access(composePath);
   const directory = path.dirname(composePath);
-  const config = JSON.parse(await run('docker', ['compose', '--project-directory', directory, '-f', composePath, 'config', '--format', 'json'], { signal }));
+  const normalized = await run('docker', ['compose', '--project-directory', directory, '-f', composePath, 'config', '--format', 'json'], { signal });
+  let config;
+  try { config = JSON.parse(normalized); } catch { throw new Error('Docker Compose returned invalid configuration'); }
   const services = config.services || {};
   if (!Object.keys(services).length) throw new Error('Compose has no services');
   for (const [name, service] of Object.entries(services)) {
@@ -29,6 +33,7 @@ async function inspectSource(input, run, signal) {
       if (condition) throw new Error(`Service ${name}: ${reason} is unsupported for isolated hosting`);
     }
     if (service.volumes?.some(v => typeof v === 'object' && v.type === 'bind' && /docker\.sock$/.test(v.source || ''))) throw new Error(`Service ${name}: Docker socket mounts are unsupported`);
+    if (service.volumes_from?.some(v => String(v).startsWith('container:'))) throw new Error(`Service ${name}: volumes from external containers are unsupported`);
   }
   for (const [name, network] of Object.entries(config.networks || {})) {
     if (network.external || network.name && !network.name.startsWith(`${config.name}_`)) throw new Error(`Network ${name}: external or fixed shared networks are unsupported`);
