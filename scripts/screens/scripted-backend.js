@@ -25,13 +25,13 @@ const statuses = {
 let listener;
 window.tunnel = {
   prerequisites: async () => ({ docker: true, compose: true, cloudflared: false, cloudflaredDownloadAvailable: true, missing: [] }),
-  status: async () => state === 'live' && !window.__idiot?.picked ? statuses.ready : statuses[state] || statuses.ready,
-  select: async kind => (window.__idiot.picked = true, { source: kind === 'compose' ? { kind, composePath: 'C:\\Projects\\shop-stack\\compose.yaml' } : { kind, dockerfilePath: 'C:\\Projects\\notes-app\\Dockerfile', contextPath: 'C:\\Projects\\notes-app' }, inspection: kind === 'compose' ? { services: ['web', 'db'], service: 'web', containerPort: 8080 } : { containerPort: 3000 } }),
-  host: () => new Promise((_res, rej) => { window.__idiot.fail = rej; }), stop: async () => ({ phase: 'idle' }), copy: async () => true, open: async () => true,
+  status: async () => state === 'live' && !window.__screens?.picked ? statuses.ready : statuses[state] || statuses.ready,
+  select: async kind => (window.__screens.picked = true, { source: kind === 'compose' ? { kind, composePath: 'C:\\Projects\\shop-stack\\compose.yaml' } : { kind, dockerfilePath: 'C:\\Projects\\notes-app\\Dockerfile', contextPath: 'C:\\Projects\\notes-app' }, inspection: kind === 'compose' ? { services: ['web', 'db'], service: 'web', containerPort: 8080 } : { containerPort: 3000 } }),
+  host: () => new Promise((_res, rej) => { window.__screens.fail = rej; }), stop: async () => ({ phase: 'idle' }), copy: async () => true, open: async () => true,
   info: async () => ({ version: '0.2.0', buildTime: '2026-11-06T20:58:21Z', commit: '205a6caafcebb3763ebc39a7faa2248314b828a4' }),
   copyText: async () => true, editors: async () => [{ name: 'Visual Studio Code' }], openProject: async () => true, setTitle: async () => true, openLink: async () => true, save: async () => true,
   onProgress: cb => { listener = cb; return () => {}; }
 };
-window.__idiot = { state, view, listener: () => listener };
+window.__screens = { state, view, listener: () => listener };
 })();
 if (!new URLSearchParams(location.search).get('dimsum')) Math.random = () => 0.5;

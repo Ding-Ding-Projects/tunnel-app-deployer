@@ -2,14 +2,14 @@
 window.addEventListener('load', () => setTimeout(async () => {
   const q = new URLSearchParams(location.search), $ = id => document.getElementById(id);
   const v = q.get('view'); if (v) document.querySelector(`.dest[data-view="${v}"]`)?.click();
-  const state = q.get('state'), emit = e => window.__idiot.listener()?.(e);
+  const state = q.get('state'), emit = e => window.__screens.listener()?.(e);
   if (state === 'live') { $('choose').click(); await new Promise(r => setTimeout(r, 2300)); }
   if (state === 'building' || state === 'failed') {
     $('choose').click(); await new Promise(r => setTimeout(r, 200)); $('host-btn').click(); await new Promise(r => setTimeout(r, 50));
     emit({ phase: 'validating', message: 'Validating source' });
     emit({ phase: 'preparing', message: 'Preparing verified cloudflared executable' });
     emit({ phase: 'building', message: 'Step 4/7 : RUN npm ci' });
-    if (state === 'failed') { emit({ phase: 'starting', message: 'Starting application' }); emit({ phase: 'checking', message: 'Waiting for application HTTP readiness', localUrl: 'http://127.0.0.1:49213' }); emit({ phase: 'stopping', message: 'Cleaning up failed hosting session' }); emit({ phase: 'error', message: 'HTTP readiness timed out', error: 'HTTP readiness timed out' }); window.__idiot.fail?.(new Error('HTTP readiness timed out')); }
+    if (state === 'failed') { emit({ phase: 'starting', message: 'Starting application' }); emit({ phase: 'checking', message: 'Waiting for application HTTP readiness', localUrl: 'http://127.0.0.1:49213' }); emit({ phase: 'stopping', message: 'Cleaning up failed hosting session' }); emit({ phase: 'error', message: 'HTTP readiness timed out', error: 'HTTP readiness timed out' }); window.__screens.fail?.(new Error('HTTP readiness timed out')); }
   }
   const act = q.get('act');
   const tick = () => new Promise(r => setTimeout(r, 120));
