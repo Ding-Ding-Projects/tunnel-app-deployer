@@ -30,7 +30,9 @@ jobs:
         id: version
         run: |
           base=$(node -p "require('./package.json').version.split('.').slice(0,2).join('.')")
-          last=$(git tag --list "v${base}.*" | sed "s/^v${base}\.//" | { grep -E '^[0-9]+$' || true; } | sort -n | tail -1)
+          # Read tags from the remote at this moment, not from the checkout, so a release published
+          # by the previous run is always seen.
+          last=$(git ls-remote --tags --refs origin "refs/tags/v${base}.*" | sed "s#.*refs/tags/v${base}\.##" | { grep -E '^[0-9]+$' || true; } | sort -n | tail -1)
           next="${base}.$(( ${last:--1} + 1 ))"
           echo "version=$next" >> "$GITHUB_OUTPUT"
           echo "Next version: $next"
