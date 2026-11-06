@@ -13,7 +13,9 @@ async function inspectSource(input, run, signal) {
     const dockerfilePath = path.resolve(contextPath, input.dockerfilePath || 'Dockerfile');
     if (!(await fs.stat(contextPath)).isDirectory()) throw new Error('Build context must be a directory');
     const contents = await fs.readFile(dockerfilePath, 'utf8');
-    const exposed = [...contents.matchAll(/^\s*EXPOSE\s+([^\r\n]+)/gim)].flatMap(m => m[1].split(/\s+/)).filter(v => /^\d+(\/tcp)?$/.test(v)).map(v => port(v.split('/')[0]));
+    const stages = [...contents.matchAll(/^\s*FROM\s+/gim)];
+    const finalStage = stages.length ? contents.slice(stages.at(-1).index) : contents;
+    const exposed = [...finalStage.matchAll(/^\s*EXPOSE\s+([^\r\n]+)/gim)].flatMap(m => m[1].split(/\s+/)).filter(v => /^\d+(\/tcp)?$/.test(v)).map(v => port(v.split('/')[0]));
     const unique = [...new Set(exposed)];
     const containerPort = input.containerPort ? port(input.containerPort) : unique.length === 1 ? unique[0] : null;
     return { kind: 'dockerfile', contextPath, dockerfilePath, containerPort, needsPort: !containerPort };

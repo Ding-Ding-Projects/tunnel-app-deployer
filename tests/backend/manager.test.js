@@ -94,3 +94,46 @@ test('compose preserves service data and removes original host publications', as
   assert.equal(generated.volumes.data.name, undefined);
   assert.ok(calls.some(args => args.includes('down') && !args.includes('-v')));
 });
+test('stop waits for the active host operation before final resource cleanup', async t => {
+  const { source } = await fixture(t);
+  let release, buildStarted;
+  const enteredBuild = new Promise(resolve => { buildStarted = resolve; });
+  const calls = [];
+  const manager = createHostManager({ stateDir: source.contextPath, cloudflaredCommand: 'cloudflared', run: async (_command, args, options) => {
+    calls.push(args[0]);
+    if (args[0] === 'build') {
+      buildStarted();
+      await new Promise(resolve => { release = resolve; });
+      if (options.signal.aborted) throw new Error('Operation cancelled');
+    }
+    return '';
+  } });
+  const hosting = manager.host(source);
+  const hostingRejected = assert.rejects(hosting, /cancelled/);
+  await enteredBuild;
+  let stopped = false;
+  const stopping = manager.stop().then(() => { stopped = true; });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(stopped, false);
+  release();
+  await Promise.all([hostingRejected, stopping]);
+  assert.equal(manager.status().phase, 'idle');
+  assert.ok(!calls.includes('run'));
+  assert.equal(calls.at(-1), 'image');
+});
+test('ongoing local health failure invalidates a previously verified public link', async t => {
+  let localHealthy = true;
+  const { manager, source } = await fixture(t, { monitorIntervalMs: 5, fetch: async url => ({ status: url.includes('127.0.0.1') && !localHealthy ? 503 : 200 }) });
+  await manager.host(source);
+  localHealthy = false;
+  await new Promise(resolve => setTimeout(resolve, 20));
+  assert.equal(manager.status().phase, 'error');
+  assert.equal(manager.status().publicUrl, null);
+  assert.equal(manager.status().verified, false);
+  await manager.stop();
+});
+test('port inference ignores EXPOSE in earlier build stages', async t => {
+  const { manager, source } = await fixture(t);
+  await fs.writeFile(path.join(source.contextPath, 'Dockerfile'), 'FROM base AS build\nEXPOSE 8080\nFROM scratch\nCOPY --from=build /app /app\n');
+  assert.equal((await manager.inspectSource(source)).needsPort, true);
+});
