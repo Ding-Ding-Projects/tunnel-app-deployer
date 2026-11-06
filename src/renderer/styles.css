@@ -439,3 +439,10 @@ textarea.area:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 1px var(
 
 .article pre{background:var(--s2);border-radius:12px;padding:12px 16px;overflow-x:auto;max-width:720px}
 .article pre code{background:none;padding:0}
+
+.update-banner{border-radius:20px;background:var(--pc);color:var(--onpc);padding:12px 14px 12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;animation:drop var(--t4) var(--e) both}
+.update-banner .txt{flex:1;min-width:200px}
+.update-banner small{display:block;opacity:.9}
+.update-banner a{color:var(--onpc)}
+.btn.on-pc-text{color:var(--onpc)}
+.state-card{display:flex;flex-direction:column;gap:6px;background:var(--s2);border-radius:16px;padding:14px 16px;grid-column:1/-1;margin:8px 0}

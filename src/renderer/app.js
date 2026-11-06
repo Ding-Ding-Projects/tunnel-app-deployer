@@ -227,7 +227,7 @@ function fmtTime(iso) {
 }
 function renderProvenance() {
   const built = info.buildTime ? `${t('top.built')} ${fmtTime(info.buildTime)}` : t('top.buildUnknown');
-  $('provenance').textContent = `${appName()} ${info.version ? 'v' + info.version : ''} · ${built}`;
+  $('provenance').textContent = `${appName()} ${info.version ? 'v' + info.version : ''}${info.codeName ? ` (${info.codeName.en})` : ''} · ${built}`;
 }
 
 // ---------- hosting ----------
@@ -597,7 +597,7 @@ function settingItem([key, type, a, b, c]) {
   else if (type === 'schedules') return `<div class="item" data-key="schedules">${lab}<button class="chip" data-act="sched-add"><span class="ms">add</span>${esc(t('set.schedule.add'))}</button>${explain}<div class="sched">${settings.schedules.map((r, i) => `<div class="srule ${activeSchedule()?.id === r.id ? 'active' : ''}"><input class="input" data-sched="${i}" data-f="name" value="${esc(r.name)}" maxlength="40" aria-label="${esc(t('set.schedule.name'))}"><label class="mini">${esc(t('set.schedule.from'))}<input type="time" data-sched="${i}" data-f="from" value="${esc(r.from)}"></label><label class="mini">${esc(t('set.schedule.to'))}<input type="time" data-sched="${i}" data-f="to" value="${esc(r.to)}"></label><span class="vals">${SCHED_KEYS.map(([k, opts]) => `<label class="mini">${esc(t(lk(k)))}<select class="select" data-sched="${i}" data-v="${k}"><option value="">${esc(t('set.schedule.unchanged'))}</option>${opts.map(o => `<option value="${o}" ${r.values[k] === o ? 'selected' : ''}>${esc(['on', 'off'].includes(o) ? o : optionLabel(k, o))}</option>`).join('')}</select></label>`).join('')}</span><input type="checkbox" role="switch" class="switch" data-sched="${i}" data-f="on" ${r.on ? 'checked' : ''} aria-label="${esc(r.name)}"><button class="icon-btn" data-sched-remove="${i}" aria-label="${esc(t('set.schedule.remove'))}"><span class="ms">delete</span></button>${activeSchedule()?.id === r.id ? `<span class="small ok-text">${esc(t('set.schedule.active'))}</span>` : ''}</div>`).join('')}</div></div>`;
   else if (type === 'history') return `<div class="item"><span class="lab"><strong>${label('set.history')}</strong><span class="d">${label('set.history.d')}</span></span><span></span><div class="hist">${history.slice().reverse().slice(0, 50).map((h, i) => `<div class="hrow"><span><b>${esc(fmtTime(h.at))}</b> · ${esc(h.label || h.changed.join(', '))}</span>${i ? `<button class="chip" data-restore="${esc(h.at)}"><span class="ms">history</span>${esc(t('set.restore'))}</button>` : ''}</div>`).join('')}</div></div>`;
   else if (type === 'exports') return `<div class="item"><span class="lab"><strong>${label('sessions.export')}</strong></span><span class="tools"><button class="chip" data-act="exp-settings"><span class="ms">download</span>${esc(t('set.exportSettings'))}</button><button class="chip" data-act="exp-history"><span class="ms">download</span>${esc(t('set.exportHistory'))}</button><button class="chip" data-act="exp-notif"><span class="ms">download</span>${esc(t('set.exportNotifications'))}</button><button class="chip danger" data-act="clear-sessions"><span class="ms">delete_sweep</span>${esc(t('set.clearSessions'))}</button><button class="chip danger" data-act="reset-all"><span class="ms">restart_alt</span>${esc(t('set.resetAll'))}</button></span></div>`;
-  else if (type === 'about') return `<div class="item"><dl class="kv"><dt>${esc(t('set.version'))}</dt><dd>${esc(info.version || '—')}</dd><dt>${esc(t('set.build'))}</dt><dd>${esc(info.buildTime ? fmtTime(info.buildTime) : t('top.buildUnknown'))}</dd><dt>${esc(t('set.commit'))}</dt><dd>${info.commit ? `<a href="${esc(C.changelog.repository)}/commit/${esc(info.commit)}" data-external="true">${esc(info.commit.slice(0, 7))}</a>` : '—'}</dd></dl><span class="tools"><button class="chip" data-act="tour"><span class="ms">tour</span>${esc(t('set.onboarding'))}</button></span><p class="muted small">${esc(t('set.free'))}</p></div>`;
+  else if (type === 'about') return `<div class="item"><dl class="kv"><dt>${esc(t('set.version'))}</dt><dd>${esc(info.version || '—')}</dd><dt>${esc(t('set.codeName'))}</dt><dd>${info.codeName ? `<a href="${esc(info.codeName.photo)}" data-external="true">${esc(info.codeName.en)} · ${esc(info.codeName.zhHant)}</a>` : esc(t('set.codeName.none'))}</dd><dt>${esc(t('set.build'))}</dt><dd>${esc(info.buildTime ? fmtTime(info.buildTime) : t('top.buildUnknown'))}</dd><dt>${esc(t('set.commit'))}</dt><dd>${info.commit ? `<a href="${esc(C.changelog.repository)}/commit/${esc(info.commit)}" data-external="true">${esc(info.commit.slice(0, 7))}</a>` : '—'}</dd></dl>${updatesCard()}<span class="tools"><button class="chip" data-act="tour"><span class="ms">tour</span>${esc(t('set.onboarding'))}</button></span><p class="muted small">${esc(t('set.free'))}</p></div>`;
   else if (type === 'changelog') return `<div class="item"><span class="lab"><strong>${label('set.changelog')}</strong></span><span class="dates"><label class="small muted">${esc(t('set.from'))} <input type="date" data-cl="from" value="${clFrom}"></label><label class="small muted">${esc(t('set.to'))} <input type="date" data-cl="to" value="${clTo}"></label></span><div class="cl"><div id="changelog-search-slot"></div><div id="cl-list" class="cl"></div></div></div>`;
   return `<div class="item" data-key="${key}">${lab}${control}${explain}</div>`;
 }
@@ -629,6 +629,7 @@ function bindSettings() {
     'clear-sessions': () => confirmAction({ titleKey: 'confirm.clear.title', bodyKey: 'confirm.clear.body', affects: `${sessions.length} ${t('sessions.title')}`, run: () => { sessions = sessions.filter(s => s.outcome === 'running'); saveSessions(); notify('toast.cleared', 'ok'); renderSettings(); } }),
     'reset-all': () => confirmAction({ titleKey: 'confirm.reset.title', bodyKey: 'confirm.reset.body', run: () => { settings = { ...DEFAULTS }; store.set('settings', settings); recordRevision(Object.keys(DEFAULTS), 'reset all'); applySettings(); notify('toast.reset', 'ok'); } }),
     tour: () => openOnboarding(0),
+    'check-updates': () => checkUpdates(),
     'test-voice': () => { const was = settings.narrator; settings.narrator = true; lastSpoken = { text: '', at: 0 }; narrate(plainBoth('toast.live')); settings.narrator = was; },
     'vocab-upload': () => $('file-vocab').click(),
     'vocab-clear': () => { vocab = null; try { localStorage.removeItem('tad.vocab'); } catch {} applySettings(); notify('toast.cleared', 'ok'); },
@@ -796,6 +797,8 @@ function allCommands() {
   act('stop_circle', plainBoth('host.stop'), () => $('stop-btn').click(), 'Ctrl .', live);
   act('close', plainBoth('host.cancel'), doStop, '', () => (busy || active()) && !live());
   act('refresh', plainBoth('req.again'), checkRequirements);
+  act('system_update_alt', plainBoth('upd.check'), checkUpdates);
+  act('restart_alt', plainBoth('upd.restart'), () => $('upd-restart').click(), '', () => updates.state === 'ready');
   act('notifications', plainBoth('top.notifications'), openNotifications);
   act(isDark() ? 'light_mode' : 'dark_mode', plainBoth('top.theme'), () => setSetting('theme', isDark() ? 'light' : 'dark'));
   for (const f of ['json', 'csv', 'markdown']) act('download', `${plainBoth('sessions.export')} ${plainBoth('sessions.title')} (${f.toUpperCase()})`, () => exportSessions(sessions, f));
@@ -1017,6 +1020,32 @@ $('b64-save').onclick = () => toolState.b64Out && saveFile(toolState.mode === 'e
 $('conv-copy').onclick = () => toolState.convOut && copyText(toolState.convOut).then(ok => ok && notify('toast.copied', 'ok'));
 $('conv-save').onclick = () => toolState.convOut && saveFile(`converted.${{ markdown: 'md', json: 'json', csv: 'csv', tsv: 'tsv' }[toolState.to]}`, toolState.convOut);
 
+
+// ---------- updates ----------
+let updates = { state: 'unavailable' }, updateDismissed = null;
+function updatesCard() {
+  const st = updates.state;
+  return `<div class="state-card"><strong>${esc(t('upd.title'))}</strong><p class="small ${st === 'failed' ? 'bad-text' : st === 'ready' || st === 'current' ? 'ok-text' : 'muted'}" role="status">${esc(t('upd.state.' + st))}${st === 'failed' && updates.error ? `: ${esc(updates.error)}` : ''}</p>${updates.checkedAt ? `<p class="small muted">${esc(t('upd.lastCheck'))}: ${esc(fmtTime(updates.checkedAt))}</p>` : ''}<p class="small muted">${esc(t('upd.hashNote'))}</p><span class="tools"><button class="chip" data-act="check-updates" ${st === 'unavailable' || st === 'checking' || st === 'downloading' ? 'disabled' : ''}><span class="ms">refresh</span>${esc(t('upd.check'))}</button>${updates.notesUrl ? `<a class="chip" href="${esc(updates.notesUrl)}" data-external="true"><span class="ms">article</span>${esc(t('upd.notes'))}</a>` : ''}</span></div>`;
+}
+function renderUpdate() {
+  const show = updates.state === 'ready' && updateDismissed !== (updates.version || 'ready');
+  $('update-banner').hidden = !show;
+  if (show) {
+    $('upd-title').textContent = updates.version ? t('upd.ready').replace('{v}', updates.version) : t('upd.readyNoVersion');
+    $('upd-unsigned').textContent = `${t('upd.unsigned')}${live() ? ' ' + t('upd.stopFirst') : ''}`;
+    $('upd-notes').textContent = t('upd.notes'); $('upd-notes').hidden = !updates.notesUrl; $('upd-notes').href = updates.notesUrl || '#';
+    $('upd-later').textContent = t('upd.later'); $('upd-restart-label').textContent = t('upd.restart');
+  }
+  if (view === 'settings' && settingsGroup === 'about') renderSettings();
+}
+async function checkUpdates() { try { updates = await api.checkUpdates(); } catch (e) { updates = { state: 'failed', error: e.message }; } renderUpdate(); }
+$('upd-later').onclick = () => { updateDismissed = updates.version || 'ready'; renderUpdate(); $('main').focus(); };
+$('upd-restart').onclick = () => {
+  const go = async () => { try { await api.installUpdate(); } catch (e) { notify(e.message, 'error'); } };
+  if (live() || active()) confirmAction({ titleKey: 'upd.restart', bodyKey: 'upd.stopFirst', affectsKey: 'confirm.stop.affects', from: $('upd-restart'), run: go }); else go();
+};
+api?.onUpdate?.(u => { const wasReady = updates.state === 'ready'; updates = u; if (u.state === 'ready' && !wasReady) notify(updates.version ? t('upd.ready').replace('{v}', updates.version) : t('upd.readyNoVersion'), 'info'); if (u.state === 'failed') notify(`${t('upd.state.failed')}: ${u.error || ''}`, 'warn'); renderUpdate(); });
+
 // ---------- keyboard ----------
 document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
@@ -1063,6 +1092,8 @@ renderBadge();
 (async () => {
   try { info = await api.info(); } catch {}
   try { editors = await api.editors(); } catch { editors = []; }
+  try { updates = await api.updateState(); } catch {}
+  renderUpdate();
   runSchedules();
   renderProvenance();
   await Promise.all([checkRequirements(), refreshStatus()]);

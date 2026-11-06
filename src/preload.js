@@ -14,6 +14,10 @@ contextBridge.exposeInMainWorld('tunnel', Object.freeze({
   openLink: url => ipcRenderer.invoke('app:open-link', String(url)),
   editors: () => ipcRenderer.invoke('app:editors'),
   openProject: action => ipcRenderer.invoke('app:open-project', String(action)),
+  updateState: () => ipcRenderer.invoke('app:update-state'),
+  checkUpdates: () => ipcRenderer.invoke('app:update-check'),
+  installUpdate: () => ipcRenderer.invoke('app:update-install'),
+  onUpdate: callback => { const listener = (_event, value) => callback(value); ipcRenderer.on('app:update', listener); return () => ipcRenderer.removeListener('app:update', listener); },
   save: (name, content) => ipcRenderer.invoke('app:save', String(name), String(content)),
   onProgress: callback => {
     const listener = (_event, value) => callback(value);

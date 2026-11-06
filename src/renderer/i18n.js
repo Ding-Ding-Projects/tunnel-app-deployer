@@ -161,7 +161,15 @@
     'set.schedule.remove': 'Remove', 'set.schedule.name': 'Name', 'set.schedule.applied': 'Schedule applied',
     'editor.vscode': 'Open folder in VS Code', 'editor.default': 'Open file in default editor', 'editor.reveal': 'Show in file manager',
     'editor.missing': 'Visual Studio Code was not found on this computer.', 'editor.download': 'Get VS Code',
-    'ctx.quick': 'Quick settings'
+    'ctx.quick': 'Quick settings',
+    'upd.ready': 'Version {v} is ready to install', 'upd.readyNoVersion': 'An update is ready to install',
+    'upd.unsigned': 'Unsigned build: Windows may show an unknown-publisher warning.', 'upd.notes': 'Read what changed',
+    'upd.later': 'Later', 'upd.restart': 'Restart to install update', 'upd.check': 'Check for updates', 'upd.title': 'Updates',
+    'upd.state.idle': 'Waiting for the first check.', 'upd.state.checking': 'Checking the release feed…', 'upd.state.downloading': 'Downloading and checking the update…',
+    'upd.state.current': 'You have the latest version.', 'upd.state.ready': 'Update downloaded and its hash matched the release feed. It installs when you restart.',
+    'upd.state.failed': 'The update check failed', 'upd.state.unavailable': 'Updates work in the installed app. This copy was not installed with the setup program.',
+    'upd.lastCheck': 'Last checked', 'upd.hashNote': 'Updates are unsigned. Their hashes are checked against the release feed, which proves they are intact, not who made them.',
+    'upd.stopFirst': 'Restarting stops sharing first.', 'set.codeName': 'Code name', 'set.codeName.none': 'No code name for this build.'
   };
   const yue = {
     'app.name': 'Tunnel App Deployer',
@@ -319,7 +327,15 @@
     'set.schedule.remove': '刪除', 'set.schedule.name': '名稱', 'set.schedule.applied': '已套用時間表',
     'editor.vscode': '用 VS Code 打開資料夾', 'editor.default': '用預設編輯器打開檔案', 'editor.reveal': '喺檔案管理員顯示',
     'editor.missing': '呢部電腦搵唔到 Visual Studio Code。', 'editor.download': '下載 VS Code',
-    'ctx.quick': '快速設定'
+    'ctx.quick': '快速設定',
+    'upd.ready': '版本 {v} 可以安裝', 'upd.readyNoVersion': '有更新可以安裝',
+    'upd.unsigned': '未簽署版本：Windows 可能會顯示發行者不明警告。', 'upd.notes': '睇下改咗乜',
+    'upd.later': '遲啲先', 'upd.restart': '重新啟動安裝更新', 'upd.check': '檢查更新', 'upd.title': '更新',
+    'upd.state.idle': '等緊第一次檢查。', 'upd.state.checking': '檢查緊發佈資料…', 'upd.state.downloading': '下載緊同檢查緊更新…',
+    'upd.state.current': '已經係最新版本。', 'upd.state.ready': '更新已下載，雜湊同發佈資料吻合。重新啟動就會安裝。',
+    'upd.state.failed': '檢查更新失敗', 'upd.state.unavailable': '安裝版先可以自動更新。呢份唔係用安裝程式裝嘅。',
+    'upd.lastCheck': '上次檢查', 'upd.hashNote': '更新未經簽署。雜湊會同發佈資料核對，證明檔案完整，但唔證明係邊個製作。',
+    'upd.stopFirst': '重新啟動前會先停止分享。', 'set.codeName': '代號', 'set.codeName.none': '呢個版本冇代號。'
   };
   const tiers = level => level <= 2 ? 's' : level === 3 ? 'w' : 'p';
   function pick(table, key, level) {

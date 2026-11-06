@@ -33,7 +33,7 @@ function validateSave(name, content) {
   if (typeof content !== 'string' || content.length > 5 * 1024 * 1024) throw new Error('Invalid file content.');
   return { name, ext, content };
 }
-const LINK_PREFIXES = ['https://github.com/Ding-Ding-Projects/tunnel-app-deployer', 'https://ding-ding-projects.github.io/tunnel-app-deployer', 'https://developers.cloudflare.com/tunnel/', 'https://code.visualstudio.com/'];
+const LINK_PREFIXES = ['https://github.com/Ding-Ding-Projects/dim-sum-photos', 'https://github.com/Ding-Ding-Projects/tunnel-app-deployer', 'https://ding-ding-projects.github.io/tunnel-app-deployer', 'https://developers.cloudflare.com/tunnel/', 'https://code.visualstudio.com/'];
 function isAllowedLink(value) {
   try {
     const url = new URL(value);
@@ -57,10 +57,24 @@ function detectEditors({ platform = process.platform, env = process.env, exists 
   const seen = new Set();
   return candidates.filter(c => { const key = path.normalize(c.path).toLowerCase(); if (seen.has(key) || !exists(c.path)) return false; seen.add(key); return true; });
 }
+// Squirrel.Windows runs the app with these flags during install, update and uninstall.
+function squirrelCommand(argv, execPath) {
+  const cmd = argv[1];
+  if (typeof cmd !== 'string' || !cmd.startsWith('--squirrel-')) return null;
+  const update = path.win32.resolve(path.win32.dirname(execPath), '..', 'Update.exe'), exe = path.win32.basename(execPath);
+  if (cmd === '--squirrel-install' || cmd === '--squirrel-updated') return { update, args: ['--createShortcut', exe], quit: true };
+  if (cmd === '--squirrel-uninstall') return { update, args: ['--removeShortcut', exe], quit: true };
+  if (cmd === '--squirrel-obsolete') return { quit: true };
+  return { quit: false };
+}
+const UPDATE_FEED = 'https://github.com/Ding-Ding-Projects/tunnel-app-deployer/releases/latest/download';
+const UPDATE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 function readBuildInfo(file) {
   try {
     const data = JSON.parse(require('node:fs').readFileSync(file, 'utf8'));
-    return { version: typeof data.version === 'string' ? data.version : null, buildTime: typeof data.buildTime === 'string' && !isNaN(Date.parse(data.buildTime)) ? data.buildTime : null, commit: typeof data.commit === 'string' && /^[0-9a-f]{40}$/.test(data.commit) ? data.commit : null };
+    const c = data.codeName;
+    const codeName = c && typeof c.en === 'string' && typeof c.zhHant === 'string' && /^hk-dish-\d+$/.test(c.id || '') && /^https:\/\/github\.com\/Ding-Ding-Projects\/dim-sum-photos\/releases\/download\//.test(c.photo || '') ? { id: c.id, en: c.en.slice(0, 120), zhHant: c.zhHant.slice(0, 60), photo: c.photo } : null;
+    return { version: typeof data.version === 'string' ? data.version : null, buildTime: typeof data.buildTime === 'string' && !isNaN(Date.parse(data.buildTime)) ? data.buildTime : null, commit: typeof data.commit === 'string' && /^[0-9a-f]{40}$/.test(data.commit) ? data.commit : null, codeName };
   } catch { return null; }
 }
 function validSender(event, window, pageUrl) {
@@ -70,6 +84,11 @@ function validSender(event, window, pageUrl) {
 async function start() {
   const { app, BrowserWindow, ipcMain, dialog, shell, clipboard } = require('electron');
   const { createHostManager } = require('./backend');
+  if (process.platform === 'win32') {
+    const squirrel = squirrelCommand(process.argv, process.execPath);
+    if (squirrel?.update) require('node:child_process').spawn(squirrel.update, squirrel.args, { detached: true, stdio: 'ignore' }).unref();
+    if (squirrel?.quit) { setTimeout(() => app.quit(), 1000); return; }
+  }
   if (!app.requestSingleInstanceLock()) { app.quit(); return; }
   await app.whenReady();
   const manager = createHostManager({ stateDir: path.join(app.getPath('userData'), 'hosting') });
@@ -125,7 +144,34 @@ async function start() {
     return status.publicUrl;
   };
   const build = readBuildInfo(path.join(__dirname, 'build-info.json'));
-  handle('app:info', () => ({ version: build?.version || app.getVersion(), buildTime: build?.buildTime || null, commit: build?.commit || null }));
+  handle('app:info', () => ({ version: build?.version || app.getVersion(), buildTime: build?.buildTime || null, commit: build?.commit || null, codeName: build?.codeName || null }));
+  // Updates: Squirrel.Windows checks the unsigned feed, verifies the package hash from RELEASES,
+  // stages the update and reports each state; installing waits for the person to choose it.
+  const { autoUpdater, net } = require('electron');
+  const installed = process.platform === 'win32' && app.isPackaged && require('node:fs').existsSync(path.resolve(path.dirname(process.execPath), '..', 'Update.exe'));
+  const updates = { state: installed ? 'idle' : 'unavailable', version: null, notesUrl: null, error: null, checkedAt: null };
+  const sendUpdate = () => { if (window && !window.isDestroyed()) window.webContents.send('app:update', { ...updates }); };
+  const setUpdate = patch => { Object.assign(updates, patch); sendUpdate(); };
+  const latestRelease = async () => { try { const r = await net.fetch('https://api.github.com/repos/Ding-Ding-Projects/tunnel-app-deployer/releases/latest', { headers: { Accept: 'application/vnd.github+json' } }); if (!r.ok) return null; const j = await r.json(); return { version: String(j.tag_name || '').replace(/^v/, ''), notesUrl: isAllowedLink(j.html_url) ? j.html_url : null }; } catch { return null; } };
+  const checkUpdates = () => { if (!installed || ['checking', 'downloading', 'ready'].includes(updates.state)) return { ...updates }; setUpdate({ state: 'checking', error: null }); try { autoUpdater.checkForUpdates(); } catch (e) { setUpdate({ state: 'failed', error: e.message }); } return { ...updates }; };
+  if (installed) {
+    autoUpdater.setFeedURL({ url: UPDATE_FEED });
+    autoUpdater.on('update-available', () => setUpdate({ state: 'downloading' }));
+    autoUpdater.on('update-not-available', () => setUpdate({ state: 'current', checkedAt: new Date().toISOString() }));
+    autoUpdater.on('update-downloaded', async () => { const info = await latestRelease(); setUpdate({ state: 'ready', checkedAt: new Date().toISOString(), version: info?.version || null, notesUrl: info?.notesUrl || null }); });
+    autoUpdater.on('error', e => setUpdate({ state: 'failed', error: String(e?.message || e).slice(0, 500), checkedAt: new Date().toISOString() }));
+    setTimeout(checkUpdates, 15000);
+    setInterval(checkUpdates, UPDATE_INTERVAL_MS).unref?.();
+  }
+  handle('app:update-state', () => ({ ...updates }));
+  handle('app:update-check', () => checkUpdates());
+  handle('app:update-install', async () => {
+    if (updates.state !== 'ready') throw new Error('No update is ready to install.');
+    await stop();
+    closing = true;
+    autoUpdater.quitAndInstall();
+    return true;
+  });
   handle('app:copy-text', text => { if (typeof text !== 'string' || text.length > 20000) throw new Error('Invalid text.'); clipboard.writeText(text); return true; });
   handle('app:set-title', title => { if (typeof title !== 'string' || title.length > 80) throw new Error('Invalid title.'); window.setTitle(title.trim() || 'Tunnel App Deployer'); return true; });
   handle('app:open-link', async url => { if (!isAllowedLink(url)) throw new Error('This link cannot be opened.'); await shell.openExternal(url); return true; });
@@ -173,4 +219,4 @@ async function start() {
   createWindow();
 }
 if (require.main === module || (process.versions.electron && process.type === 'browser')) start().catch(error => { console.error(error.message); process.exitCode = 1; });
-module.exports = { isTunnelUrl, validateOptions, validSender, validateSave, isAllowedLink, readBuildInfo, detectEditors };
+module.exports = { isTunnelUrl, validateOptions, validSender, validateSave, isAllowedLink, readBuildInfo, detectEditors, squirrelCommand };

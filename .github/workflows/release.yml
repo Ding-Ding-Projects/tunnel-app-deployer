@@ -36,11 +36,17 @@ jobs:
           next="${base}.$(( ${last:--1} + 1 ))"
           echo "version=$next" >> "$GITHUB_OUTPUT"
           echo "Next version: $next"
+      - name: Choose the dim sum code name
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node scripts/dim-sum-code-name.mjs > code-name.json
+          cat code-name.json
       - name: Stamp version and build record
         run: |
           npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
-          node scripts/write-build-info.mjs "${{ steps.version.outputs.version }}" "$GITHUB_SHA"
-      - name: Build Windows portable executable
+          node scripts/write-build-info.mjs "${{ steps.version.outputs.version }}" "$GITHUB_SHA" code-name.json
+      - name: Build the Squirrel.Windows installer
         run: npm run package:win -- --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
@@ -50,11 +56,18 @@ jobs:
           elapsed=$(( $(date +%s) - STARTED_AT ))
           counts=$(node scripts/count-lines.mjs)
           {
-            echo "Tunnel App Deployer $v, built from commit $GITHUB_SHA."
+            name=$(node -p "const c=require('./code-name.json'); c.ok ? c.en + ' · ' + c.zhHant : ''")
+            if [ -n "$name" ]; then echo "Tunnel App Deployer $v, code name **$name**, built from commit $GITHUB_SHA."; else echo "Tunnel App Deployer $v, built from commit $GITHUB_SHA."; fi
             echo
             echo "## Download"
             echo
-            echo "Windows portable executable: Tunnel-App-Deployer-$v-x64.exe. It is unsigned; Windows may ask before the first launch. Docker must be installed and running."
+            echo "Run **Tunnel-App-Deployer-Setup-$v.exe** to install. Installed copies update themselves from this release feed (\`RELEASES\` and the full \`.nupkg\`). Delta packages are not generated yet."
+            echo
+            echo "These files are unsigned. Windows may show an unknown-publisher or SmartScreen warning. Package hashes are checked against \`RELEASES\`, which proves the download is intact, not who published it. Docker must be installed and running."
+            echo
+            echo "## Code name"
+            echo
+            node -e "const c=require('./code-name.json'); console.log(c.ok ? '- ' + c.en + ' · ' + c.zhHant + '\\n- Dish id: ' + c.id + '\\n- Photo: ' + c.photo + '\\n- Catalogue: ' + c.catalog : 'No code name for this release: ' + c.reason)"
             echo
             echo "## Checks"
             echo
@@ -76,5 +89,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           v="${{ steps.version.outputs.version }}"
-          ls dist/*.exe
-          gh release create "v$v" dist/*.exe --target "$GITHUB_SHA" --title "Tunnel App Deployer $v" --notes-file notes.md
+          ls -la dist/squirrel-windows
+          gh release create "v$v" dist/squirrel-windows/*.exe dist/squirrel-windows/RELEASES dist/squirrel-windows/*.nupkg --target "$GITHUB_SHA" --title "Tunnel App Deployer $v" --notes-file notes.md

@@ -28,9 +28,9 @@ test('build provenance is read only from a well-formed record', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tad-'));
   const file = path.join(dir, 'build-info.json');
   fs.writeFileSync(file, JSON.stringify({ version: '0.2.5', buildTime: '2026-11-06T20:58:21Z', commit: 'a'.repeat(40) }));
-  assert.deepEqual(readBuildInfo(file), { version: '0.2.5', buildTime: '2026-11-06T20:58:21Z', commit: 'a'.repeat(40) });
+  assert.deepEqual(readBuildInfo(file), { version: '0.2.5', buildTime: '2026-11-06T20:58:21Z', commit: 'a'.repeat(40), codeName: null });
   fs.writeFileSync(file, JSON.stringify({ version: 5, buildTime: 'yesterday', commit: 'abc' }));
-  assert.deepEqual(readBuildInfo(file), { version: null, buildTime: null, commit: null });
+  assert.deepEqual(readBuildInfo(file), { version: null, buildTime: null, commit: null, codeName: null });
   assert.equal(readBuildInfo(path.join(dir, 'missing.json')), null);
 });
 
@@ -135,4 +135,34 @@ test('editor detection finds real installs without running anything', () => {
 
 test('markdown code fences are escaped', () => {
   assert.match(Markdown.render('```\n<b>{"a":1}</b>\n```'), /<pre><code>&lt;b&gt;\{&quot;a&quot;:1\}&lt;\/b&gt;<\/code><\/pre>/);
+});
+
+test('Squirrel install events create and remove shortcuts, then quit', () => {
+  const { squirrelCommand } = require('../../src/main');
+  const exe = 'C:\\Users\\a\\AppData\\Local\\TunnelAppDeployer\\app-0.2.9\\Tunnel App Deployer.exe';
+  assert.deepEqual(squirrelCommand(['x', '--squirrel-install'], exe), { update: 'C:\\Users\\a\\AppData\\Local\\TunnelAppDeployer\\Update.exe', args: ['--createShortcut', 'Tunnel App Deployer.exe'], quit: true });
+  assert.deepEqual(squirrelCommand(['x', '--squirrel-uninstall'], exe).args, ['--removeShortcut', 'Tunnel App Deployer.exe']);
+  assert.deepEqual(squirrelCommand(['x', '--squirrel-obsolete'], exe), { quit: true });
+  assert.deepEqual(squirrelCommand(['x', '--squirrel-firstrun'], exe), { quit: false });
+  assert.equal(squirrelCommand(['x'], exe), null);
+  assert.equal(squirrelCommand(['x', 'C:\\project'], exe), null);
+});
+
+test('release code names are read only from the public catalogue record', () => {
+  const { readBuildInfo } = require('../../src/main');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tad-'));
+  const file = path.join(dir, 'build-info.json');
+  const good = { id: 'hk-dish-0001', en: 'Classic Har Gow', zhHant: '蝦餃', photo: 'https://github.com/Ding-Ding-Projects/dim-sum-photos/releases/download/catalog-v1/hk-dish-0001-classic-har-gow.png' };
+  fs.writeFileSync(file, JSON.stringify({ version: '0.2.9', buildTime: '2026-11-06T22:00:00Z', commit: 'b'.repeat(40), codeName: good }));
+  assert.deepEqual(readBuildInfo(file).codeName, good);
+  fs.writeFileSync(file, JSON.stringify({ version: '0.2.9', codeName: { ...good, photo: 'https://evil.test/x.png' } }));
+  assert.equal(readBuildInfo(file).codeName, null);
+});
+
+test('the dish picker skips used dishes and dishes without a published photo', async () => {
+  const { pickDish } = await import(path.join(root, 'scripts/dim-sum-code-name.mjs'));
+  const dish = (n, file) => ({ id: `hk-dish-000${n}`, name: { en: `Dish ${n}`, zhHant: '點心' }, image: { path: `images/${file}` } });
+  const dishes = [dish(1, 'a.png'), dish(2, 'b.png'), dish(3, 'c.png')];
+  assert.equal(pickDish(dishes, new Set(['a.png', 'c.png']), new Set(['hk-dish-0001'])).id, 'hk-dish-0003');
+  assert.equal(pickDish(dishes, new Set(['b.png']), new Set(['hk-dish-0002'])), null);
 });
