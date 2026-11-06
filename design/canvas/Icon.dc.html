@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>App icon</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{font-family:"Roboto Flex",system-ui,sans-serif;width:800px;height:800px;display:grid;grid-template-rows:1fr auto;background:#0e1513;color:#dde4e1;box-sizing:border-box}
+.hero{display:grid;place-items:center}
+.hero svg{width:300px;height:300px;filter:drop-shadow(0 24px 40px #0008);animation:in .6s cubic-bezier(.2,0,0,1) both}
+@keyframes in{from{opacity:0;transform:scale(.9)}}
+.sizes{display:grid;grid-template-columns:1fr 1fr}
+.ground{display:flex;gap:28px;align-items:flex-end;justify-content:center;padding:32px 20px}
+.ground.light{background:#f5fbf8;color:#3f4946}
+.ground.dark{background:#161d1b;color:#bec9c4}
+.sz{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</helmet>
+<div class="app">
+<div class="hero"><svg viewBox="0 0 256 256" role="img" aria-label="Tunnel App Deployer icon"><rect x="8" y="8" width="240" height="240" rx="64" fill="#005143"></rect><path d="M56 196 V132 a72 72 0 0 1 144 0 V196" fill="none" stroke="#9ef2db" stroke-width="22" stroke-linecap="round"></path><path d="M88 196 V138 a40 40 0 0 1 80 0 V196" fill="none" stroke="#82d5c0" stroke-width="10" stroke-linecap="round" stroke-dasharray="14 14"></path><circle cx="128" cy="196" r="14" fill="#9ef2db"></circle></svg></div>
+<div class="sizes">
+<div class="ground light"><div class="sz"><svg viewBox="0 0 256 256" width="64" height="64" aria-hidden="true"><rect x="8" y="8" width="240" height="240" rx="64" fill="#005143"></rect><path d="M56 196 V132 a72 72 0 0 1 144 0 V196" fill="none" stroke="#9ef2db" stroke-width="22" stroke-linecap="round"></path><path d="M88 196 V138 a40 40 0 0 1 80 0 V196" fill="none" stroke="#82d5c0" stroke-width="10" stroke-linecap="round" stroke-dasharray="14 14"></path><circle cx="128" cy="196" r="14" fill="#9ef2db"></circle></svg>64</div><div class="sz"><svg viewBox="0 0 256 256" width="32" height="32" aria-hidden="true"><rect x="8" y="8" width="240" height="240" rx="64" fill="#005143"></rect><path d="M56 196 V132 a72 72 0 0 1 144 0 V196" fill="none" stroke="#9ef2db" stroke-width="26" stroke-linecap="round"></path><circle cx="128" cy="196" r="18" fill="#9ef2db"></circle></svg>32</div><div class="sz"><svg viewBox="0 0 256 256" width="16" height="16" aria-hidden="true"><rect x="8" y="8" width="240" height="240" rx="64" fill="#005143"></rect><path d="M56 196 V132 a72 72 0 0 1 144 0 V196" fill="none" stroke="#9ef2db" stroke-width="32" stroke-linecap="round"></path></svg>16</div></div>
+<div class="ground dark"><div class="sz"><svg viewBox="0 0 256 256" width="64" height="64" aria-hidden="true"><rect x="8" y="8" width="240" height="240" rx="64" fill="#005143"></rect><path d="M56 196 V132 a72 72 0 0 1 144 0 V196" fill="none" stroke="#9ef2db" stroke-width="22" stroke-linecap="round"></path><path d="M88 196 V138 a40 40 0 0 1 80 0 V196" fill="none" stroke="#82d5c0" stroke-width="10" stroke-linecap="round" stroke-dasharray="14 14"></path><circle cx="128" cy="196" r="14" fill="#9ef2db"></circle></svg>64</div><div class="sz"><svg viewBox="0 0 256 256" width="32" height="32" aria-hidden="true"><rect x="8" y="8" width="240" height="240" rx="64" fill="#005143"></rect><path d="M56 196 V132 a72 72 0 0 1 144 0 V196" fill="none" stroke="#9ef2db" stroke-width="26" stroke-linecap="round"></path><circle cx="128" cy="196" r="18" fill="#9ef2db"></circle></svg>32</div><div class="sz"><svg viewBox="0 0 256 256" width="16" height="16" aria-hidden="true"><rect x="8" y="8" width="240" height="240" rx="64" fill="#005143"></rect><path d="M56 196 V132 a72 72 0 0 1 144 0 V196" fill="none" stroke="#9ef2db" stroke-width="32" stroke-linecap="round"></path></svg>16</div></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":800,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

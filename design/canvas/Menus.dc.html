@@ -15,7 +15,7 @@ body{margin:0}
 .ms{font-family:"Material Symbols Rounded";font-size:20px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0}
 .mono{font-family:"Roboto Mono",monospace}
 .url{position:absolute;left:120px;top:140px;width:560px;border-radius:20px;background:var(--pc);color:var(--onpc);padding:24px}
-.menu{position:absolute;left:380px;top:236px;width:300px;background:var(--s3);border-radius:12px;padding:8px 0;box-shadow:0 12px 32px #0008;animation:pop .2s var(--e) both;transform-origin:top left}
+.menu{position:absolute;left:380px;top:200px;width:300px;background:var(--s3);border-radius:12px;padding:8px 0;box-shadow:0 12px 32px #0008;animation:pop .2s var(--e) both;transform-origin:top left}
 @keyframes pop{from{opacity:0;transform:scale(.94)}}
 .filter{margin:0 8px 6px;height:40px;border-radius:20px;background:var(--s4);display:flex;align-items:center;gap:8px;padding:0 6px 0 12px;color:var(--onv)}
 .filter input{flex:1;background:none;border:0;color:var(--on);font:inherit;outline:none;min-width:0}
@@ -24,6 +24,14 @@ body{margin:0}
 .mi:hover,.mi.on{background:var(--s4)}
 .kbd{font-family:"Roboto Mono",monospace;font-size:11px;color:var(--onv)}
 .sep{height:1px;background:var(--ol);margin:6px 0}
+.mi.ctl{cursor:default}
+.sw{width:40px;height:24px;border-radius:12px;background:var(--s4);border:2px solid var(--ol);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:4px;left:4px;width:12px;height:12px;border-radius:50%;background:var(--ol);transition:all .25s var(--e)}
+.sw.on{background:var(--p);border-color:var(--p)}.sw.on::after{left:18px;top:2px;width:16px;height:16px;background:var(--onp)}
+.segm{display:flex;border:1px solid var(--ol);border-radius:14px;overflow:hidden}
+.segm span{font-size:12px;padding:3px 8px;color:var(--onv)}
+.segm span.on{background:var(--pc);color:var(--onpc)}
+.menu{width:340px}
 .panel{position:absolute;right:0;top:0;bottom:0;width:400px;background:var(--s1);border-radius:28px 0 0 28px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:-12px 0 40px #0006;animation:slide .35s var(--e) both}
 @keyframes slide{from{transform:translateX(40px);opacity:0}}
 .search{height:44px;border-radius:22px;background:var(--s3);display:flex;align-items:center;gap:8px;padding:0 6px 0 14px;color:var(--onv)}
@@ -46,6 +54,10 @@ body{margin:0}
 <button class="mi on" role="menuitem"><span class="ms">content_copy</span>Copy link<span class="kbd">Ctrl Shift C</span></button>
 <button class="mi" role="menuitem"><span class="ms">open_in_new</span>Open link<span class="kbd">Ctrl O</span></button>
 <button class="mi" role="menuitem"><span class="ms">search</span>Search for this<span class="kbd"></span></button>
+<div class="sep"></div>
+<div class="mi ctl" role="menuitemcheckbox" aria-checked="true"><span class="ms">volume_up</span>Action sounds<span class="sw on" aria-hidden="true"></span></div>
+<div class="mi ctl" role="group" aria-label="Theme"><span class="ms">dark_mode</span>Theme<span class="segm"><span>System</span><span>Light</span><span class="on">Dark</span></span></div>
+<div class="mi ctl" role="menuitemcheckbox" aria-checked="false"><span class="ms">self_improvement</span>Focus mode<span class="sw" aria-hidden="true"></span></div>
 <div class="sep"></div>
 <button class="mi" role="menuitem"><span class="ms">bolt</span>Open command palette<span class="kbd">Ctrl Shift F</span></button>
 <button class="mi" role="menuitem" style="color:var(--err)"><span class="ms">stop_circle</span>Stop sharing…<span class="kbd">Ctrl .</span></button>

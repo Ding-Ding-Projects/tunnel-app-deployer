@@ -140,6 +140,36 @@
    "w": 1280,
    "h": 800,
    "title": "About, provenance and changelog"
+  },
+  "Tools.dc.html": {
+   "x": 0,
+   "y": 8600,
+   "w": 1280,
+   "h": 800,
+   "title": "Tools · Base64 and Convert",
+   "expand": "fill",
+   "is_interactive": true
+  },
+  "Voice.dc.html": {
+   "x": 1360,
+   "y": 8600,
+   "w": 1280,
+   "h": 800,
+   "title": "Narrator, personal vocabulary, School mode"
+  },
+  "Schedule.dc.html": {
+   "x": 2720,
+   "y": 8600,
+   "w": 1280,
+   "h": 800,
+   "title": "Scheduled settings and external editor"
+  },
+  "Icon.dc.html": {
+   "x": 4080,
+   "y": 8600,
+   "w": 800,
+   "h": 800,
+   "title": "Original app icon"
   }
  },
  "order": [
@@ -159,7 +189,11 @@
   "Menus.dc.html",
   "Guide.dc.html",
   "Bilingual.dc.html",
-  "About.dc.html"
+  "About.dc.html",
+  "Tools.dc.html",
+  "Voice.dc.html",
+  "Schedule.dc.html",
+  "Icon.dc.html"
  ],
  "notes": {
   "appTitle": {
@@ -189,6 +223,13 @@
    "text": "Required features",
    "kind": "title1",
    "maxW": 5520
+  },
+  "wave2": {
+   "x": 0,
+   "y": 8300,
+   "text": "Required features · wave 2",
+   "kind": "title1",
+   "maxW": 4880
   }
  },
  "designSystems": []

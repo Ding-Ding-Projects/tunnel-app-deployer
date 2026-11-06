@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tools</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--sc:#334b45;--onsc:#cce8e0;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);min-height:800px;display:flex;font-size:14px;line-height:1.45}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0}
+.ms.f{font-variation-settings:"FILL" 1}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0}
+.fab{width:56px;height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;border:0;margin-bottom:20px}
+.dest{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--onv);font-size:12px;font-weight:500;text-decoration:none}
+.dest .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.dest.on{color:var(--on)}.dest.on .pill{background:var(--pc);color:var(--onpc)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;padding:24px 24px 24px 8px}
+.h1{font-size:32px;line-height:40px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--s3)}
+.tab{height:48px;padding:0 20px;border:0;background:none;color:var(--onv);font:inherit;font-weight:500;display:flex;gap:8px;align-items:center;border-bottom:3px solid transparent;cursor:pointer;transition:color .25s var(--e)}
+.tab.on{color:var(--p);border-bottom-color:var(--p)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;animation:in .35s var(--e) both}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.card{background:var(--s1);border-radius:28px;padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h2{font-size:16px;font-weight:600;margin:0;display:flex;justify-content:space-between;align-items:center}
+.area{min-height:220px;border-radius:16px;border:1px solid var(--ol);background:var(--s2);padding:14px;font-family:"Roboto Mono",monospace;font-size:13px;color:var(--on);white-space:pre-wrap;overflow-wrap:anywhere}
+.chip{min-height:32px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font:inherit;font-size:13px;font-weight:500;background:none;cursor:pointer}
+.chip .ms{font-size:18px}
+.chip.sel{background:var(--sc);border-color:var(--sc);color:var(--onsc)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{height:44px;border-radius:22px;border:0;font:inherit;font-weight:600;padding:0 20px;display:inline-flex;align-items:center;gap:8px;background:var(--p);color:var(--onp)}
+.stat{font-size:12px;color:var(--onv)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:860px){.rail{display:none}.grid{grid-template-columns:1fr}}
+</style>
+</helmet>
+<div class="app">
+<nav class="rail" aria-label="Primary">
+<button class="fab" aria-label="Host a new project"><span class="ms f">add_link</span></button>
+<a class="dest" href="Main.dc.html"><span class="pill"><span class="ms">rocket_launch</span></span>Host</a>
+<a class="dest" href="Sessions.dc.html"><span class="pill"><span class="ms">history</span></span>Sessions</a>
+<a class="dest on" href="#"><span class="pill"><span class="ms f">construction</span></span>Tools</a>
+<a class="dest" href="Features.dc.html"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span>Features</a>
+<a class="dest" href="Guide.dc.html"><span class="pill"><span class="ms">menu_book</span></span>Guide</a>
+<a class="dest" href="Settings.dc.html"><span class="pill"><span class="ms">settings</span></span>Settings</a>
+</nav>
+<div class="main">
+<div><h1 class="h1">Tools</h1><p class="muted">Small local helpers. Nothing you paste here leaves this computer.</p></div>
+<div class="tabs" role="tablist"><sc-for list="{{tabs}}" as="tb" hint-placeholder-count="2"><button class="{{tb.cls}}" role="tab" onClick="{{tb.pick}}"><span class="ms">{{tb.icon}}</span>{{tb.label}}</button></sc-for></div>
+<sc-if value="{{isB64}}" hint-placeholder-val="{{true}}">
+<div class="grid">
+<section class="card"><h2>Input<span class="row"><button class="chip sel">Encode</button><button class="chip">Decode</button></span></h2><div class="area">Docker compose up --build</div><div class="row"><button class="chip sel"><span class="ms">check</span>UTF-8</button><button class="chip">URL-safe</button><button class="chip">No padding</button><button class="chip"><span class="ms">upload_file</span>Encode a file</button></div><span class="stat">25 characters · 25 bytes</span></section>
+<section class="card"><h2>Output<span class="row"><button class="chip"><span class="ms">content_copy</span>Copy</button><button class="chip"><span class="ms">download</span>Save</button></span></h2><div class="area">RG9ja2VyIGNvbXBvc2UgdXAgLS1idWlsZA==</div><span class="stat">36 characters · valid Base64</span></section>
+</div>
+</sc-if>
+<sc-if value="{{isConv}}" hint-placeholder-val="{{false}}">
+<div class="grid">
+<section class="card"><h2>From<span class="row"><button class="chip sel">JSON</button><button class="chip">CSV</button><button class="chip">TSV</button></span></h2><div class="area">[
+  {"service": "web", "port": 3000},
+  {"service": "db", "port": 5432}
+]</div><span class="stat">2 records · 2 columns</span></section>
+<section class="card"><h2>To<span class="row"><button class="chip">CSV</button><button class="chip">TSV</button><button class="chip sel">Markdown</button><button class="chip">JSON</button></span></h2><div class="area">| service | port |
+| --- | --- |
+| web | 3000 |
+| db | 5432 |</div><div class="row"><button class="btn"><span class="ms">download</span>Save as .md</button><span class="stat">Nothing is lost in this conversion.</span></div></section>
+</div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+const tab = (this.state && this.state.tab) || 'b64';
+const mk = (id, icon, label) => ({ cls: tab === id ? 'tab on' : 'tab', icon: icon, label: label, pick: () => this.setState({ tab: id }) });
+return { tabs: [mk('b64', 'data_object', 'Base64'), mk('conv', 'swap_horiz', 'Convert')], isB64: tab === 'b64', isConv: tab === 'conv' };
+}
+}
+</script>
+</body>
+</html>
