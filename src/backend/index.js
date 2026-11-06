@@ -58,6 +58,14 @@ function createHostManager(options = {}) {
     if (s.image) await run('docker', ['image', 'rm', s.image], { timeout: 30000 }).catch(() => {});
     if (s.file) await fs.rm(s.file, { force: true }).catch(() => {});
   }
+  async function terminalFailure(s, message, error) {
+    if (session !== s || s.stopping) return;
+    emit('stopping', 'Cleaning up failed hosting session', { publicUrl: null, verified: false });
+    await cleanup(s);
+    if (session !== s || s.stopping) return;
+    emit('error', message, { publicUrl: null, localUrl: null, verified: false, error });
+    session = null;
+  }
   async function stop() {
     const s = session;
     if (!s) { state = { phase: 'idle', localUrl: null, publicUrl: null }; return status(); }
@@ -93,7 +101,7 @@ function createHostManager(options = {}) {
         finish(new Error('Tunnel process exited'));
         if (session === s && state.phase === 'ready') {
           emit('recovering', 'Tunnel disconnected; reconnecting', { publicUrl: null, verified: false });
-          recover(s).catch(() => { if (session === s && !s.controller.signal.aborted) emit('error', 'Tunnel recovery failed; stop and host again', { publicUrl: null, verified: false, error: 'Tunnel recovery failed' }); });
+          recover(s).catch(() => terminalFailure(s, 'Tunnel recovery failed; try hosting again', 'Tunnel recovery failed'));
         }
       });
     });
@@ -107,8 +115,7 @@ function createHostManager(options = {}) {
         const ok = await healthy(state.localUrl, s.controller.signal);
         s.monitorBusy = false;
         if (!ok && session === s && state.phase === 'ready' && !s.controller.signal.aborted) {
-          emit('error', 'Application stopped responding; stop and host again', { publicUrl: null, verified: false, error: 'Application HTTP health check failed' });
-          s.tunnel?.kill();
+          await terminalFailure(s, 'Application stopped responding; try hosting again', 'Application HTTP health check failed');
         }
       }, options.monitorIntervalMs || 10000);
       s.monitor.unref?.();
