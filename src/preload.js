@@ -8,6 +8,11 @@ contextBridge.exposeInMainWorld('tunnel', Object.freeze({
   stop: () => ipcRenderer.invoke('host:stop'),
   copy: () => ipcRenderer.invoke('host:copy'),
   open: () => ipcRenderer.invoke('host:open'),
+  info: () => ipcRenderer.invoke('app:info'),
+  copyText: text => ipcRenderer.invoke('app:copy-text', String(text)),
+  setTitle: title => ipcRenderer.invoke('app:set-title', String(title)),
+  openLink: url => ipcRenderer.invoke('app:open-link', String(url)),
+  save: (name, content) => ipcRenderer.invoke('app:save', String(name), String(content)),
   onProgress: callback => {
     const listener = (_event, value) => callback(value);
     ipcRenderer.on('host:progress', listener);

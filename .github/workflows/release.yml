@@ -1,0 +1,78 @@
+name: Release
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Record start time
+        run: echo "STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Choose the next version
+        id: version
+        run: |
+          base=$(node -p "require('./package.json').version.split('.').slice(0,2).join('.')")
+          last=$(git tag --list "v${base}.*" | sed "s/^v${base}\.//" | grep -E '^[0-9]+$' | sort -n | tail -1)
+          next="${base}.$(( ${last:--1} + 1 ))"
+          echo "version=$next" >> "$GITHUB_OUTPUT"
+          echo "Next version: $next"
+      - name: Stamp version and build record
+        run: |
+          npm version "${{ steps.version.outputs.version }}" --no-git-tag-version --allow-same-version
+          node scripts/write-build-info.mjs "${{ steps.version.outputs.version }}" "$GITHUB_SHA"
+      - name: Build Windows portable executable
+        run: npm run package:win -- --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Write release notes
+        run: |
+          v="${{ steps.version.outputs.version }}"
+          lines() { git ls-files "$@" | xargs cat 2>/dev/null | wc -l | tr -d ' '; }
+          elapsed=$(( $(date +%s) - STARTED_AT ))
+          {
+            echo "Tunnel App Deployer $v, built from commit $GITHUB_SHA."
+            echo
+            echo "## Download"
+            echo
+            echo "Windows portable executable: Tunnel-App-Deployer-$v-x64.exe. It is unsigned; Windows may ask before the first launch. Docker must be installed and running."
+            echo
+            echo "## Checks"
+            echo
+            echo "This release workflow builds and publishes without running tests. The separate Application checks workflow runs the test suite on the same commit; see its result in the Actions tab."
+            echo
+            echo "## Build"
+            echo
+            echo "- Workflow time until packaging finished: $((elapsed / 60)) min $((elapsed % 60)) s"
+            echo "- Lines in src: $(lines src ':!src/renderer/fonts' ':!src/renderer/content.js')"
+            echo "- Lines in tests: $(lines tests)"
+            echo "- Lines in docs: $(lines docs ':!docs/fonts' ':!docs/content.js' ':!docs/assets')"
+            echo "- Lines in content: $(lines content)"
+            echo
+            echo "See the changelog in the app (Settings, About) or on the website."
+          } > notes.md
+          cat notes.md
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          v="${{ steps.version.outputs.version }}"
+          ls dist/*.exe
+          gh release create "v$v" dist/*.exe --target "$GITHUB_SHA" --title "Tunnel App Deployer $v" --notes-file notes.md

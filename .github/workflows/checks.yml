@@ -12,31 +12,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Check documentation syntax
-        run: node --check docs/app.js
-      - name: Check available application tests
+      - name: Check script syntax
         run: |
-          if [ -d tests ]; then
-            node --test
-          else
-            echo 'Application tests are pending implementation.'
-          fi
-  package-windows:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run package:win -- --publish never
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-      - uses: actions/upload-artifact@v4
-        with:
-          name: tunnel-app-deployer-windows-${{ github.sha }}
-          path: dist/*.exe
-          if-no-files-found: error
+          for f in docs/app.js src/renderer/*.js src/*.js; do node --check "$f"; done
+      - name: Check generated content is current
+        run: node scripts/build-content.mjs --check
+      - name: Run tests
+        run: npm test

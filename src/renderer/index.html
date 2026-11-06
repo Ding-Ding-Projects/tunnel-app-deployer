@@ -2,29 +2,159 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
-<title>Tunnel App Deployer</title><link rel="stylesheet" href="styles.css"><script defer src="app.js"></script>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Tunnel App Deployer</title>
+<link rel="stylesheet" href="styles.css">
+<script defer src="i18n.js"></script><script defer src="regex.js"></script><script defer src="markdown.js"></script><script defer src="content.js"></script><script defer src="app.js"></script>
 </head>
 <body>
-<header class="topbar"><div class="brand"><span class="mark" aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tunnel<span class="brand-light"> App Deployer</span></span></div><button id="theme" class="icon-button" aria-label="Switch to light theme" title="Switch theme">◐</button></header>
-<main>
-<div class="page-heading"><div><p class="eyebrow">LOCAL → PUBLIC</p><h1>Share your app.</h1><p class="subtitle">One local project. One temporary HTTPS link.</p></div><span id="status" class="status"><span class="status-dot"></span><span id="status-text">Not sharing</span></span></div>
-<div class="workspace">
-<section class="setup panel" aria-labelledby="setup-title"><div class="section-heading"><span class="step">01</span><h2 id="setup-title">Choose your project</h2></div><p class="muted">Use a Dockerfile or a Docker Compose file on this computer.</p>
-<div class="segmented" role="group" aria-label="Project format"><button id="dockerfile" aria-pressed="true">Dockerfile</button><button id="compose" aria-pressed="false">Compose</button></div>
-<button class="file-picker" id="choose"><span class="folder" aria-hidden="true">▱</span><strong id="file-name">Choose a Dockerfile</strong><span id="file-path">Browse your local files</span><span class="browse">Browse files <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
-<p class="context-note" id="context-note">The Dockerfile’s folder is used as the build context.</p>
-<div id="options" hidden><div id="service-field" class="field" hidden><label for="service">Compose service</label><select id="service"><option value="">Choose a service</option></select></div><div class="field"><label for="port">Container port <span class="optional">optional</span></label><input id="port" type="number" min="1" max="65535" placeholder="Auto-detect from project" inputmode="numeric"><p id="port-hint">The HTTP port inside your container, such as 3000 or 8080.</p></div></div>
-<div class="host-action"><button id="host" class="primary" disabled><span aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Host app</button><p>Only share projects you trust. Anyone with the link can access your app.</p></div></section>
-<section class="sharing panel" aria-labelledby="sharing-title"><div class="section-heading"><span class="step">02</span><h2 id="sharing-title">Your public link</h2></div>
-<div id="empty-state" class="empty-state"><div class="orbit" aria-hidden="true"><span><svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><h3 id="empty-title">Ready when you are</h3><p id="empty-description">Choose a project, then host it.<br>Your link appears after the app is reachable.</p></div>
-<div id="live-state" hidden><p class="live-label">HTTPS · READY TO SHARE</p><div class="url-box"><output id="public-url"></output></div><div class="link-actions"><button id="copy" class="primary">Copy link</button><button id="open" class="secondary">Open app <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><p class="link-note">This address is temporary and changes each time you host.</p></div>
-<div id="progress-area" hidden><div class="progress-heading"><span id="progress-label">Preparing your app</span><span class="spinner" aria-hidden="true"></span></div><ol id="progress-list" class="progress-list" aria-label="Hosting progress"></ol></div>
-<div id="error" role="alert" hidden></div><button id="stop" class="stop" hidden>Stop sharing</button>
-<div class="keep-running"><span aria-hidden="true">◷</span><p><strong>Your computer is the host.</strong><br>Keep this app, Docker, and your computer running. Closing this app ends sharing.</p></div>
-</section>
+<a class="skip" href="#main" data-i18n="nav.host">Host</a>
+<div class="app" id="app">
+<nav class="rail" id="rail" aria-label="Primary">
+  <button class="fab" id="fab" data-tip="nav.newHost" aria-label="Host a new project"><span class="ms f">add_link</span></button>
+  <div class="dests" role="tablist" aria-orientation="vertical">
+    <button class="dest" role="tab" data-view="host"><span class="pill"><span class="ms">rocket_launch</span></span><span class="lbl" data-i18n="nav.host">Host</span></button>
+    <button class="dest" role="tab" data-view="sessions"><span class="pill"><span class="ms">history</span></span><span class="lbl" data-i18n="nav.sessions">Sessions</span></button>
+    <button class="dest" role="tab" data-view="features"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span><span class="lbl" data-i18n="nav.features">Features</span></button>
+    <button class="dest" role="tab" data-view="guide"><span class="pill"><span class="ms">menu_book</span></span><span class="lbl" data-i18n="nav.guide">Guide</span></button>
+    <button class="dest" role="tab" data-view="settings"><span class="pill"><span class="ms">settings</span></span><span class="lbl" data-i18n="nav.settings">Settings</span></button>
+  </div>
+</nav>
+<div class="main" id="main" tabindex="-1">
+  <header class="top">
+    <button class="searchbar" id="open-palette" aria-keyshortcuts="Control+Shift+F"><span class="ms">search</span><span class="ph" data-i18n="top.searchHint">Search screens, actions, settings</span><kbd>Ctrl Shift F</kbd></button>
+    <span class="spacer"></span>
+    <span class="provenance" id="provenance" data-ctx="text"></span>
+    <span class="clock" id="clock" hidden></span>
+    <button class="icon-btn" id="bell" data-tip="top.notifications" aria-label="Notifications"><span class="ms">notifications</span><span class="badge" id="badge" hidden>0</span></button>
+    <button class="icon-btn" id="theme-toggle" data-tip="top.theme" aria-label="Switch theme"><span class="ms">dark_mode</span></button>
+  </header>
+  <div class="momentum" id="momentum" role="status" hidden><span class="ms f">arrow_forward</span><span id="momentum-text"></span></div>
+
+  <section class="view" id="view-host" data-view="host" aria-labelledby="host-title">
+    <div class="host-grid" id="host-grid">
+      <section class="card project-card" id="card-project">
+        <p class="eyebrow" data-i18n="host.step1">Step 1 · Project</p>
+        <h1 class="h1" id="host-title" data-i18n="host.title">Share your app.</h1>
+        <p class="muted secondary" data-i18n="host.lead">Pick a Dockerfile or a Compose file.</p>
+        <div class="seg" role="group" data-i18n-aria="host.format" aria-label="Project format">
+          <button id="fmt-dockerfile" aria-pressed="true"><span class="ms check">check</span><span data-i18n="host.dockerfile">Dockerfile</span></button>
+          <button id="fmt-compose" aria-pressed="false"><span class="ms check">check</span><span data-i18n="host.compose">Compose</span></button>
+        </div>
+        <button class="drop" id="choose" data-ctx="path"><span class="ms big">upload_file</span><strong id="file-name">Choose a Dockerfile</strong><span class="muted small" id="file-path">Browse your files</span></button>
+        <div class="summary" id="summary" hidden></div>
+        <p class="muted small" id="context-note"></p>
+        <div id="options" hidden>
+          <div class="field" id="service-field" hidden><label for="service" data-i18n="host.service">Compose service</label><select id="service"></select></div>
+          <div class="field"><label for="port"><span data-i18n="host.port">Container port</span> <span class="opt" data-i18n="host.optional">optional</span></label>
+            <input id="port" type="text" inputmode="numeric" autocomplete="off" aria-describedby="port-hint"><p class="hint" id="port-hint"></p></div>
+        </div>
+        <button class="btn fill wide" id="host-btn" aria-keyshortcuts="Control+Enter" disabled><span class="ms">rocket_launch</span><span data-i18n="host.hostButton">Host app</span></button>
+        <button class="btn outline wide" id="cancel-btn" hidden><span class="ms">close</span><span data-i18n="host.cancel">Cancel hosting</span></button>
+        <p class="muted small center" id="trust-note" data-i18n="host.trust">Only share projects you trust.</p>
+      </section>
+      <section class="card link-card" id="card-link" aria-labelledby="link-title">
+        <div class="card-head"><div><p class="eyebrow" data-i18n="host.step2">Step 2 · Public link</p><h2 class="h2" id="link-title"></h2></div><span class="status-chip" id="status-chip"><span class="dot"></span><span id="status-text"></span></span></div>
+        <div class="stage" id="stage">
+          <div class="flow" aria-hidden="true">
+            <div class="node" id="node-local"><span class="disc"><span class="ms f">computer</span></span><span data-i18n="host.node.local">This computer</span></div>
+            <span class="pipe" id="pipe-1"></span>
+            <div class="node" id="node-tunnel"><span class="disc"><span class="ms">conversion_path</span></span><span data-i18n="host.node.tunnel">Quick Tunnel</span></div>
+            <span class="pipe" id="pipe-2"></span>
+            <div class="node" id="node-public"><span class="disc"><span class="ms">public</span></span><span data-i18n="host.node.public">Anyone with the link</span></div>
+          </div>
+          <p class="muted center" id="stage-text"></p>
+        </div>
+        <div class="url-card" id="url-card" hidden>
+          <span class="tag" data-i18n="host.verified">Verified over HTTPS</span>
+          <output class="addr" id="public-url" data-ctx="url"></output>
+          <div class="row"><button class="btn on-pc" id="copy-btn" aria-keyshortcuts="Control+Shift+C"><span class="ms" id="copy-icon">content_copy</span><span id="copy-label" data-i18n="host.copy">Copy link</span></button><button class="btn on-pc-tonal" id="open-btn"><span class="ms">open_in_new</span><span data-i18n="host.open">Open app</span></button></div>
+        </div>
+        <div class="stats" id="stats" hidden>
+          <div class="stat"><span class="muted small" data-i18n="host.sharingFor">Sharing for</span><b class="mono" id="uptime">00:00:00</b></div>
+          <div class="stat"><span class="muted small" data-i18n="host.localAddress">Local address</span><b class="mono small-b" id="local-url" data-ctx="text"></b></div>
+          <div class="stat"><span class="muted small" data-i18n="host.limit">Request limit</span><b data-i18n="host.limitValue">200 in flight</b></div>
+        </div>
+        <ol class="steps" id="steps" aria-label="Hosting progress" hidden></ol>
+        <div class="alert" id="alert" role="alert" hidden><span class="ms f">report</span><div><strong id="alert-title"></strong><p id="alert-text"></p><p class="small" id="alert-cleaned" data-i18n="host.cleaned"></p>
+          <div class="row"><button class="chip on-err" id="retry-btn"><span class="ms">refresh</span><span data-i18n="host.tryAgain">Try again</span></button><button class="chip on-err" id="another-btn"><span class="ms">folder_open</span><span data-i18n="host.another">Choose another project</span></button><button class="chip on-err" id="details-btn"><span class="ms">content_copy</span><span data-i18n="host.copyDetails">Copy details</span></button></div></div></div>
+        <div class="live-actions" id="live-actions" hidden><button class="btn outline danger wide" id="stop-btn" aria-keyshortcuts="Control+Period"><span class="ms">stop_circle</span><span data-i18n="host.stop">Stop sharing…</span></button><p class="muted small center" data-i18n="host.stopNote">Stopping keeps your volumes and other containers.</p></div>
+        <div class="note secondary"><span class="ms">schedule</span><p class="muted small"><strong data-i18n="host.keepRunning">Your computer is the host.</strong> <span data-i18n="host.keepRunningText">Keep Docker and this app running while you share.</span></p></div>
+      </section>
+    </div>
+    <div class="req secondary" aria-labelledby="req-title"><span class="sr-only" id="req-title" data-i18n="req.title">Before you host</span>
+      <span class="chip static" id="req-docker"></span><span class="chip static" id="req-compose"></span><span class="chip static" id="req-tunnel"></span>
+      <button class="chip" id="recheck"><span class="ms">refresh</span><span data-i18n="req.again">Check again</span></button>
+      <p class="muted small" id="req-detail" hidden></p>
+    </div>
+  </section>
+
+  <section class="view" id="view-sessions" data-view="sessions" hidden aria-labelledby="sessions-title">
+    <div class="view-head"><div><h1 class="h1" id="sessions-title" data-i18n="sessions.title">Sessions</h1><p class="muted" data-i18n="sessions.lead"></p></div>
+      <div class="tools"><div class="search-slot" id="sessions-search"></div>
+        <div class="menu-btn"><button class="chip" id="sessions-export-btn" aria-haspopup="menu"><span class="ms">download</span><span data-i18n="sessions.export">Export</span></button></div></div></div>
+    <details class="fold" id="sessions-fold"><summary><span class="ms">monitoring</span><span data-i18n="sessions.stats">Statistics</span></summary><div class="stat-row" id="sessions-stats"></div></details>
+    <div class="tools" role="group" aria-label="Filter" id="sessions-filters"></div>
+    <div class="bulk" id="sessions-bulk" hidden><span id="sessions-selected"></span><button class="chip" id="sessions-export-selected"><span class="ms">download</span><span data-i18n="sessions.exportSelected">Export selected</span></button><button class="chip danger" id="sessions-remove"><span class="ms">delete</span><span data-i18n="sessions.remove">Remove…</span></button></div>
+    <div class="list" id="sessions-list" role="list"></div>
+    <div class="empty" id="sessions-empty" hidden><span class="ms big">history</span><h2 class="h2" id="sessions-empty-title"></h2><p class="muted" data-i18n="sessions.emptyText"></p></div>
+    <p class="muted small" data-i18n="sessions.historical"></p>
+  </section>
+
+  <section class="view" id="view-features" data-view="features" hidden aria-labelledby="features-title">
+    <div class="view-head"><div><h1 class="h1" id="features-title" data-i18n="features.title">Features</h1><p class="muted" data-i18n="features.lead"></p></div></div>
+    <div class="search-slot" id="features-search"></div>
+    <div class="meter"><div><b id="features-count"></b><span class="muted small" data-i18n="features.counted"></span></div><div class="track" id="features-track" aria-hidden="true"></div><div class="tools" id="features-filters"></div></div>
+    <div id="features-groups"></div>
+  </section>
+
+  <section class="view" id="view-guide" data-view="guide" hidden aria-labelledby="guide-title">
+    <div class="guide">
+      <div class="guide-list"><h1 class="h2" id="guide-title" data-i18n="guide.title">Guide</h1><div class="search-slot" id="guide-search"></div><nav id="guide-nav" aria-label="Articles"></nav></div>
+      <article class="card article" id="guide-article" tabindex="-1"></article>
+    </div>
+  </section>
+
+  <section class="view" id="view-settings" data-view="settings" hidden aria-labelledby="settings-title">
+    <div class="settings">
+      <nav class="groups" id="settings-groups" aria-label="Settings groups"></nav>
+      <div class="settings-body">
+        <div><h1 class="h1" id="settings-title" data-i18n="settings.title">Settings</h1><p class="muted" data-i18n="settings.lead"></p></div>
+        <div class="search-slot" id="settings-search"></div>
+        <div id="settings-content"></div>
+      </div>
+    </div>
+  </section>
 </div>
-<section class="requirements panel" aria-labelledby="requirements-title"><div><h2 id="requirements-title">Before you host</h2><p class="muted">Docker must be running. The tunnel helper downloads automatically on supported systems.</p></div><div class="checks"><span id="docker-check" class="check">Docker · checking</span><span id="tunnel-check" class="check">cloudflared · checking</span><button id="recheck" class="text-button">Check again</button></div><p id="requirement-detail" class="requirement-detail" hidden></p></section>
-<footer><span>No account. No domain. No cloud bill.</span><span>Powered by Docker + Cloudflare Quick Tunnels</span></footer>
-</main><div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
-</body></html>
+<nav class="bottom" id="bottom" aria-label="Primary"></nav>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="scrim" id="scrim" hidden></div>
+<aside class="panel" id="notif-panel" role="dialog" aria-modal="false" aria-labelledby="notif-title" hidden>
+  <div class="panel-head"><h2 class="h2" id="notif-title" data-i18n="notif.title">Notifications</h2><button class="icon-btn" id="notif-close" aria-label="Close"><span class="ms">close</span></button></div>
+  <div class="search-slot" id="notif-search"></div>
+  <div class="tools"><button class="chip" id="notif-select-all"><span class="ms">done_all</span><span data-i18n="sessions.selectAll">Select all</span></button><button class="chip" id="notif-dismiss-sel"><span class="ms">close</span><span data-i18n="notif.dismiss">Dismiss</span></button><button class="chip" id="notif-export"><span class="ms">download</span><span data-i18n="sessions.export">Export</span></button><button class="chip danger" id="notif-clear"><span class="ms">delete_sweep</span><span data-i18n="notif.clear">Clear all…</span></button></div>
+  <div class="notif-list" id="notif-list"></div>
+</aside>
+<div class="dialog palette" id="palette" role="dialog" aria-modal="true" aria-labelledby="palette-label" hidden>
+  <span class="sr-only" id="palette-label" data-i18n="palette.label">Command palette</span>
+  <div class="palette-q"><span class="ms">search</span><input id="palette-input" role="combobox" aria-expanded="true" aria-controls="palette-list" autocomplete="off" spellcheck="false"><button class="chip rx-toggle" id="palette-rx" aria-pressed="false" aria-label="Regex builder">.*</button><kbd>Esc</kbd></div>
+  <div class="rx-host" id="palette-rx-host"></div>
+  <div class="palette-list" id="palette-list" role="listbox"></div>
+  <div class="palette-foot"><span><kbd>↑</kbd> <kbd>↓</kbd> <span data-i18n="palette.move">move</span></span><span><kbd>Enter</kbd> <span data-i18n="palette.run">run</span></span><span><kbd>Esc</kbd> <span data-i18n="palette.close">close</span></span></div>
+</div>
+<div class="dialog confirm" id="confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-body" hidden>
+  <h2 class="h2" id="confirm-title"><span class="ms f">warning</span><span id="confirm-title-text"></span></h2>
+  <p class="muted" id="confirm-body"></p>
+  <div class="affects" id="confirm-affects"></div>
+  <p class="muted small" data-i18n="confirm.keys">Turn both keys, then slide to confirm.</p>
+  <div class="keys"><button class="key" id="key1" aria-pressed="false"><span class="ms">key</span><span data-i18n="confirm.key1">Key 1</span></button><button class="key" id="key2" aria-pressed="false"><span class="ms">key</span><span data-i18n="confirm.key2">Key 2</span></button></div>
+  <label class="slide" id="slide-wrap"><span class="sr-only" data-i18n="confirm.slide">Slide to confirm</span><input type="range" id="slide" min="0" max="100" value="0" disabled><span class="slide-label" id="slide-label"></span></label>
+  <div class="row end"><button class="btn text" id="confirm-exit"><span class="ms">logout</span><span data-i18n="confirm.exit">Emergency exit</span></button></div>
+</div>
+<div class="dialog onboarding" id="onboarding" role="dialog" aria-modal="true" aria-labelledby="onb-title" hidden></div>
+<div class="ctx" id="ctx" role="menu" hidden></div>
+<div class="sr-only" id="announce" role="status" aria-live="polite"></div>
+</body>
+</html>

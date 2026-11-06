@@ -6,3 +6,4 @@ dist/
 *.log
 .agent/
 local-data/
+src/build-info.json

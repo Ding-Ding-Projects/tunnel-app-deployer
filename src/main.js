@@ -25,6 +25,29 @@ function validateOptions(value) {
   }
   return result;
 }
+const SAVE_TYPES = { json: 'JSON', csv: 'CSV', md: 'Markdown', txt: 'Text' };
+function validateSave(name, content) {
+  if (typeof name !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$/.test(name) || name.includes('..')) throw new Error('Invalid file name.');
+  const ext = name.split('.').pop().toLowerCase();
+  if (!SAVE_TYPES[ext]) throw new Error('Unsupported file type.');
+  if (typeof content !== 'string' || content.length > 5 * 1024 * 1024) throw new Error('Invalid file content.');
+  return { name, ext, content };
+}
+const LINK_PREFIXES = ['https://github.com/Ding-Ding-Projects/tunnel-app-deployer', 'https://ding-ding-projects.github.io/tunnel-app-deployer', 'https://developers.cloudflare.com/tunnel/'];
+function isAllowedLink(value) {
+  try {
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || url.username || url.password || url.port) return false;
+    const plain = url.origin + url.pathname;
+    return LINK_PREFIXES.some(prefix => plain === prefix || plain.startsWith(prefix.endsWith('/') ? prefix : prefix + '/'));
+  } catch { return false; }
+}
+function readBuildInfo(file) {
+  try {
+    const data = JSON.parse(require('node:fs').readFileSync(file, 'utf8'));
+    return { version: typeof data.version === 'string' ? data.version : null, buildTime: typeof data.buildTime === 'string' && !isNaN(Date.parse(data.buildTime)) ? data.buildTime : null, commit: typeof data.commit === 'string' && /^[0-9a-f]{40}$/.test(data.commit) ? data.commit : null };
+  } catch { return null; }
+}
 function validSender(event, window, pageUrl) {
   return !!window && !window.isDestroyed() && event.sender === window.webContents
     && event.senderFrame === window.webContents.mainFrame && event.senderFrame.url === pageUrl;
@@ -86,10 +109,22 @@ async function start() {
     if ((status.phase !== 'ready' || status.verified !== true) || !isTunnelUrl(status.publicUrl)) throw new Error('No verified public link is currently available.');
     return status.publicUrl;
   };
+  const build = readBuildInfo(path.join(__dirname, 'build-info.json'));
+  handle('app:info', () => ({ version: build?.version || app.getVersion(), buildTime: build?.buildTime || null, commit: build?.commit || null }));
+  handle('app:copy-text', text => { if (typeof text !== 'string' || text.length > 20000) throw new Error('Invalid text.'); clipboard.writeText(text); return true; });
+  handle('app:set-title', title => { if (typeof title !== 'string' || title.length > 80) throw new Error('Invalid title.'); window.setTitle(title.trim() || 'Tunnel App Deployer'); return true; });
+  handle('app:open-link', async url => { if (!isAllowedLink(url)) throw new Error('This link cannot be opened.'); await shell.openExternal(url); return true; });
+  handle('app:save', async (name, content) => {
+    const file = validateSave(name, content);
+    const result = await dialog.showSaveDialog(window, { defaultPath: path.join(app.getPath('documents'), file.name), filters: [{ name: SAVE_TYPES[file.ext], extensions: [file.ext] }] });
+    if (result.canceled || !result.filePath) return false;
+    await require('node:fs/promises').writeFile(result.filePath, file.content, 'utf8');
+    return true;
+  });
   handle('host:copy', async () => { clipboard.writeText(await verifiedUrl()); return true; });
   handle('host:open', async () => { await shell.openExternal(await verifiedUrl()); return true; });
   const createWindow = () => {
-    window = new BrowserWindow({ width: 1120, height: 800, minWidth: 460, minHeight: 620, backgroundColor: '#101419', title: 'Tunnel App Deployer',
+    window = new BrowserWindow({ width: 1120, height: 800, minWidth: 460, minHeight: 620, backgroundColor: '#0e1513', title: 'Tunnel App Deployer',
       webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true } });
     window.setMenuBarVisibility(false);
     window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
@@ -111,4 +146,4 @@ async function start() {
   createWindow();
 }
 if (require.main === module || (process.versions.electron && process.type === 'browser')) start().catch(error => { console.error(error.message); process.exitCode = 1; });
-module.exports = { isTunnelUrl, validateOptions, validSender };
+module.exports = { isTunnelUrl, validateOptions, validSender, validateSave, isAllowedLink, readBuildInfo };
