@@ -137,3 +137,32 @@ test('port inference ignores EXPOSE in earlier build stages', async t => {
   await fs.writeFile(path.join(source.contextPath, 'Dockerfile'), 'FROM base AS build\nEXPOSE 8080\nFROM scratch\nCOPY --from=build /app /app\n');
   assert.equal((await manager.inspectSource(source)).needsPort, true);
 });
+async function waitForPhase(manager, phase) {
+  const deadline = Date.now() + 1000;
+  while (manager.status().phase !== phase && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 5));
+  assert.equal(manager.status().phase, phase);
+}
+test('terminal local health failure releases resources and permits hosting again', async t => {
+  let localHealthy = true;
+  const { manager, source, calls } = await fixture(t, { monitorIntervalMs: 5, fetch: async url => ({ status: url.includes('127.0.0.1') && !localHealthy ? 503 : 200 }) });
+  await manager.host(source);
+  localHealthy = false;
+  await waitForPhase(manager, 'error');
+  assert.ok(calls.some(([, args]) => args[0] === 'rm'));
+  localHealthy = true;
+  assert.equal((await manager.host(source)).phase, 'ready');
+  await manager.stop();
+});
+test('exhausted tunnel recovery cleans the session and permits retry', async t => {
+  const settings = { noURL: false };
+  const { manager, source, children, calls } = await fixture(t, settings);
+  await manager.host(source);
+  settings.noURL = true;
+  children[0].emit('exit', 1);
+  await waitForPhase(manager, 'error');
+  assert.equal(manager.status().publicUrl, null);
+  assert.ok(calls.some(([, args]) => args[0] === 'rm'));
+  settings.noURL = false;
+  assert.equal((await manager.host(source)).phase, 'ready');
+  await manager.stop();
+});
