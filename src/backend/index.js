@@ -124,7 +124,12 @@ function createHostManager(options = {}) {
       } else {
         const config = source.config;
         delete config.name;
-        for (const service of Object.values(config.services)) { delete service.ports; service.labels = { ...service.labels, 'app.tunnel-deployer.managed': 'true' }; }
+        for (const [name, service] of Object.entries(config.services)) {
+          delete service.ports;
+          service.labels = { ...service.labels, 'app.tunnel-deployer.managed': 'true' };
+          // Building must never overwrite an image tag used by the original project.
+          if (service.build) service.image = `${id}-${name}`.toLowerCase();
+        }
         config.services[source.service].ports = [{ target: source.containerPort, published: '0', host_ip: '127.0.0.1', protocol: 'tcp' }];
         s.file = path.join(options.stateDir, `${id}.json`);
         // Compose reads generated files again; protect already resolved literal dollars.
