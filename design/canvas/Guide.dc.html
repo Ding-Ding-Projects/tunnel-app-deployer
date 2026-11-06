@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Offline guide</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--t:#a8cbe4;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);min-height:800px;display:flex;font-size:14px;line-height:1.5}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0}
+.ms.f{font-variation-settings:"FILL" 1}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0}
+.fab{width:56px;height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;border:0;margin-bottom:20px}
+.dest{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--onv);font-size:12px;font-weight:500;text-decoration:none}
+.dest .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.dest.on{color:var(--on)}.dest.on .pill{background:var(--pc);color:var(--onpc)}
+.main{flex:1;min-width:0;display:flex;gap:16px;padding:24px 24px 24px 8px}
+.list{width:300px;flex:none;display:flex;flex-direction:column;gap:8px}
+.search{height:44px;border-radius:22px;background:var(--s3);display:flex;align-items:center;gap:8px;padding:0 6px 0 14px;color:var(--onv)}
+.search input{flex:1;background:none;border:0;color:var(--on);font:inherit;outline:none;min-width:0}
+.chip{height:30px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);font:inherit;font-size:12px;padding:0 10px;background:none}
+.chip.sel{background:var(--pc);border-color:var(--pc);color:var(--onpc)}
+.a{display:block;padding:12px 16px;border-radius:16px;color:var(--onv);text-decoration:none}
+.a strong{display:block;color:var(--on);font-weight:500}
+.a.on{background:var(--s4)}
+.art{flex:1;min-width:0;background:var(--s1);border-radius:28px;padding:32px 40px;overflow:auto;animation:fade .35s var(--e) both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}}
+.art h1{font-size:32px;line-height:40px;font-weight:500;margin:0 0 8px}
+.art h2{font-size:20px;font-weight:600;margin:24px 0 8px}
+.art p,.art li{color:var(--onv);max-width:680px}
+table{border-collapse:collapse;width:100%;max-width:680px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--s3)}
+th{color:var(--on);font-weight:600}
+td{color:var(--onv)}
+code{font-family:"Roboto Mono",monospace;font-size:13px;background:var(--s3);border-radius:6px;padding:1px 6px;color:var(--on)}
+.rel{display:flex;gap:8px;flex-wrap:wrap;margin-top:24px}
+.rel a{border-radius:12px;background:var(--s2);padding:12px 16px;color:var(--on);text-decoration:none;display:flex;gap:8px;align-items:center}
+mark{background:var(--pc);color:var(--onpc);border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+@media (max-width:860px){.rail,.list{display:none}}
+</style>
+</helmet>
+<div class="app">
+<nav class="rail" aria-label="Primary">
+<button class="fab" aria-label="Host a new project"><span class="ms f">add_link</span></button>
+<a class="dest" href="Main.dc.html"><span class="pill"><span class="ms">rocket_launch</span></span>Host</a>
+<a class="dest" href="Sessions.dc.html"><span class="pill"><span class="ms">history</span></span>Sessions</a>
+<a class="dest" href="Features.dc.html"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span>Features</a>
+<a class="dest on" href="#"><span class="pill"><span class="ms f">menu_book</span></span>Guide</a>
+<a class="dest" href="Settings.dc.html"><span class="pill"><span class="ms">settings</span></span>Settings</a>
+</nav>
+<div class="main">
+<div class="list">
+<label class="search"><span class="ms" style="font-size:20px">search</span><input aria-label="Search the guide" value="conf"><button class="chip" aria-label="Regex builder">.*</button></label>
+<a class="a on" href="#"><strong>Two-key <mark>conf</mark>irmation</strong>Actions that cannot be undone ask for two keys.</a>
+<a class="a" href="#"><strong>Hosting a project</strong>Stopping opens a two-key <mark>conf</mark>irmation…</a>
+<a class="a" href="#"><strong>Settings</strong>Reset all settings after a <mark>conf</mark>irmation…</a>
+<p style="color:var(--onv);font-size:12px;margin:8px 16px">3 of 16 articles · bundled, works offline</p>
+</div>
+<article class="art">
+<h1>Two-key confirmation</h1>
+<p>Actions that cannot be undone ask for two separate keys and a slide before they run.</p>
+<h2>Which actions use it</h2>
+<ul><li><strong style="color:var(--on)">Stop sharing</strong> while a link is live.</li><li><strong style="color:var(--on)">Clear session history</strong> and <strong style="color:var(--on)">Remove</strong> selected sessions.</li><li><strong style="color:var(--on)">Reset all settings</strong> and <strong style="color:var(--on)">Clear all</strong> notifications.</li></ul>
+<h2>How it works</h2>
+<table><thead><tr><th>Step</th><th>What you do</th></tr></thead><tbody><tr><td>1</td><td>Read the action and what it affects.</td></tr><tr><td>2</td><td>Turn <code>Key 1</code> and <code>Key 2</code>.</td></tr><tr><td>3</td><td>Slide to the end, or use the arrow keys.</td></tr></tbody></table>
+<div class="rel" aria-label="Related articles"><a href="#"><span class="ms" style="font-size:20px">rocket_launch</span>Hosting a project</a><a href="#"><span class="ms" style="font-size:20px">history</span>Sessions and history</a><a href="#"><span class="ms" style="font-size:20px">settings</span>Settings</a></div>
+</article>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,901 @@
+{
+ "schema": 1,
+ "statuses": {
+  "built": "Built in this release",
+  "partial": "Partly built",
+  "planned": "Not built yet",
+  "na": "Does not apply"
+ },
+ "items": [
+  {
+   "id": "job-experience-document-label",
+   "title": "Job document wording",
+   "status": "na",
+   "note": "This app has no job-related workflows.",
+   "group": "voice"
+  },
+  {
+   "id": "language",
+   "title": "Language modes",
+   "status": "built",
+   "article": "languages",
+   "note": "English, Hong Kong Cantonese and bilingual modes, saved per computer, in the app and on the website.",
+   "group": "voice"
+  },
+  {
+   "id": "funny-emoji",
+   "title": "Playfulness sliders and dialog emoji",
+   "status": "partial",
+   "article": "languages",
+   "note": "Separate English and Cantonese playfulness sliders (1 to 5) change the voice of status, empty-state, toast and error copy. The dialog emoji switch is built. Not every string has five voices yet.",
+   "group": "voice"
+  },
+  {
+   "id": "personal-vocabulary",
+   "title": "Personal vocabulary upload",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "voice"
+  },
+  {
+   "id": "vocabulary-drop-apply",
+   "title": "Drop a vocabulary file onto the app",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "voice"
+  },
+  {
+   "id": "school-mode",
+   "title": "School mode",
+   "status": "planned",
+   "note": "Not built yet. Needs the shared cross-app settings record.",
+   "group": "voice"
+  },
+  {
+   "id": "narration",
+   "title": "Spoken narrator",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "voice"
+  },
+  {
+   "id": "action-sound-effects",
+   "title": "Action sounds",
+   "status": "built",
+   "article": "motion-and-sound",
+   "note": "Short synthesized tones when hosting starts, goes live, stops or fails, with a Settings switch and volume. Visual feedback is complete without sound.",
+   "group": "voice"
+  },
+  {
+   "id": "scheduled-settings",
+   "title": "Scheduled settings",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "voice"
+  },
+  {
+   "id": "display-name",
+   "title": "Rename the app",
+   "status": "built",
+   "article": "settings",
+   "note": "Change the name shown in the window title and header; one action restores the shipped name. Data folders and package ids never change.",
+   "group": "voice"
+  },
+  {
+   "id": "adhd-modes",
+   "title": "Focus modes",
+   "status": "built",
+   "article": "focus-modes",
+   "note": "Focus, Low stimulation, Time awareness, One thing at a time and Momentum, each its own switch, all off by default.",
+   "group": "voice"
+  },
+  {
+   "id": "dim-sum",
+   "title": "Dim sum surprise",
+   "status": "partial",
+   "article": "dim-sum",
+   "note": "A 1 in 10 chance at launch of a non-blocking dim sum note with English and Cantonese names. Pictures are not shown yet because the app makes no network requests from its interface.",
+   "group": "voice"
+  },
+  {
+   "id": "dim-sum-photo-source",
+   "title": "Dim sum photo source",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "voice"
+  },
+  {
+   "id": "material-design",
+   "title": "Material Design 3",
+   "status": "built",
+   "article": "appearance",
+   "note": "Material 3 colour roles, shapes, type scale, navigation rail and bottom bar, generated from one seed colour.",
+   "group": "look"
+  },
+  {
+   "id": "workflow-navigation",
+   "title": "Workflow navigation",
+   "status": "built",
+   "article": "getting-around",
+   "note": "Five destinations in a navigation rail, a bottom bar in narrow windows, and the current step always visible on Host.",
+   "group": "look"
+  },
+  {
+   "id": "motion",
+   "title": "Motion with a reduced-motion path",
+   "status": "built",
+   "article": "motion-and-sound",
+   "note": "Full, gentle or off, following the system reduced-motion setting. No state is carried by motion alone.",
+   "group": "look"
+  },
+  {
+   "id": "live-charts",
+   "title": "Live charts",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "look"
+  },
+  {
+   "id": "appearance-editor",
+   "title": "Per-element appearance editor",
+   "status": "planned",
+   "note": "Not built yet. Global appearance settings exist.",
+   "group": "look"
+  },
+  {
+   "id": "color-picker",
+   "title": "Colour picker",
+   "status": "partial",
+   "article": "appearance",
+   "note": "Seed colour by hue wheel, swatches or hex, with the full scheme regenerated live. Colour-space translation is not built.",
+   "group": "look"
+  },
+  {
+   "id": "logo-customization",
+   "title": "Logo customization",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "look"
+  },
+  {
+   "id": "overlay-panels",
+   "title": "Overlays and panels",
+   "status": "built",
+   "article": "getting-around",
+   "note": "Notification centre, command palette and confirmations open as layered panels with focus return and Escape.",
+   "group": "look"
+  },
+  {
+   "id": "collapse-filters",
+   "title": "Collapsible filters and statistics",
+   "status": "built",
+   "article": "sessions",
+   "note": "Session filters and statistics fold away and remember their state.",
+   "group": "look"
+  },
+  {
+   "id": "accessibility-sizing",
+   "title": "Accessibility and sizing",
+   "status": "built",
+   "article": "accessibility",
+   "note": "Text size from 90 to 150 percent, comfortable or compact density, visible focus, and layouts tested from 420 px wide.",
+   "group": "look"
+  },
+  {
+   "id": "functional-ui",
+   "title": "Truthful empty states",
+   "status": "built",
+   "article": "hosting",
+   "note": "No link, count or status is shown unless the backend reported it.",
+   "group": "look"
+  },
+  {
+   "id": "onboarding-wizard",
+   "title": "First-run setup",
+   "status": "built",
+   "article": "getting-started",
+   "note": "Three steps: language and voice, a real Docker and tunnel check, then a short tour. Skippable, resumable, and reopenable from Settings.",
+   "group": "nav"
+  },
+  {
+   "id": "tabs",
+   "title": "Tabbed navigation",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "nav"
+  },
+  {
+   "id": "regex-search",
+   "title": "Regex builder on every search",
+   "status": "partial",
+   "article": "search-and-regex",
+   "note": "Every search box has an adjacent regex builder with flags, live token explanation, match count, validation and a time limit. Full RegexBuddy parity is not built.",
+   "group": "nav"
+  },
+  {
+   "id": "command-palette",
+   "title": "Command palette",
+   "status": "built",
+   "article": "command-palette",
+   "note": "Ctrl+Shift+F opens every destination, action and setting; picking one jumps to it and highlights it. Card or full-window size is remembered.",
+   "group": "nav"
+  },
+  {
+   "id": "context-menus",
+   "title": "Context menus",
+   "status": "partial",
+   "article": "getting-around",
+   "note": "Right-click or Shift+F10 opens a menu with a filter field for links, paths, sessions and text. Appearance and lock entries are not built.",
+   "group": "nav"
+  },
+  {
+   "id": "menu-shortcuts",
+   "title": "Shortcuts shown in menus",
+   "status": "built",
+   "article": "command-palette",
+   "note": "Menus and the palette show each working shortcut.",
+   "group": "nav"
+  },
+  {
+   "id": "rich-controls",
+   "title": "Rich controls",
+   "status": "partial",
+   "note": "Values such as the public link and local address carry copy and open controls. Not every value does yet.",
+   "group": "nav"
+  },
+  {
+   "id": "guided-forms",
+   "title": "Guided forms",
+   "status": "partial",
+   "article": "hosting",
+   "note": "The project form explains each field and validates the port as you type.",
+   "group": "nav"
+  },
+  {
+   "id": "info-icon-guidance",
+   "title": "Info buttons on controls",
+   "status": "partial",
+   "article": "settings",
+   "note": "Every setting has an info button with an explanation. Worked examples and playgrounds are not built.",
+   "group": "nav"
+  },
+  {
+   "id": "settings-explanations",
+   "title": "Settings that explain themselves",
+   "status": "built",
+   "article": "settings",
+   "note": "Each setting states what it changes and where.",
+   "group": "nav"
+  },
+  {
+   "id": "blank-editors",
+   "title": "Presets for blank editors",
+   "status": "na",
+   "note": "The app has no free-form editors.",
+   "group": "nav"
+  },
+  {
+   "id": "super-confirmation",
+   "title": "Two-key confirmation",
+   "status": "built",
+   "article": "safety",
+   "note": "Stopping a live link, clearing history and resetting settings need two separate keys and a slider, with an emergency exit and Escape.",
+   "group": "safety"
+  },
+  {
+   "id": "element-locks",
+   "title": "Element locks",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "safety"
+  },
+  {
+   "id": "support-tickets",
+   "title": "Support ticket recovery",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "safety"
+  },
+  {
+   "id": "unlock-ladder",
+   "title": "Unlock ladder",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "safety"
+  },
+  {
+   "id": "authenticator",
+   "title": "Built-in authenticator",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "safety"
+  },
+  {
+   "id": "qr-pairing",
+   "title": "QR pairing",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "safety"
+  },
+  {
+   "id": "honest-monetization",
+   "title": "Free, no nagging",
+   "status": "built",
+   "article": "about",
+   "note": "The app is free, has no paid tier, ads or upgrade prompts.",
+   "group": "safety"
+  },
+  {
+   "id": "local-history",
+   "title": "Local version history",
+   "status": "partial",
+   "article": "sessions",
+   "note": "Every hosting attempt and every settings change is kept locally; a settings revision can be restored as a new revision. Encrypted snapshots are not built.",
+   "group": "records"
+  },
+  {
+   "id": "exports",
+   "title": "Export everything",
+   "status": "partial",
+   "article": "sessions",
+   "note": "Sessions as JSON, CSV or Markdown; settings, settings history and notifications as JSON. Archives are not built.",
+   "group": "records"
+  },
+  {
+   "id": "bulk-actions",
+   "title": "Bulk actions",
+   "status": "partial",
+   "article": "sessions",
+   "note": "Select many sessions or notifications to export or remove them.",
+   "group": "records"
+  },
+  {
+   "id": "changelog",
+   "title": "Changelog viewer",
+   "status": "partial",
+   "article": "about",
+   "note": "Every release with date, changes and commit, with date-range filter and regex search. Exporting the filtered view is not built.",
+   "group": "records"
+  },
+  {
+   "id": "offline-docs",
+   "title": "Offline guide",
+   "status": "built",
+   "article": "getting-around",
+   "note": "Every article on the website ships inside the app and opens without a network.",
+   "group": "records"
+  },
+  {
+   "id": "rendered-provider-text",
+   "title": "Rendered provider text",
+   "status": "na",
+   "note": "The app shows no provider-authored rich text.",
+   "group": "records"
+  },
+  {
+   "id": "notifications",
+   "title": "Notifications and their centre",
+   "status": "built",
+   "article": "notifications",
+   "note": "Non-blocking toasts, a searchable notification centre with bulk clear, and errors that stay until dismissed.",
+   "group": "records"
+  },
+  {
+   "id": "file-converter",
+   "title": "File converter",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "tools"
+  },
+  {
+   "id": "base64-tools",
+   "title": "Base64 tools",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "tools"
+  },
+  {
+   "id": "minecraft-server-manager",
+   "title": "Minecraft server manager",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "tools"
+  },
+  {
+   "id": "minecraft-world-generator",
+   "title": "Minecraft world generator",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "tools"
+  },
+  {
+   "id": "ollama-suite",
+   "title": "Ollama manager",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "tools"
+  },
+  {
+   "id": "external-editor",
+   "title": "Open in an external editor",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "tools"
+  },
+  {
+   "id": "download-handoff",
+   "title": "Browser download hand-off",
+   "status": "na",
+   "note": "There is no browser extension.",
+   "group": "tools"
+  },
+  {
+   "id": "forge-publishing",
+   "title": "Publishing to a forge",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "tools"
+  },
+  {
+   "id": "progress-recovery",
+   "title": "Progress and recovery in place",
+   "status": "built",
+   "article": "hosting",
+   "note": "Progress shows on the step that is running and recovery actions appear on the step that failed.",
+   "group": "tools"
+  },
+  {
+   "id": "drawesome-drawing",
+   "title": "Drawing and annotation",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "tools"
+  },
+  {
+   "id": "completeness-parity",
+   "title": "Feature inventory",
+   "status": "built",
+   "article": "features",
+   "note": "This list, with the same honest status in the app and on the website.",
+   "group": "evidence"
+  },
+  {
+   "id": "front-provenance",
+   "title": "Version and build time on the first screen",
+   "status": "built",
+   "article": "about",
+   "note": "Shows the running version and its build time with seconds and time zone, read from the packaged build record, or says it is unavailable.",
+   "group": "evidence"
+  },
+  {
+   "id": "product-evidence",
+   "title": "Real screenshots",
+   "status": "partial",
+   "note": "Website screenshots are rendered from the real interface with a scripted backend; they are not captures of live hosting.",
+   "group": "evidence"
+  },
+  {
+   "id": "screen-recording",
+   "title": "Screen recording",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "evidence"
+  },
+  {
+   "id": "design-reference-parity",
+   "title": "Design reference parity",
+   "status": "partial",
+   "note": "The interface follows the checked-in design in design/canvas; a pixel comparison is not automated.",
+   "group": "evidence"
+  },
+  {
+   "id": "design-folder",
+   "title": "Design files in the repository",
+   "status": "built",
+   "note": "All design artboards and notes live in design/.",
+   "group": "evidence"
+  },
+  {
+   "id": "clipping-matrix",
+   "title": "Clipping checks",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "evidence"
+  },
+  {
+   "id": "public-screenshot-gallery",
+   "title": "Public screenshot gallery",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "evidence"
+  },
+  {
+   "id": "landing-site",
+   "title": "Material website",
+   "status": "partial",
+   "article": "features",
+   "note": "The website carries the feature list, articles, language modes, themes, motion settings, search with regex and the command palette. Not every app feature has a website equivalent.",
+   "group": "site"
+  },
+  {
+   "id": "mobile-site",
+   "title": "Phone-friendly website",
+   "status": "built",
+   "note": "Every website section works from 320 px wide.",
+   "group": "site"
+  },
+  {
+   "id": "installer-download-button",
+   "title": "Download button",
+   "status": "built",
+   "note": "Points at the latest published release and shows its version and date when the release exists.",
+   "group": "site"
+  },
+  {
+   "id": "feature-articles",
+   "title": "An article per feature",
+   "status": "partial",
+   "article": "features",
+   "note": "Every built or partly built feature links to an article. Planned features do not have articles yet.",
+   "group": "site"
+  },
+  {
+   "id": "vendored-fonts",
+   "title": "Bundled fonts",
+   "status": "built",
+   "note": "Roboto Flex, Roboto Mono and Material Symbols are copied from npm by scripts/vendor-assets.mjs into the app and the website.",
+   "group": "site"
+  },
+  {
+   "id": "shared-link-embed",
+   "title": "Link preview image",
+   "status": "built",
+   "note": "The website has Open Graph tags and a preview image.",
+   "group": "site"
+  },
+  {
+   "id": "homepage-link",
+   "title": "Website linked from the repository",
+   "status": "partial",
+   "note": "The website is linked from the README. The repository's About field must be set by an owner.",
+   "group": "site"
+  },
+  {
+   "id": "vocabulary-unlock-boundary",
+   "title": "Private wording boundary",
+   "status": "na",
+   "note": "The app and website are public and have no signed-in surfaces.",
+   "group": "site"
+  },
+  {
+   "id": "private-website-app",
+   "title": "Packaged website for private repositories",
+   "status": "na",
+   "note": "This repository is public.",
+   "group": "site"
+  },
+  {
+   "id": "status-hub",
+   "title": "Status hub",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "status"
+  },
+  {
+   "id": "discord-status-bridge",
+   "title": "Discord status bridge",
+   "status": "na",
+   "note": "Part of the status hub app, not this one.",
+   "group": "status"
+  },
+  {
+   "id": "panic-webhooks",
+   "title": "Panic webhooks",
+   "status": "na",
+   "note": "Part of the status hub app, not this one.",
+   "group": "status"
+  },
+  {
+   "id": "tidbyt-displays",
+   "title": "Tidbyt displays",
+   "status": "na",
+   "note": "Part of the status hub app, not this one.",
+   "group": "status"
+  },
+  {
+   "id": "build-entrypoints",
+   "title": "build.bat and build-installer.bat",
+   "status": "built",
+   "note": "Both exist at the repository root.",
+   "group": "build"
+  },
+  {
+   "id": "fresh-build-run-command",
+   "title": "One build-and-run command",
+   "status": "partial",
+   "note": "build.bat builds; it does not launch the result yet.",
+   "group": "build"
+  },
+  {
+   "id": "dependency-fetcher",
+   "title": "One-click dependency fetcher",
+   "status": "partial",
+   "note": "The tunnel helper downloads and is hash-verified automatically. Docker must still be installed by you.",
+   "group": "build"
+  },
+  {
+   "id": "bundled-dependencies",
+   "title": "Bundled dependencies",
+   "status": "partial",
+   "note": "Fonts and icons are bundled; Docker is not.",
+   "group": "build"
+  },
+  {
+   "id": "squirrel-installer",
+   "title": "Windows installer",
+   "status": "planned",
+   "note": "The app ships as a portable executable today.",
+   "group": "build"
+  },
+  {
+   "id": "self-signing",
+   "title": "Code signing",
+   "status": "planned",
+   "note": "Builds are unsigned.",
+   "group": "build"
+  },
+  {
+   "id": "auto-updates",
+   "title": "Automatic updates",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "build"
+  },
+  {
+   "id": "app-icon",
+   "title": "Original icon",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "build"
+  },
+  {
+   "id": "release-workflow",
+   "title": "A release on every main build",
+   "status": "built",
+   "note": "Every push to main builds the Windows portable executable and publishes the next tagged release with it.",
+   "group": "release"
+  },
+  {
+   "id": "release-timing",
+   "title": "Workflow timing in release notes",
+   "status": "built",
+   "note": "Release notes state how long the build took.",
+   "group": "release"
+  },
+  {
+   "id": "release-line-counts",
+   "title": "Line counts in release notes",
+   "status": "built",
+   "note": "Counted by the workflow, never typed by hand.",
+   "group": "release"
+  },
+  {
+   "id": "release-dim-sum-photo",
+   "title": "Dim sum photos in releases",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "release"
+  },
+  {
+   "id": "dim-sum-code-names",
+   "title": "Dim sum code names",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "release"
+  },
+  {
+   "id": "ci-bootstrap",
+   "title": "CI dependency bootstrap",
+   "status": "built",
+   "note": "Workflows install pinned Node and dependencies with npm ci.",
+   "group": "release"
+  },
+  {
+   "id": "runner-selection",
+   "title": "Runner selection",
+   "status": "partial",
+   "note": "Uses GitHub-hosted Windows and Ubuntu runners.",
+   "group": "release"
+  },
+  {
+   "id": "encrypted-public-builder",
+   "title": "Encrypted builder",
+   "status": "na",
+   "note": "For private repositories only.",
+   "group": "release"
+  },
+  {
+   "id": "tabbed-readme",
+   "title": "Tabbed README",
+   "status": "partial",
+   "note": "The README uses collapsible sections.",
+   "group": "repo"
+  },
+  {
+   "id": "human-time-estimate",
+   "title": "Human time estimate",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "repo"
+  },
+  {
+   "id": "sanitized-instruction-copy",
+   "title": "Sanitized instruction copy",
+   "status": "partial",
+   "note": "AGENTS.md carries the public-safe rules.",
+   "group": "repo"
+  },
+  {
+   "id": "agents-md-vocabulary-block",
+   "title": "Wording rules in AGENTS.md",
+   "status": "built",
+   "note": "AGENTS.md states the public wording boundary.",
+   "group": "repo"
+  },
+  {
+   "id": "vocabulary-hash-lock",
+   "title": "Wording hash lock",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "repo"
+  },
+  {
+   "id": "roadmap-checklist",
+   "title": "ROADMAP.md checklist",
+   "status": "built",
+   "note": "ROADMAP.md is generated from this inventory.",
+   "group": "repo"
+  },
+  {
+   "id": "feature-docs",
+   "title": "A Markdown file per feature",
+   "status": "partial",
+   "note": "content/articles holds one article per built area, shared by the app and website.",
+   "group": "repo"
+  },
+  {
+   "id": "postman-collections",
+   "title": "API collections",
+   "status": "na",
+   "note": "The app exposes no HTTP API.",
+   "group": "repo"
+  },
+  {
+   "id": "wiki-website-sync",
+   "title": "Wiki and website in sync",
+   "status": "partial",
+   "note": "The website and the in-app guide are generated from the same articles. There is no wiki.",
+   "group": "repo"
+  },
+  {
+   "id": "handoff-record",
+   "title": "Handoff record",
+   "status": "built",
+   "note": "HANDOFF.md is kept current.",
+   "group": "repo"
+  },
+  {
+   "id": "closeout-prompt",
+   "title": "Closeout prompt",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "repo"
+  },
+  {
+   "id": "discussion-records",
+   "title": "Discussions as the record",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "repo"
+  },
+  {
+   "id": "project-board",
+   "title": "Linked project board",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "repo"
+  },
+  {
+   "id": "operational-skill",
+   "title": "Operational skill file",
+   "status": "planned",
+   "note": "Not built yet.",
+   "group": "repo"
+  },
+  {
+   "id": "readme-prompt-banner",
+   "title": "README prompt banner",
+   "status": "na",
+   "note": "Applies only to the instruction repository.",
+   "group": "repo"
+  },
+  {
+   "id": "instruction-single-file-editions",
+   "title": "Single-file instruction editions",
+   "status": "na",
+   "note": "Applies only to the instruction repository.",
+   "group": "repo"
+  },
+  {
+   "id": "project-profile",
+   "title": "Project memory folders",
+   "status": "na",
+   "note": "Applies only to the instruction repository.",
+   "group": "repo"
+  },
+  {
+   "id": "roblox-model-catalogue",
+   "title": "Shared Roblox models",
+   "status": "na",
+   "note": "Applies only to games.",
+   "group": "tools"
+  },
+  {
+   "id": "roblox-visual-realism",
+   "title": "Roblox visual realism",
+   "status": "na",
+   "note": "Applies only to games.",
+   "group": "tools"
+  }
+ ],
+ "groups": [
+  [
+   "voice",
+   "Language, voice and personalization"
+  ],
+  [
+   "look",
+   "Appearance and layout"
+  ],
+  [
+   "nav",
+   "Navigation, search and commands"
+  ],
+  [
+   "safety",
+   "Safety, locks and sign-in"
+  ],
+  [
+   "records",
+   "Records, history and messages"
+  ],
+  [
+   "tools",
+   "Built-in tools and hand-off"
+  ],
+  [
+   "evidence",
+   "Completeness and evidence"
+  ],
+  [
+   "site",
+   "Website and shared links"
+  ],
+  [
+   "status",
+   "Status reporting"
+  ],
+  [
+   "build",
+   "Build and install"
+  ],
+  [
+   "release",
+   "Release pipeline"
+  ],
+  [
+   "repo",
+   "Repository records"
+  ]
+ ]
+}

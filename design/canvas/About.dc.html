@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>About and changelog</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);width:1280px;height:800px;display:flex;font-size:14px;line-height:1.45;position:relative;overflow:hidden}
+.ms{font-family:"Material Symbols Rounded";font-size:22px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0}
+.groups{width:240px;flex:none;display:flex;flex-direction:column;gap:2px;padding:24px 0 0 24px}
+.g{display:flex;align-items:center;gap:12px;height:48px;padding:0 16px;border-radius:24px;color:var(--onv);font-weight:500;text-decoration:none}
+.g.on{background:var(--s4);color:var(--on)}
+.body{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:16px;padding:24px}
+.card{background:var(--s1);border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.h{font-size:22px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.kv{display:grid;grid-template-columns:90px 1fr;gap:8px 12px}
+.kv dt{color:var(--onv)}.kv dd{margin:0}
+.mono{font-family:"Roboto Mono",monospace;font-size:13px}
+.field{height:48px;border-radius:12px;border:1px solid var(--ol);background:none;color:var(--on);font:inherit;font-size:15px;padding:0 14px;width:100%;box-sizing:border-box}
+.chip{height:32px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font:inherit;font-size:13px;background:none}
+.dates{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.date{height:40px;border-radius:8px;border:1px solid var(--ol);background:none;color:var(--on);font:inherit;padding:0 10px}
+.rel{border-radius:20px;background:var(--s2);padding:16px;display:flex;flex-direction:column;gap:8px;animation:rise .4s var(--e) both}
+.rel+.rel{animation-delay:.08s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+.rel ul{margin:0;padding-left:20px;color:var(--onv)}
+.sha{color:var(--p);text-decoration:none}
+.toast{position:absolute;left:280px;bottom:24px;background:var(--s3);border-radius:20px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 12px 32px #0007;animation:rise .4s var(--e) both}
+.dish{width:48px;height:48px;border-radius:14px;background:var(--s4);display:grid;place-items:center;color:var(--p)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</helmet>
+<div class="app">
+<nav class="groups" aria-label="Settings groups">
+<a class="g" href="#"><span class="ms">palette</span>Appearance</a>
+<a class="g" href="#"><span class="ms">motion_photos_on</span>Motion and sound</a>
+<a class="g" href="#"><span class="ms">translate</span>Language and voice</a>
+<a class="g" href="#"><span class="ms">self_improvement</span>Focus modes</a>
+<a class="g" href="#"><span class="ms">accessibility_new</span>Accessibility</a>
+<a class="g" href="#"><span class="ms">notifications</span>Notifications</a>
+<a class="g" href="#"><span class="ms">database</span>Data and history</a>
+<a class="g on" href="#"><span class="ms" style="font-variation-settings:'FILL' 1">info</span>About</a>
+</nav>
+<div class="body">
+<section class="card">
+<h2 class="h">About</h2>
+<dl class="kv"><dt>Version</dt><dd class="mono">0.2.14</dd><dt>Built</dt><dd class="mono">2026-11-06 15:58:21 EST</dd><dt>Commit</dt><dd><a class="sha mono" href="#">845b752</a></dd></dl>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--onv)">App name<input class="field" value="Tunnel App Deployer"></label>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="chip"><span class="ms">restart_alt</span>Restore original name</button><button class="chip"><span class="ms">tour</span>Run the welcome tour again</button></div>
+<p class="muted" style="font-size:13px">Free, with no paid tier, ads or upgrade prompts.</p>
+</section>
+<section class="card">
+<h2 class="h">Changelog</h2>
+<div class="dates"><label class="muted" style="font-size:12px">From <input class="date" type="date" value="2026-11-01"></label><label class="muted" style="font-size:12px">To <input class="date" type="date" value="2026-11-06"></label><button class="chip" aria-label="Regex builder">.*</button></div>
+<div class="rel"><div style="display:flex;justify-content:space-between"><strong>0.2 · 2026-11-06</strong><a class="sha mono" href="#">this build</a></div><ul><li>Material Design 3 redesign with a navigation rail and a live tunnel diagram</li><li>Sessions history, Features screen and offline guide</li><li>Command palette, context menus and two-key confirmations</li></ul></div>
+<div class="rel"><div style="display:flex;justify-content:space-between"><strong>0.1.0 · 2026-11-06</strong><a class="sha mono" href="#">0d71e2b</a></div><ul><li>Host a Dockerfile or Compose project through a verified Quick Tunnel</li><li>Pinned, hash-verified tunnel helper download</li></ul></div>
+</section>
+</div>
+<div class="toast" role="status"><span class="dish" aria-hidden="true"><span class="ms" style="font-variation-settings:'FILL' 1">ramen_dining</span></span><div><strong>Dim sum of the day</strong><div class="muted">Har gow · 蝦餃</div></div></div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

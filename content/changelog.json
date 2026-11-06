@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "repository": "https://github.com/Ding-Ding-Projects/tunnel-app-deployer",
+  "entries": [
+    {
+      "version": "0.2",
+      "date": "2026-11-06",
+      "commit": null,
+      "note": "Released automatically from main; each release's exact version and commit are shown in its build record.",
+      "changes": {
+        "Added": [
+          "Material Design 3 redesign with a navigation rail, a bottom bar for narrow windows and a live tunnel diagram",
+          "Sessions history with search, filters, statistics, bulk actions and JSON, CSV or Markdown export",
+          "Features screen with an honest status for every planned feature",
+          "Offline guide with every website article",
+          "Settings with search, regex builder, settings history and per-group reset",
+          "English, Hong Kong Cantonese and bilingual modes with playfulness sliders",
+          "Command palette on Ctrl+Shift+F, context menus, notification centre and two-key confirmations",
+          "Focus modes, text size, density, accent colour, motion levels and action sounds",
+          "Version and build time on the first screen, and a release on every build of main"
+        ],
+        "Changed": [
+          "The website was rebuilt with the feature inventory, articles, language modes and a command palette"
+        ]
+      }
+    },
+    {
+      "version": "0.1.0",
+      "date": "2026-11-06",
+      "commit": "0d71e2b2c3636e2156cbf87006b7a3d2ba3232fe",
+      "note": "Development preview. Not published as a release.",
+      "changes": {
+        "Added": [
+          "Host a Dockerfile or Compose project and share it through a verified Cloudflare Quick Tunnel",
+          "Pinned, hash-verified tunnel helper download",
+          "Isolated, app-owned containers with cleanup that keeps volumes",
+          "Windows portable build in CI"
+        ]
+      }
+    }
+  ]
+}

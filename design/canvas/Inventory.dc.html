@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Feature inventory</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--warn:#f3bf6e;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);padding:40px;font-size:14px;line-height:1.45;box-sizing:border-box}
+.ms{font-family:"Material Symbols Rounded";font-size:18px;line-height:1;display:inline-block;font-variation-settings:"FILL" 1}
+.h1{font-size:36px;line-height:44px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.bar{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin:24px 0;background:var(--s1);border-radius:28px;padding:20px 24px}
+.chip{height:36px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 14px;font:inherit;font-size:13px;font-weight:500;background:none;cursor:pointer}
+.chip.sel{background:var(--pc);border-color:var(--pc);color:var(--onpc)}
+.track{flex:1;min-width:240px;height:12px;border-radius:6px;background:var(--s4);display:flex;overflow:hidden;gap:2px}
+.cats{columns:3 380px;column-gap:16px}
+.cat{break-inside:avoid;background:var(--s1);border-radius:24px;padding:16px;margin:0 0 16px;animation:rise .4s var(--e) both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+.cat h2{font-size:15px;font-weight:600;margin:4px 8px 10px;color:var(--p)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px;border-radius:12px}
+.row:hover{background:var(--s3)}
+.st{font-size:11px;font-weight:600;border-radius:6px;padding:2px 8px;white-space:nowrap}
+.st.built{background:var(--pc);color:var(--onpc)}.st.partial{background:#5c4200;color:#ffdea8}.st.planned{background:var(--s4);color:var(--onv)}.st.na{background:none;border:1px solid var(--ol);color:var(--onv)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</helmet>
+<div class="app">
+<h1 class="h1">Feature inventory</h1>
+<p class="muted">Every required feature, one honest status each. This exact list ships in the app's Features screen and on the website.</p>
+<div class="bar">
+<div><strong style="font-size:28px;font-weight:500">{{doneCount}} of {{total}}</strong><div class="muted" style="font-size:12px">built or partly built</div></div>
+<div class="track" aria-hidden="true"><i style="{{wBuilt}}"></i><i style="{{wPartial}}"></i></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><sc-for list="{{filters}}" as="f" hint-placeholder-count="5"><button class="{{f.cls}}" onClick="{{f.pick}}">{{f.label}} · {{f.n}}</button></sc-for></div>
+</div>
+<div class="cats">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="12">
+<section class="cat"><h2>{{c.name}}</h2>
+<sc-for list="{{c.items}}" as="it" hint-placeholder-count="6"><div class="row"><span>{{it.t}}</span><span class="{{it.cls}}">{{it.label}}</span></div></sc-for>
+</section>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2400}}'>
+class Component extends DCLogic {
+renderVals() {
+const C = {voice:'Language, voice and personalization',look:'Appearance and layout',nav:'Navigation, search and commands',safety:'Safety, locks and sign-in',records:'Records, history and messages',tools:'Built-in tools and hand-off',evidence:'Completeness and evidence',site:'Website and shared links',status:'Status reporting',build:'Build and install',release:'Release pipeline',repo:'Repository records'};
+const L = {built:'Built',partial:'Partly built',planned:'Not built yet',na:'Does not apply'};
+const raw = 'voice|Job document wording|na;voice|Language modes|built;voice|Playfulness sliders and dialog emoji|partial;voice|Personal vocabulary upload|planned;voice|Drop a vocabulary file onto the app|planned;voice|School mode|planned;voice|Spoken narrator|planned;voice|Action sounds|built;voice|Scheduled settings|planned;voice|Rename the app|built;voice|Focus modes|built;voice|Dim sum surprise|partial;voice|Dim sum photo source|planned;look|Material Design 3|built;look|Workflow navigation|built;look|Motion with a reduced-motion path|built;look|Live charts|planned;look|Per-element appearance editor|planned;look|Colour picker|partial;look|Logo customization|planned;look|Overlays and panels|built;look|Collapsible filters and statistics|built;look|Accessibility and sizing|built;look|Truthful empty states|built;nav|First-run setup|built;nav|Tabbed navigation|planned;nav|Regex builder on every search|partial;nav|Command palette|built;nav|Context menus|partial;nav|Shortcuts shown in menus|built;nav|Rich controls|partial;nav|Guided forms|partial;nav|Info buttons on controls|partial;nav|Settings that explain themselves|built;nav|Presets for blank editors|na;safety|Two-key confirmation|built;safety|Element locks|planned;safety|Support ticket recovery|planned;safety|Unlock ladder|planned;safety|Built-in authenticator|planned;safety|QR pairing|planned;safety|Free, no nagging|built;records|Local version history|partial;records|Export everything|partial;records|Bulk actions|partial;records|Changelog viewer|partial;records|Offline guide|built;records|Rendered provider text|na;records|Notifications and their centre|built;tools|File converter|planned;tools|Base64 tools|planned;tools|Minecraft server manager|planned;tools|Minecraft world generator|planned;tools|Ollama manager|planned;tools|Open in an external editor|planned;tools|Browser download hand-off|na;tools|Publishing to a forge|planned;tools|Progress and recovery in place|built;tools|Drawing and annotation|planned;evidence|Feature inventory|built;evidence|Version and build time on the first screen|built;evidence|Real screenshots|partial;evidence|Screen recording|planned;evidence|Design reference parity|partial;evidence|Design files in the repository|built;evidence|Clipping checks|planned;evidence|Public screenshot gallery|planned;site|Material website|partial;site|Phone-friendly website|built;site|Download button|built;site|An article per feature|partial;site|Bundled fonts|built;site|Link preview image|built;site|Website linked from the repository|partial;site|Private wording boundary|na;site|Packaged website for private repositories|na;status|Status hub|planned;status|Discord status bridge|na;status|Panic webhooks|na;status|Tidbyt displays|na;build|build.bat and build-installer.bat|built;build|One build-and-run command|partial;build|One-click dependency fetcher|partial;build|Bundled dependencies|partial;build|Windows installer|planned;build|Code signing|planned;build|Automatic updates|planned;build|Original icon|planned;release|A release on every main build|built;release|Workflow timing in release notes|built;release|Line counts in release notes|built;release|Dim sum photos in releases|planned;release|Dim sum code names|planned;release|CI dependency bootstrap|built;release|Runner selection|partial;release|Encrypted builder|na;repo|Tabbed README|partial;repo|Human time estimate|planned;repo|Sanitized instruction copy|partial;repo|Wording rules in AGENTS.md|built;repo|Wording hash lock|planned;repo|ROADMAP.md checklist|built;repo|A Markdown file per feature|partial;repo|API collections|na;repo|Wiki and website in sync|partial;repo|Handoff record|built;repo|Closeout prompt|planned;repo|Discussions as the record|planned;repo|Linked project board|planned;repo|Operational skill file|planned;repo|README prompt banner|na;repo|Single-file instruction editions|na;repo|Project memory folders|na;tools|Shared Roblox models|na;tools|Roblox visual realism|na';
+const items = raw.split(';').map(r => { const p = r.split('|'); return { c: p[0], t: p[1], s: p[2] }; });
+const pick = (this.state && this.state.f) || 'all';
+const n = s => items.filter(i => i.s === s).length;
+const filters = ['all','built','partial','planned','na'].map(k => ({ label: k === 'all' ? 'All' : L[k], n: k === 'all' ? items.length : n(k), cls: k === pick ? 'chip sel' : 'chip', pick: () => this.setState({ f: k }) }));
+const shown = items.filter(i => pick === 'all' || i.s === pick);
+const cats = Object.keys(C).map(k => ({ name: C[k], items: shown.filter(i => i.c === k).map(i => ({ t: i.t, label: L[i.s], cls: 'st ' + i.s })) })).filter(c => c.items.length);
+const total = items.length, b = n('built'), pa = n('partial');
+return { filters: filters, cats: cats, total: total, doneCount: b + pa, wBuilt: 'display:block;height:100%;background:#82d5c0;width:' + (100 * b / total) + '%', wPartial: 'display:block;height:100%;background:#f3bf6e;width:' + (100 * pa / total) + '%' };
+}
+}
+</script>
+</body>
+</html>
