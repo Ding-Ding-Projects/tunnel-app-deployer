@@ -505,8 +505,8 @@
   {
    "id": "public-screenshot-gallery",
    "title": "Public screenshot gallery",
-   "status": "planned",
-   "note": "Not built yet.",
+   "status": "partial",
+   "note": "The website has a gallery of interface renders. They are rendered with a scripted backend, not captured from live hosting.",
    "group": "evidence"
   },
   {
@@ -556,8 +556,8 @@
   {
    "id": "homepage-link",
    "title": "Website linked from the repository",
-   "status": "partial",
-   "note": "The website is linked from the README. The repository's About field must be set by an owner.",
+   "status": "built",
+   "note": "The repository About field links to the website, and the README links to it at the top.",
    "group": "site"
   },
   {

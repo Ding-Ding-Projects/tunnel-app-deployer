@@ -90,7 +90,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 - [~] **Design reference parity**: The interface follows the checked-in design in design/canvas; a pixel comparison is not automated.
 - [x] **Design files in the repository**: All design artboards and notes live in design/.
 - [ ] **Clipping checks**: Not built yet.
-- [ ] **Public screenshot gallery**: Not built yet.
+- [~] **Public screenshot gallery**: The website has a gallery of interface renders. They are rendered with a scripted backend, not captured from live hosting.
 
 ## Website and shared links
 
@@ -100,7 +100,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 - [~] **An article per feature**: Every built or partly built feature links to an article. Planned features do not have articles yet.
 - [x] **Bundled fonts**: Roboto Flex, Roboto Mono and Material Symbols are copied from npm by scripts/vendor-assets.mjs into the app and the website.
 - [x] **Link preview image**: The website has Open Graph tags and a preview image.
-- [~] **Website linked from the repository**: The website is linked from the README. The repository's About field must be set by an owner.
+- [x] **Website linked from the repository**: The repository About field links to the website, and the README links to it at the top.
 - [-] **Private wording boundary**: The app and website are public and have no signed-in surfaces.
 - [-] **Packaged website for private repositories**: This repository is public.
 
