@@ -85,7 +85,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 
 - [x] **Feature inventory**: This list, with the same honest status in the app and on the website.
 - [x] **Version and build time on the first screen**: Shows the running version and its build time with seconds and time zone, read from the packaged build record, or says it is unavailable.
-- [~] **Real screenshots**: Website screenshots are rendered from the real interface with a scripted backend; they are not captures of live hosting.
+- [~] **Real screenshots**: Website and README screenshots are rendered from the real interface by scripts/screens/shoot.sh with a scripted backend; they are not captures of live hosting.
 - [ ] **Screen recording**: Not built yet.
 - [~] **Design reference parity**: The interface follows the checked-in design in design/canvas; a pixel comparison is not automated.
 - [x] **Design files in the repository**: All design artboards and notes live in design/.
@@ -126,7 +126,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 
 - [x] **A release on every main build**: Every push to main builds the Windows portable executable and publishes the next tagged release with it.
 - [x] **Workflow timing in release notes**: Release notes state how long the build took.
-- [x] **Line counts in release notes**: Counted by the workflow, never typed by hand.
+- [x] **Line counts in release notes**: Release notes list hand-written line counts from scripts/count-lines.mjs, run by the workflow.
 - [ ] **Dim sum photos in releases**: Not built yet.
 - [ ] **Dim sum code names**: Not built yet.
 - [x] **CI dependency bootstrap**: Workflows install pinned Node and dependencies with npm ci.
@@ -136,7 +136,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 ## Repository records
 
 - [~] **Tabbed README**: The README uses collapsible sections.
-- [ ] **Human time estimate**: Not built yet.
+- [x] **Human time estimate**: The README shows an estimate range with its method, the counted lines from scripts/count-lines.mjs, the assumed rate and the arithmetic.
 - [~] **Sanitized instruction copy**: AGENTS.md carries the public-safe rules.
 - [x] **Wording rules in AGENTS.md**: AGENTS.md states the public wording boundary.
 - [ ] **Wording hash lock**: Not built yet.
@@ -145,10 +145,10 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 - [-] **API collections**: The app exposes no HTTP API.
 - [~] **Wiki and website in sync**: The website and the in-app guide are generated from the same articles. There is no wiki.
 - [x] **Handoff record**: HANDOFF.md is kept current.
-- [ ] **Closeout prompt**: Not built yet.
+- [x] **Closeout prompt**: CLOSEOUT_PROMPT.md holds a copy-ready prompt for the next session.
 - [ ] **Discussions as the record**: Not built yet.
 - [ ] **Linked project board**: Not built yet.
-- [ ] **Operational skill file**: Not built yet.
+- [~] **Operational skill file**: .claude/skills/tunnel-app-deployer-operations/SKILL.md records build, generation, screenshot, release and recovery routes. It has not been put through a skill evaluation.
 - [-] **README prompt banner**: Applies only to the instruction repository.
 - [-] **Single-file instruction editions**: Applies only to the instruction repository.
 - [-] **Project memory folders**: Applies only to the instruction repository.

@@ -60,3 +60,10 @@ Review the checked-in API and tests before renderer changes. Terminal backend fa
 - Shared content lives in `content/`; `npm run content` regenerates `src/renderer/content.js`, `docs/content.js` and `ROADMAP.md`, and fails when a feature links to a missing article.
 - Releases: `.github/workflows/release.yml` publishes the next `v0.2.N` tag with the Windows portable executable on every push to `main`, and writes `src/build-info.json` so the first screen shows the real version and build time. `checks.yml` runs the tests separately.
 - Verified: 28 automated checks; headless renders of every interface state with a scripted backend (`docs/assets/screens/`). Not verified here: the packaged desktop runtime, live public tunnels and native Windows execution.
+
+## Wave 2, November 2026
+
+- New design boards: Tools, narrator and vocabulary and School mode, schedules and editor hand-off, the app icon, and live controls in the context menu.
+- New: Tools screen (Base64 and table converter), live switches and choices in context menus and the command palette, narrator, personal vocabulary (stored apart from settings and never exported), School mode with a PIN, schedules, opening the project in VS Code or the default editor, and an original icon.
+- New preload operations, validated in the main process: `editors` (detects VS Code without running it) and `openProject` (only the chosen project file or folder).
+- Repository records: `.claude/skills/tunnel-app-deployer-operations/SKILL.md`, `CLOSEOUT_PROMPT.md`, `scripts/count-lines.mjs` and `scripts/screens/`.

@@ -45,8 +45,8 @@ jobs:
       - name: Write release notes
         run: |
           v="${{ steps.version.outputs.version }}"
-          lines() { git ls-files "$@" | xargs cat 2>/dev/null | wc -l | tr -d ' '; }
           elapsed=$(( $(date +%s) - STARTED_AT ))
+          counts=$(node scripts/count-lines.mjs)
           {
             echo "Tunnel App Deployer $v, built from commit $GITHUB_SHA."
             echo
@@ -61,10 +61,10 @@ jobs:
             echo "## Build"
             echo
             echo "- Workflow time until packaging finished: $((elapsed / 60)) min $((elapsed % 60)) s"
-            echo "- Lines in src: $(lines src ':!src/renderer/fonts' ':!src/renderer/content.js')"
-            echo "- Lines in tests: $(lines tests)"
-            echo "- Lines in docs: $(lines docs ':!docs/fonts' ':!docs/content.js' ':!docs/assets')"
-            echo "- Lines in content: $(lines content)"
+            echo
+            echo "Hand-written lines counted by scripts/count-lines.mjs:"
+            echo
+            echo "$counts" | sed 's/^/- /'
             echo
             echo "See the changelog in the app (Settings, About) or on the website."
           } > notes.md

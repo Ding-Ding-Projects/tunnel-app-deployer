@@ -480,7 +480,7 @@
    "id": "product-evidence",
    "title": "Real screenshots",
    "status": "partial",
-   "note": "Website screenshots are rendered from the real interface with a scripted backend; they are not captures of live hosting.",
+   "note": "Website and README screenshots are rendered from the real interface by scripts/screens/shoot.sh with a scripted backend; they are not captures of live hosting.",
    "group": "evidence"
   },
   {
@@ -685,7 +685,7 @@
    "id": "release-line-counts",
    "title": "Line counts in release notes",
    "status": "built",
-   "note": "Counted by the workflow, never typed by hand.",
+   "note": "Release notes list hand-written line counts from scripts/count-lines.mjs, run by the workflow.",
    "group": "release"
   },
   {
@@ -733,8 +733,8 @@
   {
    "id": "human-time-estimate",
    "title": "Human time estimate",
-   "status": "planned",
-   "note": "Not built yet.",
+   "status": "built",
+   "note": "The README shows an estimate range with its method, the counted lines from scripts/count-lines.mjs, the assumed rate and the arithmetic.",
    "group": "repo"
   },
   {
@@ -796,8 +796,8 @@
   {
    "id": "closeout-prompt",
    "title": "Closeout prompt",
-   "status": "planned",
-   "note": "Not built yet.",
+   "status": "built",
+   "note": "CLOSEOUT_PROMPT.md holds a copy-ready prompt for the next session.",
    "group": "repo"
   },
   {
@@ -817,8 +817,8 @@
   {
    "id": "operational-skill",
    "title": "Operational skill file",
-   "status": "planned",
-   "note": "Not built yet.",
+   "status": "partial",
+   "note": ".claude/skills/tunnel-app-deployer-operations/SKILL.md records build, generation, screenshot, release and recovery routes. It has not been put through a skill evaluation.",
    "group": "repo"
   },
   {

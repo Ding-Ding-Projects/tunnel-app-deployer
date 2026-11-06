@@ -26,6 +26,9 @@ The app runs on your computer. The link lasts only while your computer, containe
 - Notification centre, settings history with restore, per-group reset and a changelog viewer
 - Focus modes, motion levels with a reduced-motion path, action sounds, text size, density and accent colour
 - An offline guide with every website article, and a first-run setup that checks Docker for real
+- Tools: a local Base64 toolkit and a JSON, CSV and TSV converter
+- Live switches and choices inside context menus and the command palette
+- Narrator, personal vocabulary, School mode, schedules and opening the project in VS Code
 - Version and build time on the first screen, read from the packaged build record
 
 Every planned feature and its honest status is listed in [ROADMAP.md](ROADMAP.md), on the app's Features screen and on the website. All three come from `content/features.json`.
@@ -52,6 +55,9 @@ Requires Node.js 24 and a running Docker installation with Compose v2.
 | `npm run content` | Regenerate bundled content, `ROADMAP.md` and the website copies from `content/` |
 | `npm run vendor` | Copy fonts from npm packages into the app and website |
 | `python3 scripts/subset-site-icons.py` | Rebuild the website's icon font subset |
+| `python3 scripts/build-icon.py` | Rebuild the app icon files from `build/icon.svg` |
+| `scripts/screens/shoot.sh <folder>` | Render interface screenshots with a scripted backend |
+| `node scripts/count-lines.mjs` | Count hand-written lines |
 | `build.bat` or `npm run package:win` | Build the Windows portable executable |
 
 Source layout: `src/backend/` hosting; `src/main.js` and `src/preload.js` desktop integration; `src/renderer/` interface; `content/` features, articles and changelog shared by the app and website; `docs/` the website; `design/` the design canvas.
@@ -61,7 +67,7 @@ Source layout: `src/backend/` hosting; `src/main.js` and `src/preload.js` deskto
 <details>
 <summary><strong>Verification status</strong></summary>
 
-All 28 automated checks pass, covering hosting lifecycle, cancellation, recovery, desktop security, file saving, link allowlisting, build provenance, regex safety, translation completeness, Markdown escaping and generated-content freshness. The redesigned interface was rendered in headless Chrome from the real renderer code with a scripted backend for every state shown in `docs/assets/screens/`; those images are not captures of live hosting. Earlier smoke tests built and started real Dockerfile and Compose projects over local HTTP; public tunnel success and native Windows execution have not been verified in the managed environment.
+All 33 automated checks pass, covering hosting lifecycle, cancellation, recovery, desktop security, file saving, link allowlisting, build provenance, regex safety, translation completeness, Markdown escaping, generated-content freshness, Base64 and table conversion, personal-vocabulary validation and editor detection. The redesigned interface was rendered in headless Chrome from the real renderer code with a scripted backend for every state shown in `docs/assets/screens/`; those images are not captures of live hosting. Earlier smoke tests built and started real Dockerfile and Compose projects over local HTTP; public tunnel success and native Windows execution have not been verified in the managed environment.
 
 </details>
 
@@ -69,5 +75,14 @@ All 28 automated checks pass, covering hosting lifecycle, cancellation, recovery
 <summary><strong>Data and recovery boundaries</strong></summary>
 
 Compose uses a fresh isolated project for each hosting attempt. Persistent volumes are kept when stopping, but earlier volumes are not reused automatically. External or shared resources and unsafe Compose options are rejected explicitly. Terminal failures clear the public link and finish owned cleanup before another attempt. Session history, settings and notifications are stored only on this computer.
+
+</details>
+
+<details>
+<summary><strong>How long this would take by hand</strong></summary>
+
+An estimate, not a measurement. `node scripts/count-lines.mjs` counts 5,731 hand-written lines at this point (app source 2,877, tests 398, scripts 397, website 613, articles and inventory 1,446), leaving out bundled fonts, generated content and images. Assuming a person writes 40 to 80 finished, tested lines a day, with no multiplier for design work:
+
+5,731 / 80 ≈ 72 days and 5,731 / 40 ≈ 143 days, so roughly **14 to 29 working weeks**.
 
 </details>
