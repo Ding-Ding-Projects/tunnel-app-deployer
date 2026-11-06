@@ -9,7 +9,7 @@ The file you hosted, the format, the service and port, every step with its time,
 ## Search and filters
 
 - The search box matches names, paths, addresses and outcomes. Turn on the **.\*** regex builder for patterns.
-- The outcome chips filter the list, and **Statistics** folds open to show totals, time shared and how many attempts reached live.
+- The outcome chips filter the list, and **Statistics** folds open to show totals, time shared and how many attempts reached live, with a chart of the last 14 days by outcome. Hover a bar for its day and count; screen readers get the same numbers as a table.
 - The filters and the statistics panel remember whether they were open.
 
 ## Bulk actions

@@ -136,8 +136,8 @@
   {
    "id": "live-charts",
    "title": "Live charts",
-   "status": "planned",
-   "note": "Not built yet.",
+   "status": "partial",
+   "note": "Sessions shows a 14-day chart of outcomes that redraws as sessions finish, with a screen-reader table. Not a streaming chart of a running session.",
    "group": "look"
   },
   {

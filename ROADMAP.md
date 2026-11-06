@@ -23,7 +23,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 - [x] **Material Design 3**: Material 3 colour roles, shapes, type scale, navigation rail and bottom bar, generated from one seed colour.
 - [x] **Workflow navigation**: Five destinations in a navigation rail, a bottom bar in narrow windows, and the current step always visible on Host.
 - [x] **Motion with a reduced-motion path**: Full, gentle or off, following the system reduced-motion setting. No state is carried by motion alone.
-- [ ] **Live charts**: Not built yet.
+- [~] **Live charts**: Sessions shows a 14-day chart of outcomes that redraws as sessions finish, with a screen-reader table. Not a streaming chart of a running session.
 - [ ] **Per-element appearance editor**: Not built yet. Global appearance settings exist.
 - [~] **Colour picker**: Seed colour by hue wheel, swatches or hex, with the full scheme regenerated live. Colour-space translation is not built.
 - [ ] **Logo customization**: Not built yet.

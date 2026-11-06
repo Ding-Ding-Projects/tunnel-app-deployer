@@ -471,3 +471,15 @@ textarea.area:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 1px var(
 .utab .x .ms{font-size:18px}
 .newtab{width:36px;height:36px;border-radius:18px;border:0;background:var(--s3);color:var(--onv);display:grid;place-items:center;margin:0 0 2px 6px;flex:none}
 @media (max-width:860px){.auth-fields{grid-template-columns:1fr}}
+.chart{margin:0 8px 12px;background:var(--s2);border-radius:16px;padding:14px 16px}
+.chart figcaption{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.chart .legend{display:flex;gap:12px;font-size:12px;color:var(--onv)}
+.chart .lg::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:currentColor}
+.chart svg{width:100%;height:auto;max-height:200px;display:block;overflow:visible}
+.chart .bar{transform-box:fill-box;transform-origin:bottom;animation:grow var(--t4) var(--e) both}
+.chart .bar.shared,.chart .lg.shared{fill:var(--p);color:var(--p)}
+.chart .bar.failed,.chart .lg.failed{fill:var(--err);color:var(--err)}
+.chart .bar.cancelled,.chart .lg.cancelled{fill:var(--onv);color:var(--onv)}
+.chart .base{stroke:var(--s4)}
+.chart .tick{fill:var(--onv);font-size:11px}
+@keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}

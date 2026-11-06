@@ -472,6 +472,22 @@ setInterval(() => {
 let sessionFilter = 'all', selectedSessions = new Set();
 const sessionsSearch = () => searches['sessions-search'];
 function sessionText(s) { return [s.name, s.file, s.kind, s.service, s.port, s.publicUrl, s.outcome, s.error].filter(Boolean).join(' '); }
+function renderSessionChart() {
+  const days = 14, kinds = ['shared', 'failed', 'cancelled'], day0 = new Date(); day0.setHours(0, 0, 0, 0);
+  const buckets = Array.from({ length: days }, (_, i) => { const d = new Date(day0); d.setDate(d.getDate() - (days - 1 - i)); return { d, shared: 0, failed: 0, cancelled: 0 }; });
+  for (const s of sessions) {
+    if (!kinds.includes(s.outcome)) continue;
+    const d = new Date(s.startedAt); d.setHours(0, 0, 0, 0);
+    const i = Math.round((d - buckets[0].d) / 864e5); if (i >= 0 && i < days) buckets[i][s.outcome]++;
+  }
+  const max = Math.max(1, ...buckets.map(b => b.shared + b.failed + b.cancelled)), W = 1000, H = 140, gap = 8, bw = (W - gap * (days - 1)) / days;
+  const fmt = d => d.toLocaleDateString(settings.language === 'yue' ? 'zh-HK' : undefined, { day: 'numeric', month: 'short' });
+  let bars = '';
+  buckets.forEach((b, i) => { let y = H; for (const k of kinds) { if (!b[k]) continue; const h = Math.max(3, (b[k] / max) * (H - 8)); y -= h; bars += `<rect class="bar ${k}" x="${(i * (bw + gap)).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4"><title>${esc(fmt(b.d))}: ${b[k]} ${esc(t('sessions.' + k))}</title></rect>`; } });
+  const tot = k => buckets.reduce((a, b) => a + b[k], 0), n = tot('shared') + tot('failed') + tot('cancelled');
+  const summary = t('sessions.chartSummary').replace('{n}', n).replace('{shared}', tot('shared')).replace('{failed}', tot('failed')).replace('{cancelled}', tot('cancelled'));
+  $('sessions-chart').innerHTML = `<figcaption><b>${esc(t('sessions.chart'))}</b><span class="legend">${kinds.map(k => `<span class="lg ${k}">${esc(t('sessions.' + k))}</span>`).join('')}</span></figcaption><svg viewBox="0 0 ${W} ${H + 18}" role="img" aria-label="${esc(summary)}"><line class="base" x1="0" x2="${W}" y1="${H}" y2="${H}"/>${bars}<text class="tick" x="0" y="${H + 14}">${esc(fmt(buckets[0].d))}</text><text class="tick" x="${W}" y="${H + 14}" text-anchor="end">${esc(fmt(buckets[days - 1].d))}</text></svg><table class="sr-only"><caption>${esc(summary)}</caption><tr><th>${esc(t('sessions.day'))}</th>${kinds.map(k => `<th>${esc(t('sessions.' + k))}</th>`).join('')}</tr>${buckets.map(b => `<tr><td>${esc(fmt(b.d))}</td>${kinds.map(k => `<td>${b[k]}</td>`).join('')}</tr>`).join('')}</table>`;
+}
 function renderSessions() {
   const m = matcherFor(sessionsSearch());
   const counts = { all: sessions.length };
@@ -483,6 +499,7 @@ function renderSessions() {
   const sharedMs = sessions.reduce((a, s) => a + (s.liveAt && s.endedAt ? Date.parse(s.endedAt) - Date.parse(s.liveAt) : 0), 0);
   const reached = sessions.filter(s => s.reachedLive || s.publicUrl).length;
   $('sessions-stats').innerHTML = `<div class="stat"><span class="muted small">${esc(t('sessions.total'))}</span><b>${sessions.length}</b></div><div class="stat"><span class="muted small">${esc(t('sessions.sharedTime'))}</span><b class="mono">${clockDiff(sharedMs)}</b></div><div class="stat"><span class="muted small">${esc(t('sessions.successRate'))}</span><b>${sessions.length ? Math.round(100 * reached / sessions.length) : 0}%</b></div>`;
+  renderSessionChart();
   $('sessions-empty').hidden = !!shown.length;
   $('sessions-empty-title').innerHTML = label('sessions.empty');
   $('sessions-list').hidden = !shown.length;
