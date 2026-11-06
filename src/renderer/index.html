@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Tunnel App Deployer</title><link rel="stylesheet" href="styles.css"><script defer src="app.js"></script>
+</head>
+<body>
+<header class="topbar"><div class="brand"><span class="mark" aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Tunnel<span class="brand-light"> App Deployer</span></span></div><button id="theme" class="icon-button" aria-label="Switch to light theme" title="Switch theme">◐</button></header>
+<main>
+<div class="page-heading"><div><p class="eyebrow">LOCAL → PUBLIC</p><h1>Share your app.</h1><p class="subtitle">One local project. One temporary HTTPS link.</p></div><span id="status" class="status"><span class="status-dot"></span><span id="status-text">Not sharing</span></span></div>
+<div class="workspace">
+<section class="setup panel" aria-labelledby="setup-title"><div class="section-heading"><span class="step">01</span><h2 id="setup-title">Choose your project</h2></div><p class="muted">Use a Dockerfile or a Docker Compose file on this computer.</p>
+<div class="segmented" role="group" aria-label="Project format"><button id="dockerfile" aria-pressed="true">Dockerfile</button><button id="compose" aria-pressed="false">Compose</button></div>
+<button class="file-picker" id="choose"><span class="folder" aria-hidden="true">▱</span><strong id="file-name">Choose a Dockerfile</strong><span id="file-path">Browse your local files</span><span class="browse">Browse files <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+<p class="context-note" id="context-note">The Dockerfile’s folder is used as the build context.</p>
+<div id="options" hidden><div id="service-field" class="field" hidden><label for="service">Compose service</label><select id="service"><option value="">Choose a service</option></select></div><div class="field"><label for="port">Container port <span class="optional">optional</span></label><input id="port" type="number" min="1" max="65535" placeholder="Auto-detect from project" inputmode="numeric"><p id="port-hint">The HTTP port inside your container, such as 3000 or 8080.</p></div></div>
+<div class="host-action"><button id="host" class="primary" disabled><span aria-hidden="true"><svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Host app</button><p>Only share projects you trust. Anyone with the link can access your app.</p></div></section>
+<section class="sharing panel" aria-labelledby="sharing-title"><div class="section-heading"><span class="step">02</span><h2 id="sharing-title">Your public link</h2></div>
+<div id="empty-state" class="empty-state"><div class="orbit" aria-hidden="true"><span><svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div><h3 id="empty-title">Ready when you are</h3><p id="empty-description">Choose a project, then host it.<br>Your link appears after the app is reachable.</p></div>
+<div id="live-state" hidden><p class="live-label">HTTPS · READY TO SHARE</p><div class="url-box"><output id="public-url"></output></div><div class="link-actions"><button id="copy" class="primary">Copy link</button><button id="open" class="secondary">Open app <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18 18 6M6 6h12v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><p class="link-note">This address is temporary and changes each time you host.</p></div>
+<div id="progress-area" hidden><div class="progress-heading"><span id="progress-label">Preparing your app</span><span class="spinner" aria-hidden="true"></span></div><ol id="progress-list" class="progress-list" aria-label="Hosting progress"></ol></div>
+<div id="error" role="alert" hidden></div><button id="stop" class="stop" hidden>Stop sharing</button>
+<div class="keep-running"><span aria-hidden="true">◷</span><p><strong>Your computer is the host.</strong><br>Keep this app, Docker, and your computer running. Closing this app ends sharing.</p></div>
+</section>
+</div>
+<section class="requirements panel" aria-labelledby="requirements-title"><div><h2 id="requirements-title">Before you host</h2><p class="muted">Docker must be running. The tunnel helper downloads automatically on supported systems.</p></div><div class="checks"><span id="docker-check" class="check">Docker · checking</span><span id="tunnel-check" class="check">cloudflared · checking</span><button id="recheck" class="text-button">Check again</button></div><p id="requirement-detail" class="requirement-detail" hidden></p></section>
+<footer><span>No account. No domain. No cloud bill.</span><span>Powered by Docker + Cloudflare Quick Tunnels</span></footer>
+</main><div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+</body></html>

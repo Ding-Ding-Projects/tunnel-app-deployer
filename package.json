@@ -1,0 +1,25 @@
+{
+  "name": "tunnel-app-deployer",
+  "version": "0.1.0",
+  "description": "Share a local Docker application through a temporary HTTPS link.",
+  "main": "src/main.js",
+  "author": "Ding-Ding-Projects",
+  "license": "MIT",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test tests/desktop/*.test.js tests/backend/*.test.js",
+    "test:desktop": "node --test tests/desktop/*.test.js",
+    "test:backend": "node --test tests/backend/*.test.js",
+    "package:win": "electron-builder --win portable --x64"
+  },
+  "devDependencies": { "electron": "45.2.3", "electron-builder": "26.18.0" },
+  "build": {
+    "appId": "com.dingdingprojects.tunnelappdeployer",
+    "productName": "Tunnel App Deployer",
+    "directories": { "output": "dist" },
+    "files": ["src/**/*", "package.json", "LICENSE"],
+    "asar": true,
+    "win": { "target": ["portable"], "artifactName": "Tunnel-App-Deployer-${version}-${arch}.${ext}" }
+  }
+}
