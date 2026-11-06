@@ -2,7 +2,7 @@
 // Local tools: Base64 encode/decode, tabular conversion and personal-vocabulary validation.
 (function (root) {
   const STD = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  const URL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  const URLSAFE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 
   function textToBytes(text, encoding = 'utf-8') {
     const s = String(text);
@@ -19,7 +19,7 @@
   }
 
   function encodeBytes(bytes, { variant = 'standard', padding = true, lineLength = 0 } = {}) {
-    const abc = variant === 'url' ? URL : STD;
+    const abc = variant === 'url' ? URLSAFE : STD;
     let out = '';
     for (let i = 0; i < bytes.length; i += 3) {
       const n = bytes[i] << 16 | (bytes[i + 1] ?? 0) << 8 | (bytes[i + 2] ?? 0);
@@ -41,8 +41,8 @@
       if (/\s/.test(c)) { if (strict && variant !== 'mime') return { ok: false, offset: i, message: `Whitespace at position ${i} is not allowed in strict mode.` }; continue; }
       if (c === '=') { pad++; continue; }
       if (pad) return { ok: false, offset: i, message: `Data after padding at position ${i}.` };
-      let v = (variant === 'url' ? URL : STD).indexOf(c);
-      if (v < 0 && !strict) v = (variant === 'url' ? STD : URL).indexOf(c);
+      let v = (variant === 'url' ? URLSAFE : STD).indexOf(c);
+      if (v < 0 && !strict) v = (variant === 'url' ? STD : URLSAFE).indexOf(c);
       if (v < 0) return { ok: false, offset: i, message: `"${c}" at position ${i} is not a Base64 character.` };
       values.push(v);
     }
@@ -145,6 +145,53 @@
     return [...new Uint8Array(await subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  const api = { textToBytes, bytesToText, encodeBytes, decodeToBytes, dataUrl, parseDataUrl, parseTable, formatTable, conversionLoss, validateVocabulary, vocabularyReplacer, sha256, VOCAB_LIMIT };
+
+  // ---------- one-time passwords (RFC 4226 HOTP, RFC 6238 TOTP) ----------
+  const B32 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  function base32Decode(text) {
+    const clean = String(text).toUpperCase().replace(/[\s-]/g, '').replace(/=+$/, '');
+    if (!clean) throw new Error('The secret is empty.');
+    let bits = 0, value = 0; const out = [];
+    for (let i = 0; i < clean.length; i++) {
+      const v = B32.indexOf(clean[i]);
+      if (v < 0) throw new Error(`"${clean[i]}" at position ${i} is not a base32 character.`);
+      value = value << 5 | v; bits += 5;
+      if (bits >= 8) { out.push(value >>> (bits - 8) & 255); bits -= 8; }
+    }
+    return new Uint8Array(out);
+  }
+  function base32Encode(bytes) { let bits = 0, value = 0, out = ''; for (const b of bytes) { value = value << 8 | b; bits += 8; while (bits >= 5) { out += B32[value >>> (bits - 5) & 31]; bits -= 5; } } if (bits) out += B32[value << (5 - bits) & 31]; return out; }
+  const subtleApi = () => (typeof crypto !== 'undefined' && crypto.subtle) || require('node:crypto').webcrypto.subtle;
+  async function hotp(secret, counter, { algorithm = 'SHA-1', digits = 6 } = {}) {
+    if (!['SHA-1', 'SHA-256', 'SHA-512'].includes(algorithm)) throw new Error('Unsupported algorithm.');
+    if (!(digits >= 6 && digits <= 8)) throw new Error('Codes have 6 to 8 digits.');
+    const key = await subtleApi().importKey('raw', secret, { name: 'HMAC', hash: algorithm }, false, ['sign']);
+    const msg = new Uint8Array(8); let c = BigInt(counter);
+    for (let i = 7; i >= 0; i--) { msg[i] = Number(c & 255n); c >>= 8n; }
+    const mac = new Uint8Array(await subtleApi().sign('HMAC', key, msg));
+    const off = mac[mac.length - 1] & 15;
+    const bin = (mac[off] & 127) << 24 | mac[off + 1] << 16 | mac[off + 2] << 8 | mac[off + 3];
+    return String(bin % 10 ** digits).padStart(digits, '0');
+  }
+  async function totp(secret, { time = Date.now() / 1000, period = 30, algorithm = 'SHA-1', digits = 6 } = {}) {
+    if (!(period >= 1 && period <= 3600)) throw new Error('The period must be 1 to 3600 seconds.');
+    return hotp(secret, Math.floor(time / period), { algorithm, digits });
+  }
+  function parseOtpauth(uri) {
+    let url; try { url = new URL(String(uri).trim()); } catch { return { ok: false, message: 'This is not an otpauth link.' }; }
+    if (url.protocol !== 'otpauth:' || url.hostname !== 'totp') return { ok: false, message: 'Only otpauth://totp/ links are supported.' };
+    const label = decodeURIComponent(url.pathname.replace(/^\//, ''));
+    const [issuerFromLabel, account] = label.includes(':') ? label.split(/:(.*)/s) : ['', label];
+    const p = url.searchParams, algorithm = (p.get('algorithm') || 'SHA1').toUpperCase().replace(/^SHA(\d)/, 'SHA-$1');
+    const entry = { name: (account || label).trim(), issuer: (p.get('issuer') || issuerFromLabel || '').trim(), secret: (p.get('secret') || '').replace(/\s/g, '').toUpperCase(), algorithm, digits: Number(p.get('digits') || 6), period: Number(p.get('period') || 30) };
+    try { base32Decode(entry.secret); } catch (e) { return { ok: false, message: e.message }; }
+    if (!['SHA-1', 'SHA-256', 'SHA-512'].includes(entry.algorithm)) return { ok: false, message: 'Unsupported algorithm.' };
+    if (!(entry.digits >= 6 && entry.digits <= 8)) return { ok: false, message: 'Codes have 6 to 8 digits.' };
+    if (!(entry.period >= 1 && entry.period <= 3600)) return { ok: false, message: 'The period must be 1 to 3600 seconds.' };
+    return { ok: true, entry };
+  }
+  function otpauthUri(e) { const label = encodeURIComponent(e.issuer ? `${e.issuer}:${e.name}` : e.name); return `otpauth://totp/${label}?secret=${e.secret}&issuer=${encodeURIComponent(e.issuer || '')}&algorithm=${e.algorithm.replace('-', '')}&digits=${e.digits}&period=${e.period}`; }
+
+  const api = { base32Decode, base32Encode, hotp, totp, parseOtpauth, otpauthUri, textToBytes, bytesToText, encodeBytes, decodeToBytes, dataUrl, parseDataUrl, parseTable, formatTable, conversionLoss, validateVocabulary, vocabularyReplacer, sha256, VOCAB_LIMIT };
   if (typeof module === 'object' && module.exports) module.exports = api; else root.Tools = api;
 })(typeof window === 'undefined' ? globalThis : window);

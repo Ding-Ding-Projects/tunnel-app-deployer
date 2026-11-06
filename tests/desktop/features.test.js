@@ -166,3 +166,30 @@ test('the dish picker skips used dishes and dishes without a published photo', a
   assert.equal(pickDish(dishes, new Set(['a.png', 'c.png']), new Set(['hk-dish-0001'])).id, 'hk-dish-0003');
   assert.equal(pickDish(dishes, new Set(['b.png']), new Set(['hk-dish-0002'])), null);
 });
+
+test('TOTP matches the RFC 6238 published vectors for every algorithm', async () => {
+  const Tools = require('../../src/renderer/tools');
+  const keys = { 'SHA-1': '12345678901234567890', 'SHA-256': '12345678901234567890123456789012', 'SHA-512': '1234567890123456789012345678901234567890123456789012345678901234' };
+  const vectors = [[59, '94287082', '46119246', '90693936'], [1111111109, '07081804', '68084774', '25091201'], [1234567890, '89005924', '91819424', '93441116'], [20000000000, '65353130', '77737706', '47863826']];
+  for (const [time, s1, s256, s512] of vectors) {
+    for (const [algorithm, want] of [['SHA-1', s1], ['SHA-256', s256], ['SHA-512', s512]]) {
+      assert.equal(await Tools.totp(new TextEncoder().encode(keys[algorithm]), { time, algorithm, digits: 8, period: 30 }), want, `${algorithm} at ${time}`);
+    }
+  }
+});
+
+test('base32 round-trips and otpauth links are validated', () => {
+  const Tools = require('../../src/renderer/tools');
+  const bytes = new TextEncoder().encode('12345678901234567890');
+  assert.equal(Tools.base32Encode(bytes), 'GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ');
+  assert.deepEqual(Array.from(Tools.base32Decode('gezd gnbv-gy3tqojqgezdgnbvgy3tqojq')), Array.from(bytes));
+  assert.throws(() => Tools.base32Decode('NOT*BASE32'));
+  const ok = Tools.parseOtpauth('otpauth://totp/Example:alice@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Example&digits=6&period=30');
+  assert.equal(ok.ok, true);
+  assert.equal(ok.entry.issuer, 'Example');
+  assert.equal(ok.entry.name, 'alice@example.com');
+  assert.equal(Tools.parseOtpauth('otpauth://hotp/x?secret=JBSWY3DPEHPK3PXP').ok, false);
+  assert.equal(Tools.parseOtpauth('https://example.com').ok, false);
+  const back = Tools.parseOtpauth(Tools.otpauthUri(ok.entry));
+  assert.equal(back.entry.secret, ok.entry.secret);
+});

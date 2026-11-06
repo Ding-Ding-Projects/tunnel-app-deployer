@@ -15,6 +15,15 @@ try {
     { id: '1', at: iso(2e4), kind: 'ok', text: 'Your app is live and reachable over HTTPS.', read: false },
     { id: '2', at: iso(1e4), kind: 'ok', text: 'Link copied. Paste it anywhere.', read: false },
     { id: '3', at: iso(9e5), kind: 'error', text: 'Hosting failed. The message on Host says why.', read: true }]));
+  const seal = t => btoa(t);
+  if (q.get('act') === 'auth') localStorage.setItem('tad.auth', JSON.stringify([
+    { id: 'x1', name: 'alex@example.com', issuer: 'Example Cloud', algorithm: 'SHA-1', digits: 6, period: 30, sealed: seal('JBSWY3DPEHPK3PXP') },
+    { id: 'x2', name: 'ops@example.com', issuer: 'Status Hub', algorithm: 'SHA-256', digits: 8, period: 30, sealed: seal('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ') },
+    { id: 'x3', name: 'build-bot', issuer: 'Example Mail', algorithm: 'SHA-1', digits: 6, period: 60, sealed: seal('KRSXG5CTMVRXEZLUKN2XAZLSKNSWG4TFOQ') }]));
+  if (q.get('act') === 'tabs') localStorage.setItem('tad.tabs', JSON.stringify([
+    { id: 't1', type: 'tool', ref: 'auth', icon: 'password', title: 'Authenticator' },
+    { id: 't2', type: 'settings', ref: 'appearance', icon: 'palette', title: 'Appearance' },
+    { id: 't3', type: 'article', ref: 'safety', icon: 'article', title: 'Safety' }]));
 } catch {}
 const statuses = {
   ready: { phase: 'idle' }, onboarding: { phase: 'idle' },
@@ -30,6 +39,8 @@ window.tunnel = {
   host: () => new Promise((_res, rej) => { window.__screens.fail = rej; }), stop: async () => ({ phase: 'idle' }), copy: async () => true, open: async () => true,
   info: async () => ({ version: '0.2.0', buildTime: '2026-11-06T20:58:21Z', commit: '205a6caafcebb3763ebc39a7faa2248314b828a4' }),
   copyText: async () => true, editors: async () => [{ name: 'Visual Studio Code' }], openProject: async () => true, setTitle: async () => true, openLink: async () => true, save: async () => true,
+  vaultAvailable: async () => true, vaultSeal: async t => btoa(t), vaultOpen: async s => atob(s),
+  updateState: async () => ({ state: 'idle', installed: true }), checkUpdates: async () => ({ state: 'current' }), installUpdate: async () => true, onUpdate: () => () => {},
   onProgress: cb => { listener = cb; return () => {}; }
 };
 window.__screens = { state, view, listener: () => listener };

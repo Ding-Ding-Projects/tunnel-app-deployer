@@ -203,9 +203,10 @@ function setCount(s, n) { if (s?.regex && s.query) { const el = s.panel.querySel
 const VIEWS = ['host', 'sessions', 'tools', 'features', 'guide', 'settings'];
 let view = 'host';
 function buildBottomNav() { $('bottom').innerHTML = $('rail').querySelector('.dests').innerHTML; }
-function go(next, { focus = true } = {}) {
+function go(next, { focus = true, fromTab = false } = {}) {
   if (!VIEWS.includes(next)) return;
   view = next;
+  if (!fromTab && typeof activeTab !== 'undefined') { activeTab = 'workspace'; workspaceView = next; renderTabs(); }
   for (const v of VIEWS) $(`view-${v}`).hidden = v !== next;
   for (const b of document.querySelectorAll('.dest')) b.setAttribute('aria-selected', String(b.dataset.view === next));
   renderView();
@@ -717,12 +718,18 @@ function openMenu(anchor, items, { x, y } = {}) {
   makeSearch('ctx-filter', 'ctx.filter', renderMenuItems);
   renderMenuItems();
   const px = x ?? (r ? r.left : 100), py = y ?? (r ? r.bottom + 4 : 100);
-  el.style.left = `${Math.min(px, innerWidth - el.offsetWidth - 8)}px`; el.style.top = `${Math.min(py, innerHeight - el.offsetHeight - 8)}px`;
+  el.style.left = `${Math.max(8, Math.min(px, innerWidth - el.offsetWidth - 8))}px`; el.style.top = `${Math.max(8, Math.min(py, innerHeight - el.offsetHeight - 8))}px`;
   searches['ctx-filter'].input.focus();
 }
 function renderMenuItems() {
   const m = matcherFor(searches['ctx-filter']);
-  const shown = menuState.items.filter(i => i.sep || m.test(i.label));
+  const hit = menuState.items.map(i => !i.sep && !i.head && m.test(i.label));
+  const shown = menuState.items.filter((i, n) => {
+    if (i.sep) return true;
+    if (!i.head) return hit[n];
+    for (let k = n + 1; k < menuState.items.length && !menuState.items[k].head; k++) if (hit[k]) return true;
+    return false;
+  });
   menuState.shown = shown.filter(i => !i.sep && !i.head);
   menuState.index = Math.min(menuState.index, Math.max(0, menuState.shown.length - 1));
   const row = i => {
@@ -797,6 +804,8 @@ function allCommands() {
   act('stop_circle', plainBoth('host.stop'), () => $('stop-btn').click(), 'Ctrl .', live);
   act('close', plainBoth('host.cancel'), doStop, '', () => (busy || active()) && !live());
   act('refresh', plainBoth('req.again'), checkRequirements);
+  act('password', plainBoth('auth.tab'), () => { toolState.tool = 'auth'; go('tools'); });
+  act('tab', plainBoth('tabs.new'), () => openMenu($('open-palette'), tabCatalog()), 'Ctrl T');
   act('system_update_alt', plainBoth('upd.check'), checkUpdates);
   act('restart_alt', plainBoth('upd.restart'), () => $('upd-restart').click(), '', () => updates.state === 'ready');
   act('notifications', plainBoth('top.notifications'), openNotifications);
@@ -990,7 +999,8 @@ function runConvert() {
 }
 function renderTools() {
   for (const b of document.querySelectorAll('[data-tool]')) b.setAttribute('aria-selected', String(b.dataset.tool === toolState.tool));
-  $('panel-b64').hidden = toolState.tool !== 'b64'; $('panel-conv').hidden = toolState.tool !== 'conv';
+  $('panel-b64').hidden = toolState.tool !== 'b64'; $('panel-conv').hidden = toolState.tool !== 'conv'; $('panel-auth').hidden = toolState.tool !== 'auth';
+  if (toolState.tool === 'auth') renderAuth();
   $('b64-enc').setAttribute('aria-pressed', String(toolState.mode === 'encode')); $('b64-dec').setAttribute('aria-pressed', String(toolState.mode === 'decode'));
   $('b64-in').disabled = !!toolState.file && toolState.mode === 'encode';
   $('b64-save').disabled = false;
@@ -1046,6 +1056,94 @@ $('upd-restart').onclick = () => {
 };
 api?.onUpdate?.(u => { const wasReady = updates.state === 'ready'; updates = u; if (u.state === 'ready' && !wasReady) notify(updates.version ? t('upd.ready').replace('{v}', updates.version) : t('upd.readyNoVersion'), 'info'); if (u.state === 'failed') notify(`${t('upd.state.failed')}: ${u.error || ''}`, 'warn'); renderUpdate(); });
 
+
+// ---------- authenticator ----------
+let authAccounts = store.get('auth', []), authSecrets = new Map(), vaultOk = null;
+async function loadAuth() {
+  try { vaultOk = await api.vaultAvailable(); } catch { vaultOk = false; }
+  for (const a of authAccounts) if (!authSecrets.has(a.id)) { try { authSecrets.set(a.id, await api.vaultOpen(a.sealed)); } catch { authSecrets.set(a.id, null); } }
+  renderAuth();
+}
+const groupCode = c => c.length === 6 ? `${c.slice(0, 3)} ${c.slice(3)}` : c.length === 8 ? `${c.slice(0, 4)} ${c.slice(4)}` : c;
+async function renderAuth() {
+  if (vaultOk === null) { loadAuth(); return; }
+  $('auth-note').textContent = vaultOk ? t('auth.vault') : t('auth.noVault');
+  $('auth-add').disabled = !vaultOk;
+  const m = matcherFor(searches['auth-search']);
+  const list = authAccounts.filter(a => m.test(`${a.name} ${a.issuer}`));
+  setCount(searches['auth-search'], list.length);
+  if (!list.length) { $('auth-list').innerHTML = `<p class="muted">${esc(t(authAccounts.length ? 'palette.none' : 'auth.empty'))}</p>`; return; }
+  const now = Date.now() / 1000;
+  const cards = await Promise.all(list.map(async a => {
+    const secret = authSecrets.get(a.id);
+    let code = '—', next = '—';
+    if (secret) { try { const key = Tools.base32Decode(secret); code = await Tools.totp(key, { time: now, period: a.period, algorithm: a.algorithm, digits: a.digits }); next = await Tools.totp(key, { time: now + a.period, period: a.period, algorithm: a.algorithm, digits: a.digits }); } catch {} }
+    const left = Math.ceil(a.period - (now % a.period));
+    return `<article class="acc" data-acc="${esc(a.id)}"><div class="top"><div><strong>${esc(a.name || a.issuer)}</strong><div class="muted small">${esc(a.issuer || '')}${a.issuer ? ' · ' : ''}${esc(a.algorithm)} · ${a.digits} · ${a.period} s</div></div><span class="ring ${left <= 5 ? 'low' : ''}" data-left="${(left / a.period).toFixed(3)}" role="img" aria-label="${left} ${esc(t('auth.left'))}"><span>${left}</span></span></div><button class="code" data-copy-code="${esc(code)}" aria-label="${esc(t('auth.copy'))}: ${esc(code)}">${esc(groupCode(code))}</button><div class="foot"><span class="next">${esc(t('auth.next'))} ${esc(groupCode(next))}</span><span class="tools"><button class="chip" data-copy-code="${esc(code)}"><span class="ms">content_copy</span>${esc(t('auth.copy'))}</button><button class="icon-btn" data-remove-acc="${esc(a.id)}" aria-label="${esc(t('auth.remove'))}"><span class="ms">delete</span></button></span></div></article>`;
+  }));
+  const focusedId = document.activeElement?.closest?.('[data-acc]')?.dataset.acc;
+  $('auth-list').innerHTML = cards.join('');
+  for (const r of $('auth-list').querySelectorAll('.ring')) r.style.setProperty('--left', r.dataset.left);
+  for (const b of $('auth-list').querySelectorAll('[data-copy-code]')) b.onclick = () => copyText(b.dataset.copyCode.replace(/\s/g, '')).then(ok => ok && notify('toast.copied', 'ok'));
+  for (const b of $('auth-list').querySelectorAll('[data-remove-acc]')) b.onclick = () => confirmAction({ titleKey: 'auth.removeTitle', bodyKey: 'auth.removeBody', affects: authAccounts.find(a => a.id === b.dataset.removeAcc)?.name, from: b, run: () => { authAccounts = authAccounts.filter(a => a.id !== b.dataset.removeAcc); authSecrets.delete(b.dataset.removeAcc); store.set('auth', authAccounts); renderAuth(); } });
+  if (focusedId) $('auth-list').querySelector(`[data-acc="${CSS.escape(focusedId)}"] .code`)?.focus();
+}
+setInterval(() => { if (view === 'tools' && toolState.tool === 'auth' && !document.activeElement?.closest?.('#auth-form')) renderAuth(); }, 1000);
+$('auth-add').onclick = () => { $('auth-form').hidden = false; $('auth-error').hidden = true; $('auth-form').reset(); $('auth-secret').focus(); };
+$('auth-cancel').onclick = () => { $('auth-form').hidden = true; $('auth-add').focus(); };
+$('auth-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const raw = $('auth-secret').value.trim();
+  let entry;
+  if (/^otpauth:/i.test(raw)) { const r = Tools.parseOtpauth(raw); if (!r.ok) return showAuthError(r.message); entry = r.entry; if ($('auth-name').value.trim()) entry.name = $('auth-name').value.trim(); }
+  else { try { Tools.base32Decode(raw); } catch (err) { return showAuthError(err.message); } entry = { name: $('auth-name').value.trim(), issuer: $('auth-issuer').value.trim(), secret: raw.replace(/[\s-]/g, '').toUpperCase(), algorithm: $('auth-algo').value, digits: +$('auth-digits').value, period: +$('auth-period').value }; if (!(entry.period >= 1 && entry.period <= 3600)) return showAuthError('The period must be 1 to 3600 seconds.'); }
+  if (!entry.name && !entry.issuer) return showAuthError(t('auth.name'));
+  try {
+    const sealed = await api.vaultSeal(entry.secret);
+    const id = crypto.randomUUID();
+    authAccounts = [...authAccounts, { id, name: entry.name, issuer: entry.issuer, algorithm: entry.algorithm, digits: entry.digits, period: entry.period, sealed }];
+    authSecrets.set(id, entry.secret); store.set('auth', authAccounts);
+    $('auth-form').hidden = true; notify('auth.added', 'ok'); renderAuth();
+  } catch (err) { showAuthError(err.message); }
+});
+function showAuthError(m) { $('auth-error').hidden = false; $('auth-error').textContent = m; }
+$('auth-export').onclick = () => saveFile('authenticator-accounts.json', JSON.stringify({ schema: 1, note: t('auth.exportNote'), accounts: authAccounts.map(({ name, issuer, algorithm, digits, period }) => ({ name, issuer, algorithm, digits, period })) }, null, 2));
+$('auth-export-secrets').onclick = () => confirmAction({ titleKey: 'auth.exportSecretsTitle', bodyKey: 'auth.exportSecretsBody', from: $('auth-export-secrets'), run: () => saveFile('authenticator-secrets.json', JSON.stringify({ schema: 1, accounts: authAccounts.map(a => ({ name: a.name, issuer: a.issuer, otpauth: authSecrets.get(a.id) ? Tools.otpauthUri({ ...a, secret: authSecrets.get(a.id) }) : null })) }, null, 2)) });
+
+// ---------- utility tabs ----------
+let tabs = store.get('tabs', []), activeTab = 'workspace', workspaceView = 'host';
+function tabCatalog() {
+  const items = [{ head: true, label: t('tabs.destinations') }];
+  for (const [v, icon] of [['host', 'rocket_launch'], ['sessions', 'history'], ['tools', 'construction'], ['features', 'auto_awesome_mosaic'], ['guide', 'menu_book'], ['settings', 'settings']]) items.push({ icon, label: t(`nav.${v}`), run: () => openTab({ type: 'view', ref: v, icon, title: t(`nav.${v}`) }) });
+  items.push({ head: true, label: t('tabs.tools') });
+  for (const [tool, icon, key] of [['b64', 'data_object', 'tools.b64'], ['conv', 'swap_horiz', 'tools.convert'], ['auth', 'password', 'auth.tab']]) items.push({ icon, label: t(key), run: () => openTab({ type: 'tool', ref: tool, icon, title: t(key) }) });
+  items.push({ head: true, label: t('tabs.settings') });
+  for (const [g, icon] of GROUPS) items.push({ icon, label: t(`group.${g}`), run: () => openTab({ type: 'settings', ref: g, icon, title: t(`group.${g}`) }) });
+  items.push({ head: true, label: t('tabs.articles') });
+  for (const a of C.articles) items.push({ icon: 'article', label: a.title, run: () => openTab({ type: 'article', ref: a.id, icon: 'article', title: a.title }) });
+  return items;
+}
+function openTab(tab) { const t2 = { id: crypto.randomUUID(), ...tab }; tabs = [...tabs, t2]; store.set('tabs', tabs); activateTab(t2.id); }
+function activateTab(id) {
+  activeTab = id;
+  if (id === 'workspace') { go(workspaceView, { fromTab: true }); renderTabs(); return; }
+  const tb = tabs.find(x => x.id === id); if (!tb) return activateTab('workspace');
+  if (tb.type === 'view') go(tb.ref, { fromTab: true });
+  else if (tb.type === 'tool') { toolState.tool = tb.ref; go('tools', { fromTab: true }); }
+  else if (tb.type === 'settings') { settingsGroup = tb.ref; go('settings', { fromTab: true }); }
+  else if (tb.type === 'article') { articleId = tb.ref; go('guide', { fromTab: true }); }
+  renderTabs();
+}
+function closeTab(id) { const i = tabs.findIndex(x => x.id === id); tabs = tabs.filter(x => x.id !== id); store.set('tabs', tabs); if (activeTab === id) activateTab(tabs[Math.max(0, i - 1)]?.id || 'workspace'); else renderTabs(); }
+function renderTabs() {
+  const strip = $('tabstrip'); if (!strip) return;
+  strip.hidden = !tabs.length;
+  strip.innerHTML = `<button class="utab" role="tab" data-tab="workspace" aria-selected="${activeTab === 'workspace'}"><span class="ms">home</span><span class="lbl">${esc(t('tabs.workspace'))}</span></button>${tabs.map(x => `<div class="utab" role="tab" tabindex="0" data-tab="${esc(x.id)}" aria-selected="${activeTab === x.id}"><span class="ms">${esc(x.icon)}</span><span class="lbl">${esc(x.title)}</span><button class="x" data-close-tab="${esc(x.id)}" aria-label="${esc(t('tabs.close'))}: ${esc(x.title)}"><span class="ms">close</span></button></div>`).join('')}<button class="newtab" id="newtab" aria-label="${esc(t('tabs.new'))}" title="${esc(t('tabs.new'))} (Ctrl+T)"><span class="ms">add</span></button>`;
+  for (const el of strip.querySelectorAll('[data-tab]')) { el.onclick = e => { if (!e.target.closest('[data-close-tab]')) activateTab(el.dataset.tab); }; el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activateTab(el.dataset.tab); } }; }
+  for (const b of strip.querySelectorAll('[data-close-tab]')) b.onclick = e => { e.stopPropagation(); closeTab(b.dataset.closeTab); };
+  $('newtab').onclick = e => { e.stopPropagation(); openMenu($('newtab'), tabCatalog()); };
+}
+
 // ---------- keyboard ----------
 document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
@@ -1075,6 +1173,9 @@ document.addEventListener('keydown', e => {
   else if (e.ctrlKey && !e.shiftKey && k === 'o' && live()) { e.preventDefault(); $('open-btn').click(); }
   else if (e.ctrlKey && e.key === '.' && live()) { e.preventDefault(); $('stop-btn').click(); }
   else if (e.ctrlKey && e.shiftKey && k === 'e' && selected && editors.length) { e.preventDefault(); openProject('vscode'); }
+  else if (e.ctrlKey && !e.shiftKey && k === 't') { e.preventDefault(); openMenu(document.activeElement, tabCatalog(), { x: 140, y: 120 }); }
+  else if (e.ctrlKey && !e.shiftKey && k === 'w' && activeTab !== 'workspace') { e.preventDefault(); closeTab(activeTab); }
+  else if (e.ctrlKey && e.key === 'Tab') { e.preventDefault(); const ids = ['workspace', ...tabs.map(x => x.id)]; const i = ids.indexOf(activeTab); activateTab(ids[(i + (e.shiftKey ? ids.length - 1 : 1)) % ids.length]); }
 });
 document.addEventListener('click', e => { if (menuState && !e.target.closest('#ctx')) closeMenu(false); });
 $('theme-toggle').onclick = () => setSetting('theme', isDark() ? 'light' : 'dark');
@@ -1086,8 +1187,10 @@ makeSearch('features-search', 'features.search', () => renderFeatures());
 makeSearch('guide-search', 'guide.search', () => renderGuide());
 makeSearch('settings-search', 'settings.search', () => renderSettings());
 makeSearch('notif-search', 'notif.search', () => renderNotifications());
+makeSearch('auth-search', 'auth.search', () => renderAuth());
 applySettings();
 go('host', { focus: false });
+renderTabs();
 renderBadge();
 (async () => {
   try { info = await api.info(); } catch {}

@@ -163,6 +163,11 @@ async function start() {
     setTimeout(checkUpdates, 15000);
     setInterval(checkUpdates, UPDATE_INTERVAL_MS).unref?.();
   }
+  // Authenticator secrets are encrypted with the operating system's credential protection.
+  const { safeStorage } = require('electron');
+  handle('app:vault-available', () => safeStorage.isEncryptionAvailable());
+  handle('app:vault-seal', text => { if (typeof text !== 'string' || text.length > 4096) throw new Error('Invalid secret.'); if (!safeStorage.isEncryptionAvailable()) throw new Error('System credential protection is not available.'); return safeStorage.encryptString(text).toString('base64'); });
+  handle('app:vault-open', sealed => { if (typeof sealed !== 'string' || sealed.length > 16384) throw new Error('Invalid record.'); return safeStorage.decryptString(Buffer.from(sealed, 'base64')); });
   handle('app:update-state', () => ({ ...updates }));
   handle('app:update-check', () => checkUpdates());
   handle('app:update-install', async () => {

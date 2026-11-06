@@ -30,6 +30,7 @@
     <button class="icon-btn" id="bell" data-tip="top.notifications" aria-label="Notifications"><span class="ms">notifications</span><span class="badge" id="badge" hidden>0</span></button>
     <button class="icon-btn" id="theme-toggle" data-tip="top.theme" aria-label="Switch theme"><span class="ms">dark_mode</span></button>
   </header>
+  <div class="tabstrip" id="tabstrip" role="tablist" aria-label="Open tabs"></div>
   <div class="update-banner" id="update-banner" role="status" hidden><span class="ms f">system_update_alt</span><div class="txt"><strong id="upd-title"></strong><small><span id="upd-unsigned"></span> <a href="#" id="upd-notes" data-external="true"></a></small></div><button class="btn text on-pc-text" id="upd-later"></button><button class="btn on-pc" id="upd-restart"><span class="ms">restart_alt</span><span id="upd-restart-label"></span></button></div>
   <div class="momentum" id="momentum" role="status" hidden><span class="ms f">arrow_forward</span><span id="momentum-text"></span></div>
 
@@ -109,6 +110,7 @@
     <div class="tabs" role="tablist" aria-labelledby="tools-title">
       <button class="tab" role="tab" id="tab-b64" aria-controls="panel-b64" data-tool="b64"><span class="ms">data_object</span><span data-i18n="tools.b64">Base64</span></button>
       <button class="tab" role="tab" id="tab-conv" aria-controls="panel-conv" data-tool="conv"><span class="ms">swap_horiz</span><span data-i18n="tools.convert">Convert</span></button>
+      <button class="tab" role="tab" id="tab-auth" aria-controls="panel-auth" data-tool="auth"><span class="ms">password</span><span data-i18n="auth.tab">Authenticator</span></button>
     </div>
     <div class="tool-grid" id="panel-b64" role="tabpanel" aria-labelledby="tab-b64">
       <section class="card"><div class="card-head"><h2 class="h3" data-i18n="tools.input">Input</h2><div class="seg small-seg" role="group"><button id="b64-enc" aria-pressed="true" data-i18n="tools.encode">Encode</button><button id="b64-dec" aria-pressed="false" data-i18n="tools.decode">Decode</button></div></div>
@@ -128,6 +130,24 @@
         <p class="small" id="b64-out-stat" role="status"></p>
         <details class="fold"><summary><span class="ms">history</span><span data-i18n="tools.history">Recent conversions</span></summary><div class="hist" id="b64-hist"></div></details>
       </section>
+    </div>
+
+    <div id="panel-auth" role="tabpanel" aria-labelledby="tab-auth" hidden class="auth-panel">
+      <div class="tools"><div class="search-slot" id="auth-search"></div><button class="btn fill" id="auth-add"><span class="ms">add</span><span data-i18n="auth.add">Add account</span></button><button class="chip" id="auth-export"><span class="ms">download</span><span data-i18n="auth.export">Export list</span></button><button class="chip danger" id="auth-export-secrets"><span class="ms">key</span><span data-i18n="auth.exportSecrets">Export with secrets…</span></button></div>
+      <form class="card auth-form" id="auth-form" hidden>
+        <div class="auth-fields">
+          <label class="field"><span data-i18n="auth.secret">Secret</span><input id="auth-secret" autocomplete="off" spellcheck="false" required></label>
+          <label class="field"><span data-i18n="auth.name">Account</span><input id="auth-name" maxlength="80"></label>
+          <label class="field"><span data-i18n="auth.issuer">Service</span><input id="auth-issuer" maxlength="80"></label>
+          <label class="field"><span data-i18n="auth.algorithm">Algorithm</span><select id="auth-algo"><option>SHA-1</option><option>SHA-256</option><option>SHA-512</option></select></label>
+          <label class="field"><span data-i18n="auth.digits">Digits</span><select id="auth-digits"><option>6</option><option>7</option><option>8</option></select></label>
+          <label class="field"><span data-i18n="auth.period">Period</span><input id="auth-period" type="number" min="1" max="3600" value="30"></label>
+        </div>
+        <p class="hint bad" id="auth-error" role="alert" hidden></p>
+        <div class="row end"><button type="button" class="btn text" id="auth-cancel" data-i18n="auth.cancel">Cancel</button><button type="submit" class="btn fill" data-i18n="auth.save">Save account</button></div>
+      </form>
+      <p class="muted small" id="auth-note"></p>
+      <div class="auth-grid" id="auth-list"></div>
     </div>
     <div class="tool-grid" id="panel-conv" role="tabpanel" aria-labelledby="tab-conv" hidden>
       <section class="card"><div class="card-head"><h2 class="h3" data-i18n="tools.from">From</h2><div class="seg small-seg" role="group" id="conv-from"></div></div>

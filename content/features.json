@@ -205,8 +205,8 @@
   {
    "id": "tabs",
    "title": "Tabbed navigation",
-   "status": "planned",
-   "note": "Not built yet.",
+   "status": "built",
+   "note": "A Workspace tab plus utility tabs opened from a searchable New tab catalogue, with Ctrl+T, Ctrl+W and Ctrl+Tab. Tabs persist.",
    "group": "nav"
   },
   {
@@ -312,8 +312,8 @@
   {
    "id": "authenticator",
    "title": "Built-in authenticator",
-   "status": "planned",
-   "note": "Not built yet.",
+   "status": "built",
+   "note": "TOTP codes with SHA-1, SHA-256 and SHA-512, secrets sealed in the system vault, search, guarded export. Codes match the RFC 6238 vectors in tests.",
    "group": "safety"
   },
   {
@@ -642,8 +642,8 @@
   {
    "id": "squirrel-installer",
    "title": "Windows installer",
-   "status": "planned",
-   "note": "The app ships as a portable executable today.",
+   "status": "built",
+   "note": "Squirrel.Windows Setup.exe, RELEASES and full package are published with every release from main, first in v0.2.6. Unsigned.",
    "group": "build"
   },
   {
@@ -656,8 +656,8 @@
   {
    "id": "auto-updates",
    "title": "Automatic updates",
-   "status": "planned",
-   "note": "Not built yet.",
+   "status": "partial",
+   "note": "Installed copies check the release feed every four hours and offer an unsigned restart banner. Not yet proven on an installed copy updating to a newer release.",
    "group": "build"
   },
   {
@@ -698,8 +698,8 @@
   {
    "id": "dim-sum-code-names",
    "title": "Dim sum code names",
-   "status": "planned",
-   "note": "Not built yet.",
+   "status": "built",
+   "note": "Each release takes the next unused dish with a published photo from the public catalogue, recorded in its notes and shown in About.",
    "group": "release"
   },
   {

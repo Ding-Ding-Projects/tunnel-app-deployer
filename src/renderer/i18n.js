@@ -169,7 +169,18 @@
     'upd.state.current': 'You have the latest version.', 'upd.state.ready': 'Update downloaded and its hash matched the release feed. It installs when you restart.',
     'upd.state.failed': 'The update check failed', 'upd.state.unavailable': 'Updates work in the installed app. This copy was not installed with the setup program.',
     'upd.lastCheck': 'Last checked', 'upd.hashNote': 'Updates are unsigned. Their hashes are checked against the release feed, which proves they are intact, not who made them.',
-    'upd.stopFirst': 'Restarting stops sharing first.', 'set.codeName': 'Code name', 'set.codeName.none': 'No code name for this build.'
+    'upd.stopFirst': 'Restarting stops sharing first.', 'set.codeName': 'Code name', 'set.codeName.none': 'No code name for this build.',
+    'auth.tab': 'Authenticator', 'auth.search': 'Search accounts', 'auth.add': 'Add account', 'auth.name': 'Account', 'auth.issuer': 'Service',
+    'auth.secret': 'Secret key or otpauth:// link', 'auth.algorithm': 'Algorithm', 'auth.digits': 'Digits', 'auth.period': 'Period (seconds)',
+    'auth.save': 'Save account', 'auth.cancel': 'Cancel', 'auth.copy': 'Copy code', 'auth.next': 'next', 'auth.left': 'seconds left',
+    'auth.remove': 'Remove…', 'auth.removeTitle': 'Remove this account?', 'auth.removeBody': 'Its secret is deleted from this computer. You will need the original setup key or QR code to add it again.',
+    'auth.export': 'Export list', 'auth.exportSecrets': 'Export with secrets…', 'auth.exportSecretsTitle': 'Export secrets?',
+    'auth.exportSecretsBody': 'The file will contain every secret in plain text. Anyone with the file can generate your codes.',
+    'auth.exportNote': 'This export lists accounts without their secrets.', 'auth.empty': 'No accounts yet. Add one with its setup key or otpauth:// link.',
+    'auth.vault': 'Secrets are encrypted with your system account and never leave this computer. Codes depend on this computer\'s clock being right.',
+    'auth.noVault': 'System credential protection is not available, so accounts cannot be stored safely here.', 'auth.added': 'Account added.',
+    'tabs.new': 'New tab', 'tabs.workspace': 'Workspace', 'tabs.close': 'Close tab', 'tabs.search': 'Open in a new tab', 'tabs.destinations': 'Destinations',
+    'tabs.tools': 'Tools', 'tabs.settings': 'Settings', 'tabs.articles': 'Articles', 'tabs.label': 'Open tabs'
   };
   const yue = {
     'app.name': 'Tunnel App Deployer',
@@ -335,7 +346,18 @@
     'upd.state.current': '已經係最新版本。', 'upd.state.ready': '更新已下載，雜湊同發佈資料吻合。重新啟動就會安裝。',
     'upd.state.failed': '檢查更新失敗', 'upd.state.unavailable': '安裝版先可以自動更新。呢份唔係用安裝程式裝嘅。',
     'upd.lastCheck': '上次檢查', 'upd.hashNote': '更新未經簽署。雜湊會同發佈資料核對，證明檔案完整，但唔證明係邊個製作。',
-    'upd.stopFirst': '重新啟動前會先停止分享。', 'set.codeName': '代號', 'set.codeName.none': '呢個版本冇代號。'
+    'upd.stopFirst': '重新啟動前會先停止分享。', 'set.codeName': '代號', 'set.codeName.none': '呢個版本冇代號。',
+    'auth.tab': '驗證器', 'auth.search': '搵帳戶', 'auth.add': '加帳戶', 'auth.name': '帳戶', 'auth.issuer': '服務',
+    'auth.secret': '密鑰或者 otpauth:// 連結', 'auth.algorithm': '演算法', 'auth.digits': '位數', 'auth.period': '週期（秒）',
+    'auth.save': '儲存帳戶', 'auth.cancel': '取消', 'auth.copy': '複製驗證碼', 'auth.next': '下一個', 'auth.left': '秒剩餘',
+    'auth.remove': '刪除…', 'auth.removeTitle': '刪除呢個帳戶？', 'auth.removeBody': '佢嘅密鑰會由呢部電腦刪除。要再加返就要原本嘅設定密鑰或者 QR 碼。',
+    'auth.export': '匯出清單', 'auth.exportSecrets': '連密鑰匯出…', 'auth.exportSecretsTitle': '匯出密鑰？',
+    'auth.exportSecretsBody': '檔案會以明文包含所有密鑰。拎到檔案嘅人都可以產生你嘅驗證碼。',
+    'auth.exportNote': '呢個匯出只列帳戶，唔包密鑰。', 'auth.empty': '未有帳戶。用設定密鑰或者 otpauth:// 連結加一個。',
+    'auth.vault': '密鑰用你嘅系統帳戶加密，唔會離開呢部電腦。驗證碼要靠呢部電腦嘅時鐘準確。',
+    'auth.noVault': '系統憑證保護用唔到，所以呢度唔可以安全咁儲存帳戶。', 'auth.added': '已加入帳戶。',
+    'tabs.new': '新分頁', 'tabs.workspace': '工作區', 'tabs.close': '關閉分頁', 'tabs.search': '喺新分頁打開', 'tabs.destinations': '目的地',
+    'tabs.tools': '工具', 'tabs.settings': '設定', 'tabs.articles': '文章', 'tabs.label': '已開分頁'
   };
   const tiers = level => level <= 2 ? 's' : level === 3 ? 'w' : 'p';
   function pick(table, key, level) {

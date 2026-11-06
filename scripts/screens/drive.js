@@ -17,6 +17,8 @@ window.addEventListener('load', () => setTimeout(async () => {
   if (act === 'conv') { document.querySelector('[data-tool="conv"]').click(); $('conv-in').value = '[\n  {"service": "web", "port": 3000},\n  {"service": "db", "port": 5432}\n]'; $('conv-in').dispatchEvent(new Event('input')); }
   if (act === 'lang' || act === 'sched' || act === 'ctxset') { const g = act === 'sched' ? 'schedules' : act === 'lang' ? 'language' : 'motion'; document.querySelector('[data-g="' + g + '"]').click(); await tick(); }
   if (act === 'ctxset') { const row = document.querySelector('.item[data-key="sounds"]'); const r = row.getBoundingClientRect(); row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: r.left + 200, clientY: r.top + 20 })); }
+  if (act === 'auth') { document.querySelector('[data-tool="auth"]').click(); await new Promise(r => setTimeout(r, 600)); }
+  if (act === 'tabs') { document.querySelector('#tabstrip [data-tab="t2"]')?.click(); await tick(); $('newtab').click(); const f = document.querySelector('#ctx-filter input'); if (f) { f.value = 'a'; f.dispatchEvent(new Event('input')); } }
   if (act === 'picked') $('choose').click();
   if (act === 'palette') { $('open-palette').click(); const i = $('palette-input'); i.value = q.get('q') || ''; i.dispatchEvent(new Event('input')); }
   if (act === 'notifs') $('bell').click();

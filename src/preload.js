@@ -18,6 +18,9 @@ contextBridge.exposeInMainWorld('tunnel', Object.freeze({
   checkUpdates: () => ipcRenderer.invoke('app:update-check'),
   installUpdate: () => ipcRenderer.invoke('app:update-install'),
   onUpdate: callback => { const listener = (_event, value) => callback(value); ipcRenderer.on('app:update', listener); return () => ipcRenderer.removeListener('app:update', listener); },
+  vaultAvailable: () => ipcRenderer.invoke('app:vault-available'),
+  vaultSeal: text => ipcRenderer.invoke('app:vault-seal', String(text)),
+  vaultOpen: sealed => ipcRenderer.invoke('app:vault-open', String(sealed)),
   save: (name, content) => ipcRenderer.invoke('app:save', String(name), String(content)),
   onProgress: callback => {
     const listener = (_event, value) => callback(value);

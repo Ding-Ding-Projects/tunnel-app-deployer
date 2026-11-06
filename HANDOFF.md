@@ -67,3 +67,11 @@ Review the checked-in API and tests before renderer changes. Terminal backend fa
 - New: Tools screen (Base64 and table converter), live switches and choices in context menus and the command palette, narrator, personal vocabulary (stored apart from settings and never exported), School mode with a PIN, schedules, opening the project in VS Code or the default editor, and an original icon.
 - New preload operations, validated in the main process: `editors` (detects VS Code without running it) and `openProject` (only the chosen project file or folder).
 - Repository records: `.claude/skills/tunnel-app-deployer-operations/SKILL.md`, `CLOSEOUT_PROMPT.md`, `scripts/count-lines.mjs` and `scripts/screens/`.
+
+## Wave 3 (installer, updates, authenticator, tabs)
+
+- Squirrel.Windows installer: proven in v0.2.6 (Setup.exe, RELEASES, full .nupkg; code name Classic Har Gow). Unsigned.
+- Automatic updates: built, checks every 4 hours after a 15 s start delay. Not yet proven updating a real installed copy; that needs an installed v0.2.6 to pick up a newer release.
+- Authenticator: TOTP (SHA-1/256/512) with secrets sealed by Electron safeStorage. Tested against RFC 6238 vectors; the vault itself is mocked in screenshots.
+- Utility tabs: Workspace plus catalogue tabs, persisted, Ctrl+T/Ctrl+W/Ctrl+Tab.
+- Still planned: live chart in Sessions, automated clipping matrix.

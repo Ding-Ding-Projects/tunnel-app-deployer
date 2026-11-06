@@ -18,6 +18,7 @@ shots=(
   "confirm|state=live&act=confirm&$dark|1280,800" "tools-b64|state=ready&view=tools&act=b64&$dark|1280,800"
   "tools-convert|state=ready&view=tools&act=conv&$dark|1280,800" "context-controls|state=ready&view=settings&act=ctxset&$dark|1280,800"
   "schedules|state=ready&view=settings&act=sched&$dark|1280,800"
+  "authenticator|state=ready&view=tools&act=auth&$dark|1280,800" "tabs|state=ready&act=tabs&$dark|1280,800"
   "bilingual|state=building&settings=%7B%22theme%22%3A%22dark%22%2C%22language%22%3A%22both%22%2C%22momentum%22%3Atrue%2C%22time%22%3Atrue%2C%22oneThing%22%3Atrue%7D|1280,800"
 )
 for s in "${shots[@]}"; do
