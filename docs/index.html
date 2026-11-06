@@ -1,8 +1,99 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark light"><title>Tunnel App Deployer — Share a local app</title><link rel="stylesheet" href="style.css"><script src="app.js" defer></script></head>
-<body><header><a class="brand" href="#">→ Tunnel App Deployer</a><nav><a href="#walkthrough">Walkthrough</a><a href="#lifecycle">How sharing works</a><a href="https://github.com/Ding-Ding-Projects/tunnel-app-deployer">Source →</a></nav></header><main>
-<section class="hero"><p class="eyebrow">LOCAL CONTAINERS · PUBLIC LINKS</p><h1>Your app.<br>A link to share.</h1><p class="lead">Build from a Dockerfile or Compose project, run locally, and share through a free Cloudflare Quick Tunnel.</p><a class="button" href="#walkthrough">Explore the workflow <span>→</span></a><p class="status">Development preview · Local container checks passed; public tunnel verification pending</p><div class="journey" aria-label="Hosting stages"><span>01 Select</span><span>02 Build</span><span>03 Verify</span><span>04 Share</span></div></section>
-<section id="walkthrough"><p class="eyebrow">A GUIDED START</p><h2>From project to public link.</h2><p>This interactive walkthrough explains the workflow. It does not build or host your project.</p><fieldset><legend>Choose your project format</legend><label><input type="radio" name="format" value="dockerfile" checked> Dockerfile</label><label><input type="radio" name="format" value="compose"> Docker Compose</label></fieldset><div class="steps"><div><p id="step-count" class="eyebrow"></p><h3 id="step-title"></h3><p id="step-description" aria-live="polite"></p><div class="controls"><button id="previous" type="button">← Back</button><button id="next" type="button">Next →</button></div></div><aside><h3>Your preparation checklist</h3><p>Saved only in this browser.</p><label><input type="checkbox" data-check="docker"> Docker is installed and running</label><label><input type="checkbox" data-check="source"> The project runs as a container</label><label><input type="checkbox" data-check="entry"> The public web service is identified</label><button id="reset" type="button">Reset checklist</button></aside></div></section>
-<section id="lifecycle"><p class="eyebrow">WHAT THE LINK MEANS</p><h2>Local hosting, shared openly.</h2><div class="cards"><article><h3>No cloud account</h3><p>The default tunnel needs no Cloudflare account or custom domain. Your application runs on your computer.</p></article><article><h3>A temporary address</h3><p>The HTTPS address can change on restart. Your computer, container and tunnel must stay running for the link to work.</p></article><article><h3>Health before success</h3><p>The app should check local and public reachability before showing a live link, and clear it when sharing stops.</p></article></div><details><summary>Service limits and availability</summary><p>Quick Tunnels are intended for development and sharing, have no uptime guarantee, allow up to 200 in-flight requests, and do not support server-sent events. Anyone with the link can access the app; the app's own authentication remains intact.</p><a href="https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/">Read the provider documentation →</a></details></section>
-<section><p class="eyebrow">BUILD IN THE OPEN</p><h2>Follow the implementation.</h2><p>The public repository includes the designer handoff and implementation status. The initial desktop and backend are available in source. Local container checks passed; public tunnel access and native Windows execution remain unverified. Compose data volumes are retained but not automatically reused between sessions.</p><div class="links"><a href="https://github.com/Ding-Ding-Projects/tunnel-app-deployer/blob/main/HANDOFF.md">Designer handoff →</a><a href="https://github.com/Ding-Ding-Projects/tunnel-app-deployer/actions">Build checks →</a><a href="https://github.com/Ding-Ding-Projects/tunnel-app-deployer/releases">Release status →</a></div></section>
-</main><footer>Tunnel App Deployer · Independent project; not affiliated with Cloudflare.</footer></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>Tunnel App Deployer · share a local Docker app with a public HTTPS link</title>
+<meta name="description" content="Pick a Dockerfile or Compose file, press Host, and get a verified HTTPS link anyone can open. Free, local, no account or domain.">
+<meta property="og:title" content="Tunnel App Deployer">
+<meta property="og:description" content="Share a local Docker app through a verified, temporary HTTPS link. No account, no domain.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ding-ding-projects.github.io/tunnel-app-deployer/">
+<meta property="og:image" content="https://ding-ding-projects.github.io/tunnel-app-deployer/assets/og.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#0e1513">
+<link rel="stylesheet" href="style.css">
+<script defer src="site-i18n.js"></script><script defer src="regex.js"></script><script defer src="markdown.js"></script><script defer src="content.js"></script><script defer src="app.js"></script>
+</head>
+<body>
+<a class="skip" href="#content" data-i18n="skip">Skip to content</a>
+<header class="hdr"><div class="wrap">
+  <a class="brand" href="#" data-route="home">Tunnel App Deployer</a>
+  <nav class="links" aria-label="Site">
+    <a href="#how" data-i18n="nav.how">How it works</a><a href="#features" data-i18n="nav.features">Features</a><a href="#guide" data-route="guide" data-i18n="nav.guide">Guide</a><a href="#limits" data-i18n="nav.limits">Limits</a><a href="#changelog" data-route="changelog" data-i18n="nav.changelog">Changelog</a>
+  </nav>
+  <button class="icon-btn" id="open-palette" data-tip="nav.search" aria-keyshortcuts="Control+Shift+F"><span class="ms">search</span></button>
+  <button class="icon-btn" id="open-settings" data-tip="nav.settings"><span class="ms">tune</span></button>
+  <a class="btn fill sm" href="#download"><span class="ms">download</span><span data-i18n="nav.download">Download</span></a>
+</div></header>
+<main id="content" tabindex="-1">
+  <div id="home">
+    <section class="wrap hero">
+      <div class="hero-copy">
+        <p class="eyebrow" data-i18n="hero.eyebrow">Local Docker app · public HTTPS link</p>
+        <h1 class="display" data-i18n="hero.title">Share what's running on your desk.</h1>
+        <p class="lead" data-i18n="hero.lead"></p>
+        <div class="row"><a class="btn fill" href="#download"><span class="ms">download</span><span data-i18n="hero.download">Download for Windows</span></a><a class="btn outline" href="#how" data-i18n="hero.how">See how it works</a></div>
+        <p class="small muted" id="provenance"></p>
+      </div>
+      <figure class="shot"><img src="assets/screens/host-live.png" alt="The Host screen showing a verified public link with Copy and Open buttons" width="1280" height="800"></figure>
+    </section>
+    <section id="how" class="sec reveal"><div class="wrap">
+      <p class="eyebrow" data-i18n="how.eyebrow"></p><h2 class="h2" data-i18n="how.title"></h2><p class="muted max" data-i18n="how.lead"></p>
+      <div class="steps">
+        <article class="step"><span class="n">01</span><span class="ms f">folder_open</span><h3 data-i18n="how.s1"></h3><p data-i18n="how.s1d"></p></article>
+        <article class="step"><span class="n">02</span><span class="ms f">deployed_code</span><h3 data-i18n="how.s2"></h3><p data-i18n="how.s2d"></p></article>
+        <article class="step"><span class="n">03</span><span class="ms f">verified</span><h3 data-i18n="how.s3"></h3><p data-i18n="how.s3d"></p></article>
+        <article class="step"><span class="n">04</span><span class="ms f">share</span><h3 data-i18n="how.s4"></h3><p data-i18n="how.s4d"></p></article>
+      </div>
+    </div></section>
+    <section id="features" class="sec reveal"><div class="wrap">
+      <p class="eyebrow" data-i18n="feat.eyebrow"></p><h2 class="h2" data-i18n="feat.title"></h2><p class="muted max" data-i18n="feat.lead"></p>
+      <div class="meter"><div><b id="feat-count"></b><span class="small muted" data-i18n="feat.count"></span></div><div class="track" id="feat-track" aria-hidden="true"><i class="b"></i><i class="pa"></i></div></div>
+      <div class="filters"><div class="search-slot" id="feat-search"></div><div class="tools" id="feat-filters"></div></div>
+      <div id="feat-groups"></div>
+    </div></section>
+    <section id="gallery" class="sec reveal secondary"><div class="wrap">
+      <p class="eyebrow" data-i18n="gallery.eyebrow"></p><h2 class="h2" data-i18n="gallery.title"></h2><p class="muted max" data-i18n="gallery.lead"></p>
+      <div class="gallery">
+        <figure><img loading="lazy" src="assets/screens/host-building.png" alt="Hosting in progress with each step and its timing" width="1280" height="800"><figcaption>Hosting in progress</figcaption></figure>
+        <figure><img loading="lazy" src="assets/screens/host-failed.png" alt="A failed health check with the cause and recovery buttons" width="1280" height="800"><figcaption>Recovery where it broke</figcaption></figure>
+        <figure><img loading="lazy" src="assets/screens/sessions.png" alt="Sessions history with filters" width="1280" height="800"><figcaption>Sessions history</figcaption></figure>
+        <figure><img loading="lazy" src="assets/screens/settings-rx.png" alt="Settings search with the regex builder explaining a pattern" width="1280" height="800"><figcaption>Regex builder in Settings</figcaption></figure>
+        <figure><img loading="lazy" src="assets/screens/confirm.png" alt="Two-key confirmation before stopping a live link" width="1280" height="800"><figcaption>Two-key confirmation</figcaption></figure>
+        <figure><img loading="lazy" src="assets/screens/bilingual.png" alt="Bilingual interface with focus modes turned on" width="1280" height="800"><figcaption>Bilingual, with focus modes</figcaption></figure>
+      </div>
+    </div></section>
+    <section id="limits" class="sec reveal"><div class="wrap">
+      <p class="eyebrow" data-i18n="lim.eyebrow"></p><h2 class="h2" data-i18n="lim.title"></h2>
+      <div class="limits"><div class="lim"><b>200</b><span data-i18n="lim.1"></span></div><div class="lim"><b>No SSE</b><span data-i18n="lim.2"></span></div><div class="lim"><b>Temporary</b><span data-i18n="lim.3"></span></div></div>
+      <p><a href="https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/" rel="noopener" data-i18n="lim.source"></a></p>
+    </div></section>
+    <section id="download" class="sec reveal"><div class="wrap"><div class="cta">
+      <div><h2 class="h2" data-i18n="cta.title"></h2><p data-i18n="cta.lead"></p><p class="small" id="release-info" data-i18n="hero.checking"></p></div>
+      <a class="btn on-pc" id="download-btn" href="https://github.com/Ding-Ding-Projects/tunnel-app-deployer/releases" rel="noopener"><span class="ms">download</span><span id="download-label" data-i18n="nav.download">Download</span></a>
+    </div></div></section>
+  </div>
+  <div id="page" class="wrap page" hidden></div>
+</main>
+<footer class="wrap foot"><span data-i18n="footer.text"></span><a href="https://github.com/Ding-Ding-Projects/tunnel-app-deployer" rel="noopener" data-i18n="footer.source"></a></footer>
+
+<div class="scrim" id="scrim" hidden></div>
+<div class="dialog palette" id="palette" role="dialog" aria-modal="true" aria-labelledby="pal-label" hidden>
+  <span class="sr-only" id="pal-label" data-i18n="pal.label"></span>
+  <div class="palette-q"><span class="ms">search</span><input id="pal-input" role="combobox" aria-expanded="true" aria-controls="pal-list" autocomplete="off" spellcheck="false"><button class="chip rx-toggle" id="pal-rx" aria-pressed="false">.*</button><kbd>Esc</kbd></div>
+  <div id="pal-rx-host"></div>
+  <div class="palette-list" id="pal-list" role="listbox"></div>
+</div>
+<div class="dialog settings" id="settings" role="dialog" aria-modal="true" aria-labelledby="set-title" hidden>
+  <div class="row spread"><h2 class="h3" id="set-title" data-i18n="set.title"></h2><button class="icon-btn" id="close-settings" data-tip="set.close"><span class="ms">close</span></button></div>
+  <p class="small muted" data-i18n="set.lead"></p>
+  <div class="search-slot" id="set-search"></div>
+  <div id="set-list"></div>
+  <button class="chip" id="reset-settings"><span class="ms">restart_alt</span><span data-i18n="set.reset"></span></button>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+</body>
+</html>

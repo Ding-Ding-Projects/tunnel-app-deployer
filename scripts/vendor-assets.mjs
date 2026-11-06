@@ -22,6 +22,7 @@ for (const target of ['src/renderer/fonts', 'docs/fonts']) {
   const dir = path.join(root, target);
   fs.mkdirSync(dir, { recursive: true });
   for (const [from, to] of [...assets, ...licences]) {
+    if (target === 'docs/fonts' && to === 'material-symbols-rounded.woff2') continue; // the website uses the subset from scripts/subset-site-icons.py
     const source = nm(from);
     if (!fs.existsSync(source)) { console.error(`Missing ${from}. Run npm ci first.`); process.exit(1); }
     fs.copyFileSync(source, path.join(dir, to));
