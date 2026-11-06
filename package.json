@@ -30,7 +30,8 @@
     "appId": "com.dingdingprojects.tunnelappdeployer",
     "productName": "Tunnel App Deployer",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
     "files": [
       "src/**/*",
@@ -41,7 +42,8 @@
       "target": [
         "portable"
       ],
-      "artifactName": "Tunnel-App-Deployer-${version}-${arch}.${ext}"
+      "artifactName": "Tunnel-App-Deployer-${version}-${arch}.${ext}",
+      "icon": "build/icon.ico"
     }
   }
 }

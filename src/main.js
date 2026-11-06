@@ -25,7 +25,7 @@ function validateOptions(value) {
   }
   return result;
 }
-const SAVE_TYPES = { json: 'JSON', csv: 'CSV', md: 'Markdown', txt: 'Text' };
+const SAVE_TYPES = { json: 'JSON', csv: 'CSV', tsv: 'Tab-separated values', md: 'Markdown', txt: 'Text' };
 function validateSave(name, content) {
   if (typeof name !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$/.test(name) || name.includes('..')) throw new Error('Invalid file name.');
   const ext = name.split('.').pop().toLowerCase();
@@ -33,7 +33,7 @@ function validateSave(name, content) {
   if (typeof content !== 'string' || content.length > 5 * 1024 * 1024) throw new Error('Invalid file content.');
   return { name, ext, content };
 }
-const LINK_PREFIXES = ['https://github.com/Ding-Ding-Projects/tunnel-app-deployer', 'https://ding-ding-projects.github.io/tunnel-app-deployer', 'https://developers.cloudflare.com/tunnel/'];
+const LINK_PREFIXES = ['https://github.com/Ding-Ding-Projects/tunnel-app-deployer', 'https://ding-ding-projects.github.io/tunnel-app-deployer', 'https://developers.cloudflare.com/tunnel/', 'https://code.visualstudio.com/'];
 function isAllowedLink(value) {
   try {
     const url = new URL(value);
@@ -41,6 +41,21 @@ function isAllowedLink(value) {
     const plain = url.origin + url.pathname;
     return LINK_PREFIXES.some(prefix => plain === prefix || plain.startsWith(prefix.endsWith('/') ? prefix : prefix + '/'));
   } catch { return false; }
+}
+// Finds Visual Studio Code installs without running anything: per-user, machine, Insiders and PATH entries.
+function detectEditors({ platform = process.platform, env = process.env, exists = p => require('node:fs').existsSync(p) } = {}) {
+  const join = platform === 'win32' ? path.win32.join : path.posix.join;
+  const candidates = [];
+  if (platform === 'win32') {
+    for (const [base, folder, exe, name] of [[env.LOCALAPPDATA, 'Programs/Microsoft VS Code', 'Code.exe', 'Visual Studio Code'], [env.ProgramFiles, 'Microsoft VS Code', 'Code.exe', 'Visual Studio Code'], [env.LOCALAPPDATA, 'Programs/Microsoft VS Code Insiders', 'Code - Insiders.exe', 'Visual Studio Code Insiders']]) if (base) candidates.push({ name, path: join(base, folder, exe) });
+    for (const dir of String(env.PATH || env.Path || '').split(';').filter(Boolean)) if (/[\\/]bin$/i.test(dir) && exists(join(dir, 'code.cmd'))) candidates.push({ name: 'Visual Studio Code', path: join(dir, '..', 'Code.exe') });
+  } else {
+    if (platform === 'darwin') candidates.push({ name: 'Visual Studio Code', path: '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code' });
+    candidates.push({ name: 'Visual Studio Code', path: '/usr/share/code/code' }, { name: 'Visual Studio Code', path: '/usr/bin/code' }, { name: 'Visual Studio Code', path: '/snap/bin/code' });
+    for (const dir of String(env.PATH || '').split(':').filter(Boolean)) candidates.push({ name: 'Visual Studio Code', path: join(dir, 'code') });
+  }
+  const seen = new Set();
+  return candidates.filter(c => { const key = path.normalize(c.path).toLowerCase(); if (seen.has(key) || !exists(c.path)) return false; seen.add(key); return true; });
 }
 function readBuildInfo(file) {
   try {
@@ -121,10 +136,22 @@ async function start() {
     await require('node:fs/promises').writeFile(result.filePath, file.content, 'utf8');
     return true;
   });
+  handle('app:editors', () => detectEditors().map(e => ({ name: e.name })));
+  handle('app:open-project', async action => {
+    if (!['vscode', 'default', 'reveal'].includes(action)) throw new Error('Unknown editor action.');
+    if (!source) throw new Error('Choose a project first.');
+    const file = source.composePath || source.dockerfilePath, folder = path.dirname(file);
+    if (action === 'reveal') { shell.showItemInFolder(file); return true; }
+    if (action === 'default') { const error = await shell.openPath(file); if (error) throw new Error(error); return true; }
+    const editor = detectEditors()[0];
+    if (!editor) throw new Error('Visual Studio Code was not found on this computer.');
+    require('node:child_process').spawn(editor.path, [folder], { detached: true, stdio: 'ignore', shell: false, windowsHide: false }).unref();
+    return true;
+  });
   handle('host:copy', async () => { clipboard.writeText(await verifiedUrl()); return true; });
   handle('host:open', async () => { await shell.openExternal(await verifiedUrl()); return true; });
   const createWindow = () => {
-    window = new BrowserWindow({ width: 1120, height: 800, minWidth: 460, minHeight: 620, backgroundColor: '#0e1513', title: 'Tunnel App Deployer',
+    window = new BrowserWindow({ width: 1120, height: 800, minWidth: 460, minHeight: 620, backgroundColor: '#0e1513', title: 'Tunnel App Deployer', icon: path.join(__dirname, 'renderer', 'icon.png'),
       webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true } });
     window.setMenuBarVisibility(false);
     window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
@@ -146,4 +173,4 @@ async function start() {
   createWindow();
 }
 if (require.main === module || (process.versions.electron && process.type === 'browser')) start().catch(error => { console.error(error.message); process.exitCode = 1; });
-module.exports = { isTunnelUrl, validateOptions, validSender, validateSave, isAllowedLink, readBuildInfo };
+module.exports = { isTunnelUrl, validateOptions, validSender, validateSave, isAllowedLink, readBuildInfo, detectEditors };

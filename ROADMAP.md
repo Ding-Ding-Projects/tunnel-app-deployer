@@ -7,12 +7,12 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 - [-] **Job document wording**: This app has no job-related workflows.
 - [x] **Language modes**: English, Hong Kong Cantonese and bilingual modes, saved per computer, in the app and on the website.
 - [~] **Playfulness sliders and dialog emoji**: Separate English and Cantonese playfulness sliders (1 to 5) change the voice of status, empty-state, toast and error copy. The dialog emoji switch is built. Not every string has five voices yet.
-- [ ] **Personal vocabulary upload**: Not built yet.
-- [ ] **Drop a vocabulary file onto the app**: Not built yet.
-- [ ] **School mode**: Not built yet. Needs the shared cross-app settings record.
-- [ ] **Spoken narrator**: Not built yet.
+- [x] **Personal vocabulary upload**: Upload or drop a versioned JSON file; it is validated in full (256 KiB, depth 8, 160 and 1,000 character limits) before anything applies, and it is never exported or added to settings history.
+- [x] **Drop a vocabulary file onto the app**: Drop a vocabulary JSON file anywhere on the window to validate and apply it.
+- [~] **School mode**: English only, plain wording, no emoji, vocabulary or dim sum, with those settings left out, and a PIN to turn it off. It is not yet shared across apps.
+- [~] **Spoken narrator**: Off by default; reads progress, results and notifications with separate English and Cantonese voice pickers, the voice in use shown, and speed and pitch. It does not yet detect a running screen reader.
 - [x] **Action sounds**: Short synthesized tones when hosting starts, goes live, stops or fails, with a Settings switch and volume. Visual feedback is complete without sound.
-- [ ] **Scheduled settings**: Not built yet.
+- [~] **Scheduled settings**: Time-of-day schedules for theme, motion, sounds and focus using local time, with precedence and history entries. Date ranges and outside sources are not built.
 - [x] **Rename the app**: Change the name shown in the window title and header; one action restores the shipped name. Data folders and package ids never change.
 - [x] **Focus modes**: Focus, Low stimulation, Time awareness, One thing at a time and Momentum, each its own switch, all off by default.
 - [~] **Dim sum surprise**: A 1 in 10 chance at launch of a non-blocking dim sum note with English and Cantonese names. Pictures are not shown yet because the app makes no network requests from its interface.
@@ -38,9 +38,9 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 - [ ] **Tabbed navigation**: Not built yet.
 - [~] **Regex builder on every search**: Every search box has an adjacent regex builder with flags, live token explanation, match count, validation and a time limit. Full RegexBuddy parity is not built.
 - [x] **Command palette**: Ctrl+Shift+F opens every destination, action and setting; picking one jumps to it and highlights it. Card or full-window size is remembered.
-- [~] **Context menus**: Right-click or Shift+F10 opens a menu with a filter field for links, paths, sessions and text. Appearance and lock entries are not built.
+- [~] **Context menus**: Right-click or Shift+F10 opens a filterable menu; settings show live switches and choices beside their labels that work without closing the menu. Appearance and lock entries are not built.
 - [x] **Shortcuts shown in menus**: Menus and the palette show each working shortcut.
-- [~] **Rich controls**: Values such as the public link and local address carry copy and open controls. Not every value does yet.
+- [~] **Rich controls**: Links and addresses carry copy and open controls, and settings in menus and the command palette show live switches. Not every value does yet.
 - [~] **Guided forms**: The project form explains each field and validates the port as you type.
 - [~] **Info buttons on controls**: Every setting has an info button with an explanation. Worked examples and playgrounds are not built.
 - [x] **Settings that explain themselves**: Each setting states what it changes and where.
@@ -68,12 +68,12 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 
 ## Built-in tools and hand-off
 
-- [ ] **File converter**: Not built yet.
-- [ ] **Base64 tools**: Not built yet.
+- [~] **File converter**: Converts JSON lists, CSV and TSV to CSV, TSV, Markdown or JSON and states any loss before you save. Other formats are not built.
+- [~] **Base64 tools**: Text and file encoding, standard, URL-safe and MIME alphabets, padding, three text encodings, strict decoding with exact positions, data: URLs, SHA-256 round-trip checks and session history. Streaming, pause and ZIP export are not built.
 - [ ] **Minecraft server manager**: Not built yet.
 - [ ] **Minecraft world generator**: Not built yet.
 - [ ] **Ollama manager**: Not built yet.
-- [ ] **Open in an external editor**: Not built yet.
+- [~] **Open in an external editor**: Detects VS Code (per-user, machine, Insiders, PATH) without running it and opens the project folder; also opens the file in the default editor or shows it in the file manager. Choosing another editor is not built.
 - [-] **Browser download hand-off**: There is no browser extension.
 - [ ] **Publishing to a forge**: Not built yet.
 - [x] **Progress and recovery in place**: Progress shows on the step that is running and recovery actions appear on the step that failed.
@@ -120,7 +120,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 - [ ] **Windows installer**: The app ships as a portable executable today.
 - [ ] **Code signing**: Builds are unsigned.
 - [ ] **Automatic updates**: Not built yet.
-- [ ] **Original icon**: Not built yet.
+- [x] **Original icon**: An original icon generated by scripts/build-icon.py from build/icon.svg into PNG and a multi-size .ico used by the window and the packaged executable.
 
 ## Release pipeline
 

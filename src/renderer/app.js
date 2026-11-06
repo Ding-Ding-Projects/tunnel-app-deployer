@@ -17,7 +17,12 @@ const DEFAULTS = Object.freeze({
   theme: 'system', seed: '#4fbfa5', motion: 'full', sounds: true, volume: 50,
   language: 'en', funnyEn: 5, funnyYue: 5, emoji: false,
   focus: false, lowStim: false, time: false, oneThing: false, momentum: false,
-  textSize: 100, density: 'comfortable', toastTime: 6, paletteSize: 'card', dimSum: true, displayName: ''
+  textSize: 100, density: 'comfortable', toastTime: 6, paletteSize: 'card', dimSum: true, displayName: '',
+  narrator: false, voiceEn: 'auto', voiceYue: 'auto', rate: 1, pitch: 1, vocabOn: true, school: false,
+  schedules: [
+    { id: 'evening', name: 'Evening', from: '18:00', to: '07:00', on: false, values: { theme: 'dark', motion: 'gentle', sounds: '', focus: '' } },
+    { id: 'work', name: 'Work hours', from: '09:00', to: '17:00', on: false, values: { theme: '', motion: '', sounds: '', focus: 'on' } }
+  ]
 });
 let settings = { ...DEFAULTS, ...store.get('settings', {}) };
 let history = store.get('settingsHistory', []);
@@ -35,9 +40,14 @@ function recordRevision(changed, label) {
 }
 if (!history.length) recordRevision(Object.keys(DEFAULTS), 'initial');
 
-const I = window.I18n.create(() => settings);
-const t = key => I.t(key);
-const both = key => I.both(key);
+const effective = () => settings.school ? { ...settings, language: 'en', funnyEn: 1, emoji: false } : settings;
+const I = window.I18n.create(effective);
+// Personal vocabulary lives in its own local record: never in settings, history, exports or logs.
+let vocab = store.get('vocab', null), vocabApply = s => s;
+function refreshVocab() { vocabApply = vocab && settings.vocabOn && !settings.school ? window.Tools.vocabularyReplacer(vocab.entries) : (x => x); }
+refreshVocab();
+const both = key => I.both(key).map(x => x == null ? x : vocabApply(x));
+const t = key => both(key)[0];
 function label(key) { const [a, b] = both(key); return b ? `${esc(a)}<span class="alt" lang="yue-Hant-HK">${esc(b)}</span>` : esc(a); }
 const plainBoth = key => both(key).filter(Boolean).join(' · ');
 const appName = () => settings.displayName.trim() || SHIPPED_NAME;
@@ -82,6 +92,7 @@ function applySettings() {
   root.dataset.focus = settings.focus;
   root.dataset.lowstim = settings.lowStim;
   root.dataset.onething = settings.oneThing;
+  refreshVocab();
   root.lang = settings.language === 'yue' ? 'yue-Hant-HK' : 'en';
   root.style.setProperty('--zoom', String(settings.textSize / 100));
   $('theme-toggle').querySelector('.ms').textContent = dark ? 'light_mode' : 'dark_mode';
@@ -116,7 +127,29 @@ function sound(kind) {
 }
 
 // ---------- announcements, notifications ----------
-const announce = text => { $('announce').textContent = ''; requestAnimationFrame(() => { $('announce').textContent = text; }); };
+const announce = text => { $('announce').textContent = ''; requestAnimationFrame(() => { $('announce').textContent = text; }); narrate(text); };
+// ---------- narrator ----------
+const synth = window.speechSynthesis;
+let lastSpoken = { text: '', at: 0 };
+function voicesFor(lang) {
+  const all = synth?.getVoices?.() || [];
+  return lang === 'yue' ? all.filter(v => /^(zh-HK|yue)/i.test(v.lang) || /cantonese|hong kong/i.test(v.name)) : all.filter(v => /^en/i.test(v.lang));
+}
+function voiceInUse(lang) { const list = voicesFor(lang), want = lang === 'yue' ? settings.voiceYue : settings.voiceEn; return list.find(v => v.voiceURI === want) || list[0] || null; }
+function narrate(text) {
+  if (!settings.narrator || !synth || !text) return;
+  const now = Date.now();
+  if (text === lastSpoken.text && now - lastSpoken.at < 4000) return;
+  lastSpoken = { text, at: now };
+  for (const part of String(text).split(' · ').map(x => x.trim()).filter(Boolean)) {
+    const lang = /[\u3400-\u9fff]/.test(part) ? 'yue' : 'en';
+    const u = new SpeechSynthesisUtterance(part);
+    const v = voiceInUse(lang); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = lang === 'yue' ? 'zh-HK' : 'en';
+    u.rate = settings.rate; u.pitch = settings.pitch;
+    synth.speak(u);
+  }
+}
+synth?.addEventListener?.('voiceschanged', () => { if (view === 'settings') renderSettings(); });
 let notifications = store.get('notifications', []);
 const EMOJI = { ok: '✅', info: '💡', error: '🛠️', warn: '⚠️', dimsum: '🥟' };
 function notify(textOrKey, kind = 'info', { action } = {}) {
@@ -167,7 +200,7 @@ const matcherFor = s => Rx.matcher(s?.query || '', { regex: !!s?.regex, flags: s
 function setCount(s, n) { if (s?.regex && s.query) { const el = s.panel.querySelector('.rx-status'); if (el && matcherFor(s).ok) el.textContent = `${n} ${t('regex.matches')}`; } }
 
 // ---------- views ----------
-const VIEWS = ['host', 'sessions', 'features', 'guide', 'settings'];
+const VIEWS = ['host', 'sessions', 'tools', 'features', 'guide', 'settings'];
 let view = 'host';
 function buildBottomNav() { $('bottom').innerHTML = $('rail').querySelector('.dests').innerHTML; }
 function go(next, { focus = true } = {}) {
@@ -181,7 +214,7 @@ function go(next, { focus = true } = {}) {
 }
 document.addEventListener('click', e => { const d = e.target.closest('.dest'); if (d) go(d.dataset.view); });
 $('fab').onclick = () => { go('host'); if (!locked()) $('choose').focus(); };
-function renderView() { ({ host: renderHost, sessions: renderSessions, features: renderFeatures, guide: renderGuide, settings: renderSettings })[view]?.(); }
+function renderView() { ({ host: renderHost, sessions: renderSessions, tools: renderTools, features: renderFeatures, guide: renderGuide, settings: renderSettings })[view]?.(); }
 function renderAll() { for (const s of Object.values(searches)) { relabelSearch(s); renderRx(s); } renderHost(); renderProvenance(); renderMomentum(); if (view !== 'host') renderView(); }
 
 // ---------- provenance ----------
@@ -320,6 +353,8 @@ function renderHost() {
     $('summary').innerHTML = `<div class="file" data-ctx="path" data-path="${esc(file)}"><span class="ms f">${kind === 'compose' ? 'stacks' : 'description'}</span><div><strong>${esc(t(kind === 'compose' ? 'host.compose' : 'host.dockerfile'))}${kind === 'compose' && $('service').value ? ' · ' + esc($('service').value) : ''}</strong><div class="mono small muted">${esc(file)}</div></div></div>${port ? `<div class="file"><span class="ms">lan</span><div><strong>${esc(t('host.port'))} ${esc(port)}</strong>${status.localUrl ? `<div class="mono small muted" data-ctx="text">${esc(status.localUrl)}</div>` : ''}</div></div>` : ''}`;
   }
   $('options').hidden = !selected || summary; $('service-field').hidden = kind !== 'compose';
+  $('editor-row').hidden = !selected;
+  if (selected) $('editor-row').innerHTML = `<button class="chip" data-editor="vscode" ${editors.length ? '' : 'disabled'} title="${esc(editors.length ? editors[0].name : t('editor.missing'))}"><span class="ms">code</span>${esc(t('editor.vscode'))}</button><button class="chip" data-editor="default"><span class="ms">edit_document</span>${esc(t('editor.default'))}</button><button class="chip" data-editor="reveal"><span class="ms">folder_open</span>${esc(t('editor.reveal'))}</button>${editors.length ? '' : `<a class="chip" href="https://code.visualstudio.com/" data-external="true"><span class="ms">download</span>${esc(t('editor.download'))}</a>`}`;
   const reqOk = requirements?.docker && (requirements?.cloudflared || requirements?.cloudflaredDownloadAvailable) && (kind !== 'compose' || requirements?.compose);
   $('host-btn').disabled = lockedNow || !selected || !reqOk;
   $('host-btn').hidden = isActive && !isLive ? true : isLive;
@@ -515,7 +550,8 @@ document.addEventListener('click', e => {
 const GROUPS = [
   ['appearance', 'palette', [['theme', 'select', ['system', 'light', 'dark']], ['seed', 'seed'], ['dimSum', 'switch']]],
   ['motion', 'motion_photos_on', [['motion', 'select', ['full', 'gentle', 'off']], ['sounds', 'switch'], ['volume', 'range', 0, 100, 5]]],
-  ['language', 'translate', [['language', 'select', ['en', 'yue', 'both']], ['funnyEn', 'range', 1, 5, 1], ['funnyYue', 'range', 1, 5, 1], ['emoji', 'switch']]],
+  ['language', 'translate', [['language', 'select', ['en', 'yue', 'both']], ['funnyEn', 'range', 1, 5, 1], ['funnyYue', 'range', 1, 5, 1], ['emoji', 'switch'], ['narrator', 'switch'], ['voiceEn', 'voice'], ['voiceYue', 'voice'], ['rate', 'range', 0.5, 2, 0.1], ['pitch', 'range', 0.5, 2, 0.1], ['vocab', 'vocab'], ['vocabOn', 'switch'], ['school', 'school']]],
+  ['schedules', 'schedule', [['schedules', 'schedules']]],
   ['focus', 'self_improvement', [['focus', 'switch'], ['lowStim', 'switch'], ['time', 'switch'], ['oneThing', 'switch'], ['momentum', 'switch']]],
   ['access', 'accessibility_new', [['textSize', 'range', 90, 150, 10], ['density', 'select', ['comfortable', 'compact']], ['paletteSize', 'select', ['card', 'full']]]],
   ['notifications', 'notifications', [['toastTime', 'range', 3, 15, 1]]],
@@ -534,7 +570,7 @@ function renderSettings() {
   const filter = settingsMatches();
   let total = 0;
   const groups = GROUPS.filter(([g]) => query || g === settingsGroup).map(([g, icon, items]) => {
-    const shown = query ? items.filter(filter) : items; total += shown.length;
+    const shown = (query ? items.filter(filter) : items).filter(([k]) => !schoolHidden(k)); total += shown.length;
     if (!shown.length) return '';
     return `<section class="sgroup" data-group="${g}"><div class="sgroup-head"><h2>${label('group.' + g)}</h2>${['data', 'about'].includes(g) ? '' : `<button class="chip" data-reset="${g}"><span class="ms">restart_alt</span>${esc(t('settings.reset'))}</button>`}</div>${shown.map(it => settingItem(it)).join('')}</section>`;
   }).join('');
@@ -542,16 +578,23 @@ function renderSettings() {
   $('settings-content').innerHTML = groups || `<div class="empty">${esc(t('settings.noMatch'))}</div>`;
   bindSettings();
 }
+const SCHOOL_HIDDEN = ['funnyEn', 'funnyYue', 'emoji', 'voiceYue', 'vocab', 'vocabOn', 'dimSum'];
+const schoolHidden = key => settings.school && SCHOOL_HIDDEN.includes(key);
+const unit = key => key === 'textSize' || key === 'volume' ? '%' : key === 'toastTime' ? ' s' : key === 'rate' || key === 'pitch' ? '×' : '';
 function settingItem([key, type, a, b, c]) {
   const infoBtn = `<button class="info" data-info="${key}" aria-label="${esc(t('settings.info'))}: ${esc(t(lk(key)))}" aria-expanded="${openInfo === key}"><span class="ms">info</span></button>`;
   const lab = `<span class="lab"><strong id="lab-${key}">${label(lk(key))}${infoBtn}</strong><span class="d">${label(lk(key) + '.d')}</span></span>`;
   const explain = openInfo === key ? `<div class="explain" role="note">${esc(plainBoth(lk(key) + '.d'))}</div>` : '';
   let control = '';
-  if (type === 'select') control = `<select class="select" data-set="${key}" aria-labelledby="lab-${key}">${a.map(v => `<option value="${v}" ${settings[key] === v ? 'selected' : ''}>${esc(optionLabel(key, v))}</option>`).join('')}</select>`;
+  if (type === 'select') control = `<select class="select" data-set="${key}" aria-labelledby="lab-${key}">${a.filter(v => !(settings.school && key === 'language' && v !== 'en')).map(v => `<option value="${v}" ${settings[key] === v ? 'selected' : ''}>${esc(optionLabel(key, v))}</option>`).join('')}</select>`;
   else if (type === 'switch') control = `<input type="checkbox" role="switch" class="switch" data-set="${key}" aria-labelledby="lab-${key}" ${settings[key] ? 'checked' : ''}>`;
-  else if (type === 'range') control = `<span class="range"><input type="range" min="${a}" max="${b}" step="${c}" value="${settings[key]}" data-set="${key}" aria-labelledby="lab-${key}"><output>${settings[key]}${key === 'textSize' || key === 'volume' ? '%' : key === 'toastTime' ? ' s' : ''}</output></span>`;
+  else if (type === 'range') control = `<span class="range"><input type="range" min="${a}" max="${b}" step="${c}" value="${settings[key]}" data-set="${key}" aria-labelledby="lab-${key}"><output>${settings[key]}${unit(key)}</output></span>`;
   else if (type === 'text') control = `<span class="row"><input class="input" data-set="${key}" aria-labelledby="lab-${key}" maxlength="60" value="${esc(settings.displayName)}" placeholder="${SHIPPED_NAME}"><button class="chip" data-act="restore-name"><span class="ms">restart_alt</span>${esc(t('set.restoreName'))}</button></span>`;
   else if (type === 'seed') { const sw = ['#4fbfa5', '#5b8def', '#c26ad9', '#e0805a', '#d4b341', '#62b35f']; control = `<span class="color"><span class="swatches">${sw.map(h => `<button class="sw" data-seed="${h}" aria-label="${h}" aria-pressed="${settings.seed === h}"></button>`).join('')}</span><span class="row"><input type="range" class="hue" min="0" max="359" value="${Math.round(hexToHue(settings.seed) ?? 175)}" aria-label="Hue"><input class="hex" value="${esc(settings.seed)}" aria-label="Hex colour" maxlength="7"></span></span>`; }
+  else if (type === 'voice') { const lang = key === 'voiceYue' ? 'yue' : 'en', list = voicesFor(lang), using = voiceInUse(lang); control = `<span class="color"><select class="select" data-set="${key}" aria-labelledby="lab-${key}"><option value="auto">${esc(t('set.voice.auto'))}</option>${list.map(v => `<option value="${esc(v.voiceURI)}" ${settings[key] === v.voiceURI ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select><span class="small muted">${esc(using ? `${t('set.voice.using')}: ${using.name}` : t('set.voice.none'))}</span>${lang === 'en' ? `<button class="chip" data-act="test-voice"><span class="ms">play_arrow</span>${esc(t('set.testVoice'))}</button>` : ''}</span>`; }
+  else if (type === 'vocab') return `<div class="item" data-key="vocab">${lab}<span class="tools"><button class="chip" data-act="vocab-upload"><span class="ms">upload_file</span>${esc(t(vocab ? 'set.vocab.replace' : 'set.vocab.upload'))}</button>${vocab ? `<button class="chip danger" data-act="vocab-clear"><span class="ms">delete</span>${esc(t('set.vocab.clear'))}</button>` : ''}</span>${explain}<p class="small muted span-all">${vocab ? `${vocab.count} ${esc(t('set.vocab.loaded'))}` : esc(t('set.vocab.none'))}</p>${vocab ? `<table class="vocab-table"><thead><tr><th>${esc(t('set.vocab.word'))}</th><th>${esc(t('set.vocab.shownAs'))}</th></tr></thead><tbody>${Object.entries(vocab.entries).slice(0, 12).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</tbody></table>` : ''}</div>`;
+  else if (type === 'school') control = `<input type="checkbox" role="switch" class="switch" data-act="school-toggle" aria-labelledby="lab-${key}" ${settings.school ? 'checked' : ''}>`;
+  else if (type === 'schedules') return `<div class="item" data-key="schedules">${lab}<button class="chip" data-act="sched-add"><span class="ms">add</span>${esc(t('set.schedule.add'))}</button>${explain}<div class="sched">${settings.schedules.map((r, i) => `<div class="srule ${activeSchedule()?.id === r.id ? 'active' : ''}"><input class="input" data-sched="${i}" data-f="name" value="${esc(r.name)}" maxlength="40" aria-label="${esc(t('set.schedule.name'))}"><label class="mini">${esc(t('set.schedule.from'))}<input type="time" data-sched="${i}" data-f="from" value="${esc(r.from)}"></label><label class="mini">${esc(t('set.schedule.to'))}<input type="time" data-sched="${i}" data-f="to" value="${esc(r.to)}"></label><span class="vals">${SCHED_KEYS.map(([k, opts]) => `<label class="mini">${esc(t(lk(k)))}<select class="select" data-sched="${i}" data-v="${k}"><option value="">${esc(t('set.schedule.unchanged'))}</option>${opts.map(o => `<option value="${o}" ${r.values[k] === o ? 'selected' : ''}>${esc(['on', 'off'].includes(o) ? o : optionLabel(k, o))}</option>`).join('')}</select></label>`).join('')}</span><input type="checkbox" role="switch" class="switch" data-sched="${i}" data-f="on" ${r.on ? 'checked' : ''} aria-label="${esc(r.name)}"><button class="icon-btn" data-sched-remove="${i}" aria-label="${esc(t('set.schedule.remove'))}"><span class="ms">delete</span></button>${activeSchedule()?.id === r.id ? `<span class="small ok-text">${esc(t('set.schedule.active'))}</span>` : ''}</div>`).join('')}</div></div>`;
   else if (type === 'history') return `<div class="item"><span class="lab"><strong>${label('set.history')}</strong><span class="d">${label('set.history.d')}</span></span><span></span><div class="hist">${history.slice().reverse().slice(0, 50).map((h, i) => `<div class="hrow"><span><b>${esc(fmtTime(h.at))}</b> · ${esc(h.label || h.changed.join(', '))}</span>${i ? `<button class="chip" data-restore="${esc(h.at)}"><span class="ms">history</span>${esc(t('set.restore'))}</button>` : ''}</div>`).join('')}</div></div>`;
   else if (type === 'exports') return `<div class="item"><span class="lab"><strong>${label('sessions.export')}</strong></span><span class="tools"><button class="chip" data-act="exp-settings"><span class="ms">download</span>${esc(t('set.exportSettings'))}</button><button class="chip" data-act="exp-history"><span class="ms">download</span>${esc(t('set.exportHistory'))}</button><button class="chip" data-act="exp-notif"><span class="ms">download</span>${esc(t('set.exportNotifications'))}</button><button class="chip danger" data-act="clear-sessions"><span class="ms">delete_sweep</span>${esc(t('set.clearSessions'))}</button><button class="chip danger" data-act="reset-all"><span class="ms">restart_alt</span>${esc(t('set.resetAll'))}</button></span></div>`;
   else if (type === 'about') return `<div class="item"><dl class="kv"><dt>${esc(t('set.version'))}</dt><dd>${esc(info.version || '—')}</dd><dt>${esc(t('set.build'))}</dt><dd>${esc(info.buildTime ? fmtTime(info.buildTime) : t('top.buildUnknown'))}</dd><dt>${esc(t('set.commit'))}</dt><dd>${info.commit ? `<a href="${esc(C.changelog.repository)}/commit/${esc(info.commit)}" data-external="true">${esc(info.commit.slice(0, 7))}</a>` : '—'}</dd></dl><span class="tools"><button class="chip" data-act="tour"><span class="ms">tour</span>${esc(t('set.onboarding'))}</button></span><p class="muted small">${esc(t('set.free'))}</p></div>`;
@@ -563,10 +606,10 @@ function bindSettings() {
   for (const el of root.querySelectorAll('[data-set]')) {
     const key = el.dataset.set;
     const read = () => el.type === 'checkbox' ? el.checked : el.type === 'range' ? Number(el.value) : el.value;
-    if (el.type === 'range') el.addEventListener('input', () => { el.nextElementSibling.textContent = `${el.value}${key === 'textSize' || key === 'volume' ? '%' : key === 'toastTime' ? ' s' : ''}`; });
+    if (el.type === 'range') el.addEventListener('input', () => { el.nextElementSibling.textContent = `${el.value}${unit(key)}`; });
     el.addEventListener('change', () => {
       if (key === 'dimSum' && !el.checked) { setTimeout(() => { el.checked = true; notify('toast.dimSumBack', 'info'); }, 600); return; }
-      setSetting(key, key === 'displayName' ? read().trim().slice(0, 60) : read());
+      setSetting(key, key === 'displayName' ? read().trim().slice(0, 60) : el.type === 'range' ? Math.round(read() * 10) / 10 : read());
       if (key === 'sounds' && settings.sounds) sound('tap');
     });
   }
@@ -585,8 +628,19 @@ function bindSettings() {
     'exp-notif': () => exportNotifications(),
     'clear-sessions': () => confirmAction({ titleKey: 'confirm.clear.title', bodyKey: 'confirm.clear.body', affects: `${sessions.length} ${t('sessions.title')}`, run: () => { sessions = sessions.filter(s => s.outcome === 'running'); saveSessions(); notify('toast.cleared', 'ok'); renderSettings(); } }),
     'reset-all': () => confirmAction({ titleKey: 'confirm.reset.title', bodyKey: 'confirm.reset.body', run: () => { settings = { ...DEFAULTS }; store.set('settings', settings); recordRevision(Object.keys(DEFAULTS), 'reset all'); applySettings(); notify('toast.reset', 'ok'); } }),
-    tour: () => openOnboarding(0)
+    tour: () => openOnboarding(0),
+    'test-voice': () => { const was = settings.narrator; settings.narrator = true; lastSpoken = { text: '', at: 0 }; narrate(plainBoth('toast.live')); settings.narrator = was; },
+    'vocab-upload': () => $('file-vocab').click(),
+    'vocab-clear': () => { vocab = null; try { localStorage.removeItem('tad.vocab'); } catch {} applySettings(); notify('toast.cleared', 'ok'); },
+    'school-toggle': el => { el.checked = settings.school; toggleSchool(); },
+    'sched-add': () => setSetting('schedules', [...settings.schedules, { id: crypto.randomUUID(), name: 'Schedule', from: '12:00', to: '13:00', on: false, values: {} }])
   };
+  for (const el of root.querySelectorAll('[data-sched]')) el.addEventListener('change', () => {
+    const list = settings.schedules.map(r => ({ ...r, values: { ...r.values } })), r = list[+el.dataset.sched];
+    if (el.dataset.v) r.values[el.dataset.v] = el.value; else if (el.dataset.f === 'on') r.on = el.checked; else r[el.dataset.f] = el.value;
+    setSetting('schedules', list); lastScheduleId = null; runSchedules();
+  });
+  for (const b of root.querySelectorAll('[data-sched-remove]')) b.onclick = () => setSetting('schedules', settings.schedules.filter((_, i) => i !== +b.dataset.schedRemove));
   for (const b of root.querySelectorAll('[data-act]')) b.onclick = e => { e.stopPropagation(); acts[b.dataset.act]?.(b); };
 }
 function renderChangelog() {
@@ -668,11 +722,37 @@ function openMenu(anchor, items, { x, y } = {}) {
 function renderMenuItems() {
   const m = matcherFor(searches['ctx-filter']);
   const shown = menuState.items.filter(i => i.sep || m.test(i.label));
-  menuState.shown = shown.filter(i => !i.sep);
+  menuState.shown = shown.filter(i => !i.sep && !i.head);
   menuState.index = Math.min(menuState.index, Math.max(0, menuState.shown.length - 1));
-  $('ctx-items').innerHTML = menuState.shown.length ? shown.map(i => i.sep ? '<div class="sep"></div>' : `<button class="mi ${i.danger ? 'danger' : ''}" role="menuitem" aria-selected="${menuState.shown.indexOf(i) === menuState.index}"><span class="ms">${i.icon}</span><span>${esc(i.label)}</span><kbd>${esc(i.key || '')}</kbd></button>`).join('') : `<p class="muted small center">${esc(t('ctx.none'))}</p>`;
-  const buttons = [...$('ctx-items').querySelectorAll('.mi')];
-  buttons.forEach((b, i) => b.onclick = () => { const it = menuState.shown[i]; closeMenu(false); it.run(); });
+  const row = i => {
+    const sel = menuState.shown.indexOf(i) === menuState.index;
+    if (i.control === 'switch') return `<div class="mi ctl" role="menuitemcheckbox" aria-checked="${!!settings[i.setting]}" aria-selected="${sel}"><span class="ms">${i.icon}</span><span>${esc(i.label)}</span><span class="mini-switch ${settings[i.setting] ? 'on' : ''}" aria-hidden="true"></span></div>`;
+    if (i.control === 'choice') return `<div class="mi ctl" role="group" aria-label="${esc(i.label)}" aria-selected="${sel}"><span class="ms">${i.icon}</span><span>${esc(i.label)}</span><span class="mseg">${i.options.map(o => `<button role="menuitemradio" aria-checked="${settings[i.setting] === o}" data-opt="${o}" tabindex="-1">${esc(optionLabel(i.setting, o))}</button>`).join('')}</span></div>`;
+    if (i.head) return `<div class="psec">${esc(i.label)}</div>`;
+    return `<button class="mi ${i.danger ? 'danger' : ''}" role="menuitem" aria-selected="${sel}" ${i.disabled ? 'disabled' : ''}><span class="ms">${i.icon}</span><span>${esc(i.label)}</span><kbd>${esc(i.key || '')}</kbd></button>`;
+  };
+  $('ctx-items').innerHTML = menuState.shown.length ? shown.map(i => i.sep ? '<div class="sep"></div>' : row(i)).join('') : `<p class="muted small center">${esc(t('ctx.none'))}</p>`;
+  const rows = [...$('ctx-items').querySelectorAll('.mi')];
+  rows.forEach((b, n) => {
+    const it = menuState.shown.filter(x => !x.head)[n];
+    if (it.control === 'switch') b.onclick = () => menuControl(it, 'toggle');
+    else if (it.control === 'choice') for (const o of b.querySelectorAll('[data-opt]')) o.onclick = e => { e.stopPropagation(); menuControl(it, o.dataset.opt); };
+    else b.onclick = () => { closeMenu(false); it.run(); };
+  });
+}
+function menuControl(it, how) {
+  if (it.control === 'switch') setSetting(it.setting, !settings[it.setting]);
+  else if (it.control === 'choice') { const o = it.options, cur = o.indexOf(settings[it.setting]); setSetting(it.setting, how === 'next' ? o[(cur + 1) % o.length] : how === 'prev' ? o[(cur - 1 + o.length) % o.length] : how); }
+  sound('tap'); renderMenuItems();
+  announce(`${it.label}: ${it.control === 'switch' ? (settings[it.setting] ? 'on' : 'off') : optionLabel(it.setting, settings[it.setting])}`);
+}
+// A context-menu row for a setting shows that setting's own live control.
+function controlFor(key) {
+  const g = GROUPS.flatMap(x => x[2]).find(x => x[0] === key); if (!g || schoolHidden(key)) return null;
+  const icon = { sounds: 'volume_up', theme: 'dark_mode', motion: 'motion_photos_on', focus: 'self_improvement', lowStim: 'filter_drama', time: 'schedule', oneThing: 'looks_one', momentum: 'arrow_forward', narrator: 'record_voice_over', density: 'density_medium', language: 'translate', emoji: 'mood', vocabOn: 'dictionary', dimSum: 'ramen_dining', paletteSize: 'open_in_full' }[key] || 'tune';
+  if (g[1] === 'switch') return { control: 'switch', setting: key, icon, label: t(lk(key)) };
+  if (g[1] === 'select') return { control: 'choice', setting: key, icon, label: t(lk(key)), options: g[2].filter(v => !(settings.school && key === 'language' && v !== 'en')) };
+  return null;
 }
 function closeMenu(restore = true) { if (!menuState) return; const from = menuState.from; menuState = null; $('ctx').hidden = true; delete searches['ctx-filter']; if (restore) from?.focus?.(); }
 function contextItems(target) {
@@ -688,7 +768,13 @@ function contextItems(target) {
     if (s?.publicUrl) items.push({ icon: 'content_copy', label: t('ctx.copyLink'), run: () => copyText(s.publicUrl) });
     if (s) items.push({ icon: 'download', label: t('ctx.export'), run: () => exportSessions([s], 'json') }, { icon: 'delete', label: t('ctx.remove'), danger: true, run: () => confirmAction({ titleKey: 'confirm.remove.title', bodyKey: 'confirm.remove.body', affects: s.name, run: () => { sessions = sessions.filter(x => x.id !== s.id); saveSessions(); renderSessions(); } }) });
   }
+  const own = target?.closest?.('.item[data-key]')?.dataset.key;
+  if (own && controlFor(own)) items.unshift(controlFor(own), { sep: true });
+  if (ctx?.dataset.ctx === 'path' && selected) items.push({ icon: 'code', label: t('editor.vscode'), key: 'Ctrl Shift E', disabled: !editors.length, run: () => openProject('vscode') }, { icon: 'edit_document', label: t('editor.default'), run: () => openProject('default') }, { icon: 'folder_open', label: t('editor.reveal'), run: () => openProject('reveal') });
   if (items.length) items.push({ sep: true });
+  items.push({ head: true, label: t('ctx.quick') });
+  for (const k of ['theme', 'motion', 'sounds', 'focus', 'narrator']) if (k !== own) { const c = controlFor(k); if (c) items.push(c); }
+  items.push({ sep: true });
   items.push({ icon: 'bolt', label: t('ctx.palette'), key: 'Ctrl Shift F', run: () => openPalette() });
   if (live()) items.push({ icon: 'stop_circle', label: t('host.stop'), key: 'Ctrl .', danger: true, run: () => $('stop-btn').click() });
   return items;
@@ -700,7 +786,7 @@ let paletteIndex = 0, paletteItems = [], paletteReturn = null;
 const paletteSearch = { query: '', regex: false, flags: 'i' };
 function allCommands() {
   const cmds = [];
-  const views = [['host', 'rocket_launch', 'Ctrl 1'], ['sessions', 'history', 'Ctrl 2'], ['features', 'auto_awesome_mosaic', 'Ctrl 3'], ['guide', 'menu_book', 'Ctrl 4'], ['settings', 'settings', 'Ctrl 5']];
+  const views = [['host', 'rocket_launch', 'Ctrl 1'], ['sessions', 'history', 'Ctrl 2'], ['tools', 'construction', 'Ctrl 3'], ['features', 'auto_awesome_mosaic', 'Ctrl 4'], ['guide', 'menu_book', 'Ctrl 5'], ['settings', 'settings', 'Ctrl 6']];
   for (const [v, icon, key] of views) cmds.push({ sec: 'palette.go', icon, label: plainBoth(`nav.${v}`), key, run: () => go(v) });
   const act = (icon, labelText, run, key, ok = () => true) => ok() && cmds.push({ sec: 'palette.action', icon, label: labelText, key, run });
   act('upload_file', plainBoth(kind === 'compose' ? 'host.pickCompose' : 'host.pickDockerfile'), () => { go('host'); $('choose').click(); }, '', () => !locked());
@@ -715,7 +801,8 @@ function allCommands() {
   for (const f of ['json', 'csv', 'markdown']) act('download', `${plainBoth('sessions.export')} ${plainBoth('sessions.title')} (${f.toUpperCase()})`, () => exportSessions(sessions, f));
   act('tour', plainBoth('set.onboarding'), () => openOnboarding(0));
   act('restart_alt', plainBoth('set.resetAll'), () => confirmAction({ titleKey: 'confirm.reset.title', bodyKey: 'confirm.reset.body', run: () => { settings = { ...DEFAULTS }; store.set('settings', settings); recordRevision(Object.keys(DEFAULTS), 'reset all'); applySettings(); } }));
-  for (const [, , items] of GROUPS) for (const [key] of items) if (key in DEFAULTS) cmds.push({ sec: 'palette.setting', icon: 'tune', label: plainBoth(lk(key)), desc: plainBoth(lk(key) + '.d'), run: () => teleportSetting(key) });
+  for (const [, , items] of GROUPS) for (const [key, type] of items) if (key in DEFAULTS && !schoolHidden(key) && key !== 'schedules') cmds.push({ sec: 'palette.setting', icon: 'tune', label: plainBoth(lk(key)), desc: plainBoth(lk(key) + '.d'), toggle: type === 'switch' ? key : null, run: () => teleportSetting(key) });
+  for (const a of [['vocab', 'set.vocab'], ['school', 'set.school'], ['schedules', 'set.schedules']]) if (!schoolHidden(a[0])) cmds.push({ sec: 'palette.setting', icon: 'tune', label: plainBoth(a[1]), desc: plainBoth(a[1] + '.d'), run: () => teleportSetting(a[0]) });
   for (const a of C.articles) cmds.push({ sec: 'palette.article', icon: 'article', label: a.title, desc: a.summary, run: () => openArticle(a.id) });
   return cmds;
 }
@@ -732,9 +819,9 @@ function renderPalette() {
   paletteItems = allCommands().filter(c => m.test(`${c.label} ${c.desc || ''}`)).slice(0, 80);
   paletteIndex = Math.min(paletteIndex, Math.max(0, paletteItems.length - 1));
   let last = '';
-  $('palette-list').innerHTML = paletteItems.length ? paletteItems.map((c, i) => { const head = c.sec !== last ? `<div class="psec">${esc(t(c.sec))}</div>` : ''; last = c.sec; return `${head}<button class="pit" role="option" id="pit-${i}" aria-selected="${i === paletteIndex}" data-i="${i}"><span class="ms">${c.icon}</span><span>${esc(c.label)}${c.desc ? `<span class="d">${esc(c.desc.slice(0, 110))}</span>` : ''}</span>${c.key ? `<kbd>${esc(c.key)}</kbd>` : '<span></span>'}</button>`; }).join('') : `<p class="muted center">${esc(t('palette.none'))}</p>`;
+  $('palette-list').innerHTML = paletteItems.length ? paletteItems.map((c, i) => { const head = c.sec !== last ? `<div class="psec">${esc(t(c.sec))}</div>` : ''; last = c.sec; return `${head}<button class="pit" role="option" id="pit-${i}" aria-selected="${i === paletteIndex}" data-i="${i}"><span class="ms">${c.icon}</span><span>${esc(c.label)}${c.desc ? `<span class="d">${esc(c.desc.slice(0, 110))}</span>` : ''}</span>${c.toggle ? `<span class="mini-switch ${settings[c.toggle] ? 'on' : ''}" data-toggle="${c.toggle}" role="switch" aria-checked="${!!settings[c.toggle]}" aria-label="${esc(c.label)}"></span>` : c.key ? `<kbd>${esc(c.key)}</kbd>` : '<span></span>'}</button>`; }).join('') : `<p class="muted center">${esc(t('palette.none'))}</p>`;
   $('palette-input').setAttribute('aria-activedescendant', paletteItems.length ? `pit-${paletteIndex}` : '');
-  for (const b of $('palette-list').querySelectorAll('[data-i]')) b.onclick = () => runPalette(+b.dataset.i);
+  for (const b of $('palette-list').querySelectorAll('[data-i]')) b.onclick = e => { const tg = e.target.closest('[data-toggle]'); if (tg) { e.stopPropagation(); setSetting(tg.dataset.toggle, !settings[tg.dataset.toggle]); renderPalette(); return; } runPalette(+b.dataset.i); };
   $('palette-list').querySelector('[aria-selected=true]')?.scrollIntoView({ block: 'nearest' });
   const host = $('palette-rx-host');
   $('palette-rx').setAttribute('aria-pressed', String(paletteSearch.regex));
@@ -752,6 +839,7 @@ $('palette-input').addEventListener('keydown', e => {
   if (e.key === 'ArrowDown') { e.preventDefault(); paletteIndex = Math.min(paletteIndex + 1, paletteItems.length - 1); renderPalette(); }
   else if (e.key === 'ArrowUp') { e.preventDefault(); paletteIndex = Math.max(paletteIndex - 1, 0); renderPalette(); }
   else if (e.key === 'Enter') { e.preventDefault(); runPalette(paletteIndex); }
+  else if (e.key === ' ' && e.altKey && paletteItems[paletteIndex]?.toggle) { e.preventDefault(); const k = paletteItems[paletteIndex].toggle; setSetting(k, !settings[k]); renderPalette(); }
 });
 $('open-palette').onclick = () => openPalette();
 
@@ -778,9 +866,156 @@ function renderOnboarding() {
 // ---------- dim sum ----------
 const DIM_SUM = [['Har gow', '蝦餃'], ['Siu mai', '燒賣'], ['Char siu bao', '叉燒包'], ['Cheung fun', '腸粉'], ['Lo mai gai', '糯米雞'], ['Egg tart', '蛋撻'], ['Turnip cake', '蘿蔔糕'], ['Phoenix claws', '鳳爪'], ['Steamed spare ribs', '豉汁蒸排骨'], ['Custard bun', '流沙包'], ['Sesame ball', '煎堆'], ['Taro dumpling', '芋角']];
 function maybeDimSum() {
-  if (!store.get('onboarded', false) || Math.random() >= 0.1) return;
+  if (!store.get('onboarded', false) || settings.school || Math.random() >= 0.1) return;
   setTimeout(() => { if (busy || active() || status.phase === 'error' || !$('onboarding').hidden) return; const [en, zh] = DIM_SUM[Math.floor(Math.random() * DIM_SUM.length)]; notify(`${plainBoth('dimsum.title')}: ${en} · ${zh}`, 'info'); }, 2500);
 }
+
+
+// ---------- editor hand-off ----------
+let editors = [];
+async function openProject(action) { try { await api.openProject(action); } catch (e) { notify(e.message, 'error'); } }
+document.addEventListener('click', e => { const b = e.target.closest('[data-editor]'); if (b && !b.disabled) openProject(b.dataset.editor); });
+
+// ---------- School mode ----------
+const enc = new TextEncoder();
+async function pinHash(pin, salt) { return window.Tools.sha256(enc.encode(`${salt}:${pin}`)); }
+function askPin(titleKey) {
+  return new Promise(resolve => {
+    $('pin-title').textContent = t(titleKey); $('pin-label').textContent = t('set.school.pin');
+    $('pin-ok').textContent = t('set.ok'); $('pin-cancel').textContent = t('set.cancel');
+    $('pin-error').hidden = true; $('pin-input').value = '';
+    $('pin').hidden = false; $('scrim').hidden = false; $('pin-input').focus();
+    const done = value => { $('pin').hidden = true; $('scrim').hidden = true; $('pin-ok').onclick = $('pin-cancel').onclick = null; resolve(value); };
+    $('pin-ok').onclick = () => { const v = $('pin-input').value.trim(); if (!/^\d{4,12}$/.test(v)) { $('pin-error').hidden = false; $('pin-error').textContent = t('set.school.pin'); return; } done(v); };
+    $('pin-cancel').onclick = () => done(null);
+    $('pin-input').onkeydown = e => { if (e.key === 'Enter') $('pin-ok').click(); if (e.key === 'Escape') done(null); };
+  });
+}
+async function toggleSchool() {
+  if (!settings.school) {
+    const pin = await askPin('set.school.pinTitle'); if (!pin) return;
+    const salt = crypto.randomUUID(); store.set('schoolPin', { salt, hash: await pinHash(pin, salt) });
+    setSetting('school', true); notify('set.school.on', 'ok');
+  } else {
+    const pin = await askPin('set.school.pinOff'); if (!pin) return;
+    const rec = store.get('schoolPin', null);
+    if (!rec || await pinHash(pin, rec.salt) !== rec.hash) { notify('set.school.wrong', 'error'); return; }
+    setSetting('school', false); notify('set.school.off', 'ok');
+  }
+}
+
+// ---------- schedules ----------
+const SCHED_KEYS = [['theme', ['system', 'light', 'dark']], ['motion', ['full', 'gentle', 'off']], ['sounds', ['on', 'off']], ['focus', ['on', 'off']]];
+const minutes = hm => { const [h, m] = String(hm).split(':').map(Number); return h * 60 + m; };
+function activeSchedule(now = new Date()) {
+  const n = now.getHours() * 60 + now.getMinutes();
+  return settings.schedules.find(r => { if (!r.on) return false; const a = minutes(r.from), b = minutes(r.to); return a <= b ? n >= a && n < b : n >= a || n < b; }) || null;
+}
+let lastScheduleId = store.get('scheduleActive', null);
+function runSchedules() {
+  const r = activeSchedule(), id = r?.id || null;
+  if (id === lastScheduleId) return;
+  lastScheduleId = id; store.set('scheduleActive', id);
+  if (!r) return;
+  const changes = {};
+  for (const [k] of SCHED_KEYS) { const v = r.values[k]; if (!v) continue; changes[k] = v === 'on' ? true : v === 'off' ? false : v; }
+  if (!Object.keys(changes).length) return;
+  settings = { ...settings, ...changes }; store.set('settings', settings); recordRevision(Object.keys(changes), `schedule ${r.name}`); applySettings();
+  notify(`${t('set.schedule.applied')}: ${r.name}`, 'info');
+}
+setInterval(runSchedules, 30000);
+
+// ---------- personal vocabulary ----------
+async function loadVocabulary(file) {
+  if (!file) return;
+  if (file.size > window.Tools.VOCAB_LIMIT) { notify(`${t('set.vocab.invalid')}: 256 KiB`, 'error'); return; }
+  const result = window.Tools.validateVocabulary(await file.text());
+  if (!result.ok) { notify(`${t('set.vocab.invalid')}: ${result.message}`, 'error'); return; }
+  vocab = { entries: result.entries, count: result.count }; store.set('vocab', vocab);
+  applySettings(); notify('set.vocab.applied', 'ok');
+}
+$('file-vocab').onchange = () => { loadVocabulary($('file-vocab').files[0]); $('file-vocab').value = ''; };
+let dropHint;
+document.addEventListener('dragover', e => { if ([...(e.dataTransfer?.items || [])].some(i => i.kind === 'file')) { e.preventDefault(); if (!dropHint && !settings.school) { dropHint = document.createElement('div'); dropHint.className = 'drop-hint'; dropHint.textContent = t('set.vocab'); document.body.append(dropHint); } } });
+document.addEventListener('dragleave', e => { if (!e.relatedTarget) { dropHint?.remove(); dropHint = null; } });
+document.addEventListener('drop', e => { e.preventDefault(); dropHint?.remove(); dropHint = null; const f = e.dataTransfer?.files?.[0]; if (f && !settings.school && /\.json$/i.test(f.name)) loadVocabulary(f); });
+
+// ---------- tools ----------
+const T = window.Tools;
+const toolState = { tool: 'b64', mode: 'encode', file: null, history: [], from: 'json', to: 'markdown', b64Out: '', convOut: '' };
+const hex = bytes => [...bytes.slice(0, 4096)].map(b => b.toString(16).padStart(2, '0')).join(' ') + (bytes.length > 4096 ? ' …' : '');
+let b64Timer;
+async function runB64(record = true) {
+  const input = $('b64-in').value, variant = $('b64-variant').value, encoding = $('b64-encoding').value;
+  const stat = $('b64-out-stat'); stat.className = 'small';
+  try {
+    if (toolState.mode === 'encode') {
+      const bytes = toolState.file ? toolState.file.bytes : T.textToBytes(input, encoding);
+      const body = T.encodeBytes(bytes, { variant, padding: $('b64-pad').checked });
+      const out = $('b64-data').checked ? `data:${toolState.file?.type || 'text/plain;charset=' + encoding};base64,${T.encodeBytes(bytes)}` : body;
+      toolState.b64Out = out; $('b64-out').textContent = out;
+      $('b64-in-stat').textContent = toolState.file ? `${toolState.file.name} · ${bytes.length} ${t('tools.bytes')}` : `${[...input].length} ${t('tools.chars')} · ${bytes.length} ${t('tools.bytes')}`;
+      const back = T.decodeToBytes(body, { strict: false, variant });
+      const ok = back.ok && await T.sha256(back.bytes) === await T.sha256(bytes);
+      stat.textContent = `${out.length} ${t('tools.chars')} · ${t(ok ? 'tools.verified' : 'tools.verifyFailed')}`; stat.classList.add(ok ? 'ok-text' : 'bad-text');
+    } else {
+      const r = input.trim().startsWith('data:') ? T.parseDataUrl(input) : T.decodeToBytes(input, { strict: $('b64-strict').checked, variant });
+      if (!r.ok) { toolState.b64Out = ''; $('b64-out').textContent = ''; stat.textContent = r.message; stat.classList.add('bad-text'); return; }
+      let text; try { text = T.bytesToText(r.bytes, encoding); } catch { text = null; }
+      toolState.b64Out = text ?? ''; $('b64-out').textContent = text ?? hex(r.bytes);
+      $('b64-in-stat').textContent = `${input.length} ${t('tools.chars')}`;
+      stat.textContent = text === null ? `${r.bytes.length} ${t('tools.bytes')} · ${t('tools.binary')}` : `${r.bytes.length} ${t('tools.bytes')}${r.mime ? ' · ' + r.mime : ''}`;
+      $('b64-save').disabled = text === null;
+    }
+    if (record && (input || toolState.file)) { toolState.history.unshift({ at: new Date(), mode: toolState.mode, input, file: toolState.file }); toolState.history = toolState.history.slice(0, 30); renderToolHistory(); }
+  } catch (e) { stat.textContent = e.message; stat.classList.add('bad-text'); }
+}
+function renderToolHistory() {
+  $('b64-hist').innerHTML = toolState.history.map((h, i) => `<div class="hrow"><span><b>${esc(h.at.toLocaleTimeString('en-GB'))}</b> · ${esc(t(h.mode === 'encode' ? 'tools.encode' : 'tools.decode'))} · ${esc(h.file ? h.file.name : h.input.slice(0, 60))}</span><button class="chip" data-hist="${i}"><span class="ms">undo</span>${esc(t('tools.undo'))}</button></div>`).join('');
+  for (const b of $('b64-hist').querySelectorAll('[data-hist]')) b.onclick = () => { const h = toolState.history[+b.dataset.hist]; toolState.mode = h.mode; toolState.file = h.file; $('b64-in').value = h.input; renderTools(); runB64(false); };
+}
+const FROM = ['json', 'csv', 'tsv'], TO = ['csv', 'tsv', 'markdown', 'json'];
+function runConvert() {
+  const input = $('conv-in').value, loss = $('conv-loss'); loss.className = 'small';
+  if (!input.trim()) { $('conv-out').textContent = ''; loss.textContent = ''; $('conv-in-stat').textContent = ''; toolState.convOut = ''; return; }
+  try {
+    const table = T.parseTable(input, toolState.from), out = T.formatTable(table, toolState.to), notes = T.conversionLoss(toolState.from, toolState.to, table);
+    toolState.convOut = out; $('conv-out').textContent = out;
+    $('conv-in-stat').textContent = `${table.rows.length} ${t('tools.records')} · ${table.columns.length} ${t('tools.columns')}`;
+    loss.textContent = notes.length ? notes.join(' ') : t('tools.noLoss'); loss.classList.add(notes.length ? 'muted' : 'ok-text');
+  } catch (e) { toolState.convOut = ''; $('conv-out').textContent = ''; loss.textContent = e.message; loss.classList.add('bad-text'); }
+}
+function renderTools() {
+  for (const b of document.querySelectorAll('[data-tool]')) b.setAttribute('aria-selected', String(b.dataset.tool === toolState.tool));
+  $('panel-b64').hidden = toolState.tool !== 'b64'; $('panel-conv').hidden = toolState.tool !== 'conv';
+  $('b64-enc').setAttribute('aria-pressed', String(toolState.mode === 'encode')); $('b64-dec').setAttribute('aria-pressed', String(toolState.mode === 'decode'));
+  $('b64-in').disabled = !!toolState.file && toolState.mode === 'encode';
+  $('b64-save').disabled = false;
+  $('conv-from').innerHTML = FROM.map(f => `<button data-from="${f}" aria-pressed="${toolState.from === f}">${f.toUpperCase()}</button>`).join('');
+  $('conv-to').innerHTML = TO.map(f => `<button data-to="${f}" aria-pressed="${toolState.to === f}">${f === 'markdown' ? 'Markdown' : f.toUpperCase()}</button>`).join('');
+  for (const b of $('conv-from').children) b.onclick = () => { toolState.from = b.dataset.from; renderTools(); };
+  for (const b of $('conv-to').children) b.onclick = () => { toolState.to = b.dataset.to; renderTools(); };
+  runB64(false); runConvert();
+}
+for (const b of document.querySelectorAll('[data-tool]')) b.onclick = () => { toolState.tool = b.dataset.tool; renderTools(); };
+$('b64-enc').onclick = () => { toolState.mode = 'encode'; renderTools(); };
+$('b64-dec').onclick = () => { toolState.mode = 'decode'; toolState.file = null; renderTools(); };
+$('b64-in').addEventListener('input', () => { runB64(false); clearTimeout(b64Timer); b64Timer = setTimeout(() => runB64(true), 1200); });
+for (const id of ['b64-variant', 'b64-encoding', 'b64-pad', 'b64-strict', 'b64-data']) $(id).addEventListener('change', () => runB64(false));
+$('conv-in').addEventListener('input', runConvert);
+$('b64-file').onclick = () => $('file-b64').click();
+$('file-b64').onchange = () => {
+  const f = $('file-b64').files[0]; $('file-b64').value = ''; if (!f) return;
+  const reader = new FileReader();
+  reader.onprogress = e => { if (e.lengthComputable) $('b64-in-stat').textContent = `${t('tools.reading')} ${Math.round(100 * e.loaded / e.total)}%`; };
+  reader.onload = () => { toolState.mode = 'encode'; toolState.file = { name: f.name, type: f.type || 'application/octet-stream', bytes: new Uint8Array(reader.result) }; $('b64-in').value = ''; renderTools(); runB64(true); };
+  reader.onerror = () => notify(reader.error?.message || t('error.generic'), 'error');
+  reader.readAsArrayBuffer(f);
+};
+$('b64-copy').onclick = () => toolState.b64Out && copyText(toolState.b64Out).then(ok => ok && notify('toast.copied', 'ok'));
+$('b64-save').onclick = () => toolState.b64Out && saveFile(toolState.mode === 'encode' ? 'base64.txt' : 'decoded.txt', toolState.b64Out);
+$('conv-copy').onclick = () => toolState.convOut && copyText(toolState.convOut).then(ok => ok && notify('toast.copied', 'ok'));
+$('conv-save').onclick = () => toolState.convOut && saveFile(`converted.${{ markdown: 'md', json: 'json', csv: 'csv', tsv: 'tsv' }[toolState.to]}`, toolState.convOut);
 
 // ---------- keyboard ----------
 document.addEventListener('keydown', e => {
@@ -793,18 +1028,24 @@ document.addEventListener('keydown', e => {
     if (!$('notif-panel').hidden) { closeNotifications(); return; }
     if (!$('onboarding').hidden) { closeOnboarding(); return; }
   }
+  const cur = menuState?.shown[menuState.index];
+  if (menuState && cur?.control && (e.key === ' ' || e.key === 'Enter' || ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && cur.control === 'choice'))) {
+    if (e.key === ' ' && document.activeElement?.closest('.filter') && cur.control !== 'switch') return;
+    e.preventDefault(); menuControl(cur, cur.control === 'switch' ? 'toggle' : e.key === 'ArrowLeft' ? 'prev' : 'next'); return;
+  }
   if (menuState && ['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) {
     e.preventDefault();
-    if (e.key === 'Enter') { const it = menuState.shown[menuState.index]; if (it) { closeMenu(false); it.run(); } return; }
-    menuState.index = Math.max(0, Math.min(menuState.shown.length - 1, menuState.index + (e.key === 'ArrowDown' ? 1 : -1))); renderMenuItems(); return;
+    if (e.key === 'Enter') { const it = menuState.shown[menuState.index]; if (it && !it.disabled) { closeMenu(false); it.run(); } return; }
+    menuState.index = Math.max(0, Math.min(menuState.shown.length - 1, menuState.index + (e.key === 'ArrowDown' ? 1 : -1))); renderMenuItems(); const it = menuState.shown[menuState.index]; announce(it.control === 'switch' ? `${it.label}, ${settings[it.setting] ? 'on' : 'off'}` : it.control === 'choice' ? `${it.label}, ${optionLabel(it.setting, settings[it.setting])}` : it.label); return;
   }
   if ((e.shiftKey && e.key === 'F10') || e.key === 'ContextMenu') { e.preventDefault(); const el = document.activeElement; const r = el?.getBoundingClientRect?.(); openMenu(el, contextItems(el), { x: r?.left || 100, y: (r?.bottom || 100) + 4 }); return; }
   if (!$('palette').hidden || !$('confirm').hidden || !$('onboarding').hidden) return;
-  if (e.ctrlKey && !e.shiftKey && /^[1-5]$/.test(e.key)) { e.preventDefault(); go(VIEWS[+e.key - 1]); }
+  if (e.ctrlKey && !e.shiftKey && /^[1-6]$/.test(e.key)) { e.preventDefault(); go(VIEWS[+e.key - 1]); }
   else if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); host(); }
   else if (e.ctrlKey && e.shiftKey && k === 'c' && live()) { e.preventDefault(); $('copy-btn').click(); }
   else if (e.ctrlKey && !e.shiftKey && k === 'o' && live()) { e.preventDefault(); $('open-btn').click(); }
   else if (e.ctrlKey && e.key === '.' && live()) { e.preventDefault(); $('stop-btn').click(); }
+  else if (e.ctrlKey && e.shiftKey && k === 'e' && selected && editors.length) { e.preventDefault(); openProject('vscode'); }
 });
 document.addEventListener('click', e => { if (menuState && !e.target.closest('#ctx')) closeMenu(false); });
 $('theme-toggle').onclick = () => setSetting('theme', isDark() ? 'light' : 'dark');
@@ -821,6 +1062,8 @@ go('host', { focus: false });
 renderBadge();
 (async () => {
   try { info = await api.info(); } catch {}
+  try { editors = await api.editors(); } catch { editors = []; }
+  runSchedules();
   renderProvenance();
   await Promise.all([checkRequirements(), refreshStatus()]);
   if (!store.get('onboarded', false)) openOnboarding(); else maybeDimSum();

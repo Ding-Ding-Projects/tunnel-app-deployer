@@ -18,4 +18,4 @@ Two sliders, one for English and one for Cantonese, go from **1 (serious)** to *
 
 When turned on, confirmations and notifications get one small emoji. Emoji never appear in buttons, labels or the names read by screen readers.
 
-Related: settings, accessibility, dim-sum
+Related: narrator, vocabulary, school-mode

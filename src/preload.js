@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld('tunnel', Object.freeze({
   copyText: text => ipcRenderer.invoke('app:copy-text', String(text)),
   setTitle: title => ipcRenderer.invoke('app:set-title', String(title)),
   openLink: url => ipcRenderer.invoke('app:open-link', String(url)),
+  editors: () => ipcRenderer.invoke('app:editors'),
+  openProject: action => ipcRenderer.invoke('app:open-project', String(action)),
   save: (name, content) => ipcRenderer.invoke('app:save', String(name), String(content)),
   onProgress: callback => {
     const listener = (_event, value) => callback(value);

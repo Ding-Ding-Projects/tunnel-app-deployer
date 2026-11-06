@@ -87,3 +87,52 @@ test('generated content is current and every linked article exists', async () =>
   assert.equal(content.features.items.length, new Set(content.features.items.map(i => i.id)).size);
   for (const item of content.features.items) assert.ok(['built', 'partial', 'planned', 'na'].includes(item.status), item.id);
 });
+
+test('base64 tools match reference encodings and report exact decode errors', () => {
+  const T = require('../../src/renderer/tools');
+  for (const s of ['', 'a', 'ab', 'abc', 'Docker compose up --build', 'é€😀']) {
+    assert.equal(T.encodeBytes(T.textToBytes(s)), Buffer.from(s).toString('base64'), s);
+    assert.equal(T.encodeBytes(T.textToBytes(s), { variant: 'url', padding: false }), Buffer.from(s).toString('base64url'), s);
+    assert.equal(T.bytesToText(T.decodeToBytes(Buffer.from(s).toString('base64')).bytes), s);
+  }
+  assert.deepEqual(T.encodeBytes(T.textToBytes('x'.repeat(100)), { variant: 'mime' }).split('\r\n').map(l => l.length), [76, 60]);
+  assert.equal(T.decodeToBytes('RG9j!2Vy').offset, 4);
+  assert.equal(T.decodeToBytes('aG k=').ok, false);
+  assert.equal(T.decodeToBytes('aG k', { strict: false }).ok, true);
+  assert.equal(T.bytesToText(T.textToBytes('hi', 'utf-16le'), 'utf-16le'), 'hi');
+  assert.throws(() => T.textToBytes('€', 'latin1'));
+  const parsed = T.parseDataUrl(T.dataUrl(T.textToBytes('hi'), 'text/plain'));
+  assert.equal(parsed.mime, 'text/plain'); assert.equal(T.bytesToText(parsed.bytes), 'hi');
+});
+
+test('table conversion round-trips quoted CSV and states losses', () => {
+  const T = require('../../src/renderer/tools');
+  const table = T.parseTable('a,b\r\n"x,1","q""z"\n', 'csv');
+  assert.deepEqual(table, { columns: ['a', 'b'], rows: [['x,1', 'q"z']] });
+  assert.equal(T.formatTable(table, 'csv'), 'a,b\r\n"x,1","q""z"');
+  const j = T.parseTable('[{"s":"web","p":3000,"n":{"a":1}}]', 'json');
+  assert.match(T.formatTable(j, 'markdown'), /\| web \| 3000 \|/);
+  assert.equal(T.conversionLoss('json', 'csv', j).length, 2);
+  assert.throws(() => T.parseTable('{"a":1}', 'json'));
+  assert.throws(() => T.parseTable('a\n"open', 'csv'));
+});
+
+test('personal vocabulary is validated in full before use', () => {
+  const T = require('../../src/renderer/tools');
+  assert.equal(T.validateVocabulary('{"version":1,"entries":{"Host":"Share"}}').count, 1);
+  for (const bad of ['nope', '{"Host":"Share"}', '{"version":2,"entries":{}}', '{"version":1,"entries":{"Host":1}}', `{"version":1,"entries":{"${'w'.repeat(161)}":"x"}}`, `{"version":1,"entries":{"a":"${'x'.repeat(1001)}"}}`, '{"version":1,"entries":{"a":"b"},"x":[[[[[[[[[1]]]]]]]]]}', 'x'.repeat(256 * 1024 + 1)]) assert.equal(T.validateVocabulary(bad).ok, false, bad.slice(0, 40));
+  const apply = T.vocabularyReplacer({ Host: 'Share', 'Host app': 'Share it' });
+  assert.equal(apply('Host app · Hosting · Host'), 'Share it · Hosting · Share');
+});
+
+test('editor detection finds real installs without running anything', () => {
+  const { detectEditors } = require('../../src/main');
+  const env = { LOCALAPPDATA: 'C:\\Users\\a\\AppData\\Local', ProgramFiles: 'C:\\Program Files', PATH: 'C:\\Users\\a\\AppData\\Local\\Programs\\Microsoft VS Code\\bin' };
+  const found = detectEditors({ platform: 'win32', env, exists: p => /Local\\Programs\\Microsoft VS Code\\(Code\.exe|bin\\code\.cmd)$/.test(p) });
+  assert.deepEqual(found.map(e => e.path), ['C:\\Users\\a\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe']);
+  assert.deepEqual(detectEditors({ platform: 'linux', env: { PATH: '/usr/bin' }, exists: () => false }), []);
+});
+
+test('markdown code fences are escaped', () => {
+  assert.match(Markdown.render('```\n<b>{"a":1}</b>\n```'), /<pre><code>&lt;b&gt;\{&quot;a&quot;:1\}&lt;\/b&gt;<\/code><\/pre>/);
+});

@@ -8,14 +8,15 @@ Press **Ctrl+Shift+F** anywhere to find any screen, action, setting or article.
 2. Type. Results are grouped as screens, actions, settings and articles.
 3. Use the arrow keys and **Enter**, or click.
 
-Choosing a setting opens its group, scrolls to it, focuses it and highlights it for a moment. Choosing an action runs it, the same way its button would.
+Choosing a setting opens its group, scrolls to it, focuses it and highlights it for a moment. Choosing an action runs it, the same way its button would. Settings that are switches show a live switch in their row: click it, or press **Alt+Space**, to change the setting without leaving the palette.
 
 ## Shortcuts
 
 | Shortcut | What it does |
 | --- | --- |
 | Ctrl+Shift+F | Open the command palette |
-| Ctrl+1 to Ctrl+5 | Host, Sessions, Features, Guide, Settings |
+| Ctrl+1 to Ctrl+6 | Host, Sessions, Tools, Features, Guide, Settings |
+| Ctrl+Shift+E | Open the chosen project folder in VS Code |
 | Ctrl+Enter | Host app (when a project is chosen) |
 | Ctrl+Shift+C | Copy the live link |
 | Ctrl+. | Stop sharing (opens the confirmation) |

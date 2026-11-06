@@ -18,6 +18,7 @@
     while (i < lines.length) {
       const line = lines[i];
       if (!line.trim()) { i++; continue; }
+      if (/^```/.test(line)) { const code = []; i++; while (i < lines.length && !/^```/.test(lines[i])) { code.push(lines[i]); i++; } i++; html.push(`<pre><code>${esc(code.join('\n'))}</code></pre>`); continue; }
       const h = line.match(/^(#{1,3})\s+(.*)$/);
       if (h) { const level = h[1].length + 1; const id = h[2].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); html.push(`<h${level} id="h-${id}">${inline(h[2])}</h${level}>`); i++; continue; }
       if (/^\|/.test(line)) {
@@ -38,7 +39,7 @@
         continue;
       }
       const para = [];
-      while (i < lines.length && lines[i].trim() && !/^(#{1,3}\s|\||\s*[-*]\s|\s*\d+\.\s)/.test(lines[i])) { para.push(lines[i].trim()); i++; }
+      while (i < lines.length && lines[i].trim() && !/^(#{1,3}\s|\||\s*[-*]\s|\s*\d+\.\s|```)/.test(lines[i])) { para.push(lines[i].trim()); i++; }
       html.push(`<p>${inline(para.join(' '))}</p>`);
     }
     return html.join('\n');

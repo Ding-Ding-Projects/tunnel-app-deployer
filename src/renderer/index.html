@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Tunnel App Deployer</title>
 <link rel="stylesheet" href="styles.css">
-<script defer src="i18n.js"></script><script defer src="regex.js"></script><script defer src="markdown.js"></script><script defer src="content.js"></script><script defer src="app.js"></script>
+<script defer src="i18n.js"></script><script defer src="regex.js"></script><script defer src="tools.js"></script><script defer src="markdown.js"></script><script defer src="content.js"></script><script defer src="app.js"></script>
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="nav.host">Host</a>
@@ -15,6 +15,7 @@
   <div class="dests" role="tablist" aria-orientation="vertical">
     <button class="dest" role="tab" data-view="host"><span class="pill"><span class="ms">rocket_launch</span></span><span class="lbl" data-i18n="nav.host">Host</span></button>
     <button class="dest" role="tab" data-view="sessions"><span class="pill"><span class="ms">history</span></span><span class="lbl" data-i18n="nav.sessions">Sessions</span></button>
+    <button class="dest" role="tab" data-view="tools"><span class="pill"><span class="ms">construction</span></span><span class="lbl" data-i18n="nav.tools">Tools</span></button>
     <button class="dest" role="tab" data-view="features"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span><span class="lbl" data-i18n="nav.features">Features</span></button>
     <button class="dest" role="tab" data-view="guide"><span class="pill"><span class="ms">menu_book</span></span><span class="lbl" data-i18n="nav.guide">Guide</span></button>
     <button class="dest" role="tab" data-view="settings"><span class="pill"><span class="ms">settings</span></span><span class="lbl" data-i18n="nav.settings">Settings</span></button>
@@ -49,6 +50,7 @@
           <div class="field"><label for="port"><span data-i18n="host.port">Container port</span> <span class="opt" data-i18n="host.optional">optional</span></label>
             <input id="port" type="text" inputmode="numeric" autocomplete="off" aria-describedby="port-hint"><p class="hint" id="port-hint"></p></div>
         </div>
+        <div class="editor-row" id="editor-row" hidden></div>
         <button class="btn fill wide" id="host-btn" aria-keyshortcuts="Control+Enter" disabled><span class="ms">rocket_launch</span><span data-i18n="host.hostButton">Host app</span></button>
         <button class="btn outline wide" id="cancel-btn" hidden><span class="ms">close</span><span data-i18n="host.cancel">Cancel hosting</span></button>
         <p class="muted small center" id="trust-note" data-i18n="host.trust">Only share projects you trust.</p>
@@ -99,6 +101,40 @@
     <div class="list" id="sessions-list" role="list"></div>
     <div class="empty" id="sessions-empty" hidden><span class="ms big">history</span><h2 class="h2" id="sessions-empty-title"></h2><p class="muted" data-i18n="sessions.emptyText"></p></div>
     <p class="muted small" data-i18n="sessions.historical"></p>
+  </section>
+
+  <section class="view" id="view-tools" data-view="tools" hidden aria-labelledby="tools-title">
+    <div class="view-head"><div><h1 class="h1" id="tools-title" data-i18n="tools.title">Tools</h1><p class="muted" data-i18n="tools.lead"></p></div></div>
+    <div class="tabs" role="tablist" aria-labelledby="tools-title">
+      <button class="tab" role="tab" id="tab-b64" aria-controls="panel-b64" data-tool="b64"><span class="ms">data_object</span><span data-i18n="tools.b64">Base64</span></button>
+      <button class="tab" role="tab" id="tab-conv" aria-controls="panel-conv" data-tool="conv"><span class="ms">swap_horiz</span><span data-i18n="tools.convert">Convert</span></button>
+    </div>
+    <div class="tool-grid" id="panel-b64" role="tabpanel" aria-labelledby="tab-b64">
+      <section class="card"><div class="card-head"><h2 class="h3" data-i18n="tools.input">Input</h2><div class="seg small-seg" role="group"><button id="b64-enc" aria-pressed="true" data-i18n="tools.encode">Encode</button><button id="b64-dec" aria-pressed="false" data-i18n="tools.decode">Decode</button></div></div>
+        <textarea class="area" id="b64-in" spellcheck="false" aria-label="Base64 input"></textarea>
+        <div class="tools">
+          <label class="mini"><span data-i18n="tools.variant">Alphabet</span><select class="select" id="b64-variant"><option value="standard" data-i18n="tools.standard">Standard</option><option value="url" data-i18n="tools.urlsafe">URL-safe</option><option value="mime" data-i18n="tools.mime">MIME</option></select></label>
+          <label class="mini"><span data-i18n="tools.encoding">Text encoding</span><select class="select" id="b64-encoding"><option value="utf-8">UTF-8</option><option value="utf-16le">UTF-16 LE</option><option value="latin1">Latin-1</option></select></label>
+          <label class="mini check"><input type="checkbox" role="switch" class="switch" id="b64-pad" checked><span data-i18n="tools.padding">Padding</span></label>
+          <label class="mini check"><input type="checkbox" role="switch" class="switch" id="b64-strict" checked><span data-i18n="tools.strict">Strict decoding</span></label>
+          <label class="mini check"><input type="checkbox" role="switch" class="switch" id="b64-data"><span data-i18n="tools.dataurl">As data: URL</span></label>
+          <button class="chip" id="b64-file"><span class="ms">upload_file</span><span data-i18n="tools.file">Encode a file</span></button>
+        </div>
+        <p class="muted small" id="b64-in-stat" aria-live="polite"></p>
+      </section>
+      <section class="card"><div class="card-head"><h2 class="h3" data-i18n="tools.output">Output</h2><span class="tools"><button class="chip" id="b64-copy"><span class="ms">content_copy</span><span data-i18n="tools.copy">Copy</span></button><button class="chip" id="b64-save"><span class="ms">download</span><span data-i18n="tools.save">Save</span></button></span></div>
+        <output class="area" id="b64-out" aria-live="polite"></output>
+        <p class="small" id="b64-out-stat" role="status"></p>
+        <details class="fold"><summary><span class="ms">history</span><span data-i18n="tools.history">Recent conversions</span></summary><div class="hist" id="b64-hist"></div></details>
+      </section>
+    </div>
+    <div class="tool-grid" id="panel-conv" role="tabpanel" aria-labelledby="tab-conv" hidden>
+      <section class="card"><div class="card-head"><h2 class="h3" data-i18n="tools.from">From</h2><div class="seg small-seg" role="group" id="conv-from"></div></div>
+        <textarea class="area" id="conv-in" spellcheck="false" aria-label="Table input"></textarea><p class="muted small" id="conv-in-stat"></p></section>
+      <section class="card"><div class="card-head"><h2 class="h3" data-i18n="tools.to">To</h2><div class="seg small-seg" role="group" id="conv-to"></div></div>
+        <output class="area" id="conv-out"></output><p class="small" id="conv-loss" role="status"></p>
+        <div class="tools"><button class="chip" id="conv-copy"><span class="ms">content_copy</span><span data-i18n="tools.copy">Copy</span></button><button class="chip" id="conv-save"><span class="ms">download</span><span data-i18n="tools.save">Save</span></button></div></section>
+    </div>
   </section>
 
   <section class="view" id="view-features" data-view="features" hidden aria-labelledby="features-title">
@@ -153,6 +189,14 @@
   <label class="slide" id="slide-wrap"><span class="sr-only" data-i18n="confirm.slide">Slide to confirm</span><input type="range" id="slide" min="0" max="100" value="0" disabled><span class="slide-label" id="slide-label"></span></label>
   <div class="row end"><button class="btn text" id="confirm-exit"><span class="ms">logout</span><span data-i18n="confirm.exit">Emergency exit</span></button></div>
 </div>
+<div class="dialog pin" id="pin" role="dialog" aria-modal="true" aria-labelledby="pin-title" hidden>
+  <h2 class="h2" id="pin-title"></h2>
+  <label class="field"><span id="pin-label"></span><input id="pin-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12"></label>
+  <p class="hint bad" id="pin-error" role="alert" hidden></p>
+  <div class="row end"><button class="btn text" id="pin-cancel"></button><button class="btn fill" id="pin-ok"></button></div>
+</div>
+<input type="file" id="file-vocab" accept=".json,application/json" hidden>
+<input type="file" id="file-b64" hidden>
 <div class="dialog onboarding" id="onboarding" role="dialog" aria-modal="true" aria-labelledby="onb-title" hidden></div>
 <div class="ctx" id="ctx" role="menu" hidden></div>
 <div class="sr-only" id="announce" role="status" aria-live="polite"></div>
