@@ -40,3 +40,29 @@ test('renderer has a restrictive policy and no Node integration', () => {
   assert.doesNotMatch(preload, /exposeInMainWorld\(['"](?:require|ipcRenderer|process)/);
   assert.doesNotMatch(preload, /invoke:|send:/);
 });
+
+test('Electron browser entry starts even when its loader owns require.main', () => {
+  const vm = require('node:vm');
+  const source = fs.readFileSync(path.resolve(__dirname, '../../src/main.js'), 'utf8');
+  let electronLoads = 0, lockRequests = 0, quits = 0;
+  const load = name => {
+    if (name === 'electron') {
+      electronLoads++;
+      return { app: { requestSingleInstanceLock: () => { lockRequests++; return false; }, quit: () => { quits++; } } };
+    }
+    if (name === './backend') return {};
+    return require(name);
+  };
+  load.main = { filename: 'electron' };
+  const run = runtime => vm.runInNewContext(source, {
+    require: load, module: { exports: {} }, process: runtime, console,
+  });
+  run({ versions: { node: process.versions.node } });
+  assert.equal(electronLoads, 0, 'Node imports must remain side-effect-free');
+  run({ versions: { electron: '45.2.3' }, type: 'renderer' });
+  assert.equal(electronLoads, 0, 'Renderer imports must not launch the application');
+  run({ versions: { electron: '45.2.3' }, type: 'browser' });
+  assert.equal(electronLoads, 1);
+  assert.equal(lockRequests, 1);
+  assert.equal(quits, 1);
+});
