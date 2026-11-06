@@ -21,3 +21,22 @@ jobs:
           else
             echo 'Application tests are pending implementation.'
           fi
+  package-windows:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run package:win -- --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tunnel-app-deployer-windows-${{ github.sha }}
+          path: dist/*.exe
+          if-no-files-found: error
