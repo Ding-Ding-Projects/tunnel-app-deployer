@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Host, ready</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--olv:#2a3431;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--t:#a8cbe4;--warn:#f3bf6e;--err:#ffb4ab;--errc:#93000a;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);min-height:800px;display:flex;font-size:14px;line-height:1.45}
+.ms{font-family:"Material Symbols Rounded";font-weight:400;font-size:24px;line-height:1;font-variation-settings:"FILL" 0;display:inline-block;user-select:none}
+.ms.f{font-variation-settings:"FILL" 1}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0;background:var(--bg)}
+.fab{width:56px;height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;border:0;margin-bottom:20px}
+.dest{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--onv);font-size:12px;font-weight:500;text-decoration:none;border:0;background:none}
+.dest .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center;transition:background .3s var(--e)}
+.dest.on{color:var(--on)}.dest.on .pill{background:var(--pc);color:var(--onpc)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;padding:12px 24px 24px 8px;gap:16px}
+.top{display:flex;align-items:center;gap:12px}
+.search{flex:1;max-width:560px;height:48px;border-radius:24px;background:var(--s3);display:flex;align-items:center;gap:12px;padding:0 6px 0 16px;color:var(--onv)}
+.search input{flex:1;background:none;border:0;color:var(--on);font:inherit;font-size:16px;outline:none}
+.chip{height:32px;border-radius:8px;border:1px solid var(--ol);background:none;color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font:inherit;font-size:13px;font-weight:500}
+.chip.sel{background:var(--pc);border-color:var(--pc);color:var(--onpc)}
+.kbd{font-family:"Roboto Mono",monospace;font-size:11px;padding:2px 6px;border-radius:6px;background:var(--s4);color:var(--onv)}
+.icon-btn{width:40px;height:40px;border-radius:20px;border:0;background:none;color:var(--onv);display:grid;place-items:center;position:relative}
+.badge{position:absolute;top:6px;right:6px;min-width:16px;height:16px;border-radius:8px;background:var(--err);color:#690005;font-size:11px;font-weight:600;display:grid;place-items:center;padding:0 4px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;flex:1}
+.card{background:var(--s1);border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--p);text-transform:uppercase;margin:0}
+.h1{font-size:32px;line-height:40px;font-weight:500;letter-spacing:-.01em;margin:0}
+.h2{font-size:22px;line-height:28px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.seg{display:flex;border:1px solid var(--ol);border-radius:20px;overflow:hidden;height:40px}
+.seg button{flex:1;border:0;background:none;color:var(--on);font:inherit;font-weight:500;display:flex;align-items:center;justify-content:center;gap:8px}
+.seg button+button{border-left:1px solid var(--ol)}
+.seg button.on{background:var(--s4)}
+.drop{border:2px dashed var(--ol);border-radius:20px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;background:var(--s2)}
+.drop .ms{font-size:40px;color:var(--p)}
+.btn{height:48px;border-radius:24px;border:0;font:inherit;font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:0 24px}
+.btn.fill{background:var(--p);color:var(--onp)}
+.btn.tonal{background:var(--s4);color:var(--on)}
+.btn.err{background:var(--errc);color:#ffdad6}
+.btn:disabled{opacity:.38}
+.stage{flex:1;border-radius:20px;background:var(--s2);display:flex;flex-direction:column;justify-content:center;gap:24px;padding:24px;position:relative;overflow:hidden}
+.flow{display:grid;grid-template-columns:auto 1fr auto 1fr auto;align-items:center;gap:12px}
+.node{display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12px;color:var(--onv);font-weight:500}
+.node .disc{width:64px;height:64px;border-radius:22px;background:var(--s4);display:grid;place-items:center;color:var(--onv)}
+.node.on .disc{background:var(--pc);color:var(--onpc)}
+.pipe{height:4px;border-radius:2px;background:var(--olv);position:relative;overflow:hidden}
+.pipe.run::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--p) 0 14px,transparent 14px 28px);animation:flow 1s linear infinite}
+@keyframes flow{to{background-position:28px 0}}
+.req{display:flex;gap:8px;flex-wrap:wrap}
+.req .chip .ms{font-size:18px}
+.ok{color:var(--p)}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.card{animation:rise .5s var(--e) both}.card+.card{animation-delay:.08s}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:860px){.grid{grid-template-columns:1fr}.rail{display:none}.main{padding:12px 16px}}
+</style>
+</helmet>
+<div class="app">
+<nav class="rail" aria-label="Primary">
+<button class="fab" aria-label="Host a new project"><span class="ms f">add_link</span></button>
+<a class="dest on" href="#"><span class="pill"><span class="ms f">rocket_launch</span></span>Host</a>
+<a class="dest" href="Sessions.dc.html"><span class="pill"><span class="ms">history</span></span>Sessions</a>
+<a class="dest" href="Features.dc.html"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span>Features</a>
+<a class="dest" href="#"><span class="pill"><span class="ms">menu_book</span></span>Guide</a>
+<a class="dest" href="Settings.dc.html"><span class="pill"><span class="ms">settings</span></span>Settings</a>
+</nav>
+<div class="main">
+<div class="top">
+<label class="search"><span class="ms">search</span><input aria-label="Search everything" placeholder="Search projects, sessions, settings"><button class="chip" aria-label="Open regex builder"><span class="ms" style="font-size:18px">regular_expression</span>.*</button><span class="kbd">Ctrl Shift F</span></label>
+<span style="flex:1"></span>
+<button class="icon-btn" aria-label="Notifications, 2 unread"><span class="ms">notifications</span><span class="badge">2</span></button>
+<button class="icon-btn" aria-label="Switch theme"><span class="ms">dark_mode</span></button>
+</div>
+<div class="grid">
+<section class="card" aria-labelledby="p-title">
+<p class="eyebrow">Step 1 · Project</p>
+<h2 id="p-title" class="h1">Share your app.</h2>
+<p class="muted">Pick a Dockerfile or a Compose file on this computer. Nothing leaves your machine until you press Host.</p>
+<div class="seg" role="group" aria-label="Project format"><button class="on" aria-pressed="true"><span class="ms" style="font-size:18px">check</span>Dockerfile</button><button aria-pressed="false">Compose</button></div>
+<button class="drop" style="font:inherit;color:inherit"><span class="ms">upload_file</span><strong style="font-size:16px">Drop a Dockerfile here</strong><span class="muted" style="font-size:13px">or browse your files · its folder becomes the build context</span></button>
+<label style="display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--onv)">Container port (optional)<input style="height:48px;border-radius:12px;border:1px solid var(--ol);background:none;color:var(--on);padding:0 16px;font:inherit;font-size:16px" placeholder="Auto-detect from project" inputmode="numeric"></label>
+<button class="btn fill" disabled><span class="ms">rocket_launch</span>Host app</button>
+<p class="muted" style="font-size:12px;text-align:center">Only share projects you trust. Anyone with the link can open your app.</p>
+</section>
+<section class="card" aria-labelledby="l-title">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div><p class="eyebrow">Step 2 · Public link</p><h2 id="l-title" class="h2">Ready when you are</h2></div><span class="chip"><span class="ms" style="font-size:18px">radio_button_unchecked</span>Not sharing</span></div>
+<div class="stage">
+<div class="flow" aria-hidden="true">
+<div class="node on"><span class="disc"><span class="ms f">computer</span></span>This computer</div>
+<span class="pipe"></span>
+<div class="node"><span class="disc"><span class="ms">conversion_path</span></span>Quick Tunnel</div>
+<span class="pipe"></span>
+<div class="node"><span class="disc"><span class="ms">public</span></span>Anyone with the link</div>
+</div>
+<p class="muted" style="text-align:center;max-width:420px;margin:0 auto">Choose a project, then host it. The link appears only after the app answers over HTTPS.</p>
+</div>
+<div style="display:flex;gap:12px;align-items:center;padding:16px;border-radius:16px;background:var(--s2)"><span class="ms" style="color:var(--t)">schedule</span><p class="muted" style="font-size:13px"><strong style="color:var(--on)">Your computer is the host.</strong> Keep Docker and this app running while you share.</p></div>
+</section>
+</div>
+<div class="req" aria-label="Before you host"><span class="chip"><span class="ms ok">check_circle</span>Docker ready</span><span class="chip"><span class="ms ok">check_circle</span>Compose v2</span><span class="chip"><span class="ms" style="color:var(--t)">download</span>Tunnel helper downloads on first host</span><button class="chip"><span class="ms" style="font-size:18px">refresh</span>Check again</button></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

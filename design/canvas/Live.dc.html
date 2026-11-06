@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Host, live link</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--olv:#2a3431;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--t:#a8cbe4;--err:#ffb4ab;--errc:#93000a;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);min-height:800px;display:flex;font-size:14px;line-height:1.45}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;font-variation-settings:"FILL" 0;display:inline-block}
+.ms.f{font-variation-settings:"FILL" 1}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0}
+.fab{width:56px;height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;border:0;margin-bottom:20px}
+.dest{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--onv);font-size:12px;font-weight:500;text-decoration:none}
+.dest .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.dest.on{color:var(--on)}.dest.on .pill{background:var(--pc);color:var(--onpc)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;padding:12px 24px 24px 8px;gap:16px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:16px;flex:1}
+.card{background:var(--s1);border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--p);text-transform:uppercase;margin:0}
+.h2{font-size:22px;line-height:28px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.chip{height:32px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font-size:13px;font-weight:500}
+.chip.live{border-color:transparent;background:var(--pc);color:var(--onpc)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--p);box-shadow:0 0 0 0 var(--p);animation:ping 2s var(--e) infinite}
+@keyframes ping{70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.file{display:flex;gap:12px;align-items:center;padding:16px;border-radius:16px;background:var(--s2)}
+.mono{font-family:"Roboto Mono",monospace}
+.btn{height:48px;border-radius:24px;border:0;font:inherit;font-weight:600;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:0 24px;cursor:pointer;transition:background .2s var(--e),transform .2s var(--e)}
+.btn:active{transform:scale(.97)}
+.btn.fill{background:var(--p);color:var(--onp)}
+.btn.tonal{background:var(--s4);color:var(--on)}
+.btn.stop{background:none;border:1px solid var(--ol);color:var(--err);position:relative;overflow:hidden}
+.hold{position:absolute;inset:0;background:var(--errc);transform-origin:left;transform:scaleX(0)}
+.btn.stop:hover .hold{transform:scaleX(1);transition:transform 1.2s linear}
+.btn.stop span{position:relative}
+.url{border-radius:20px;background:var(--pc);color:var(--onpc);padding:24px;display:flex;flex-direction:column;gap:12px;animation:pop .5s var(--e) both}
+@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+.url .addr{font-size:26px;line-height:34px;font-weight:500;overflow-wrap:anywhere}
+.flow{display:grid;grid-template-columns:auto 1fr auto 1fr auto;align-items:center;gap:12px;padding:8px 0}
+.node{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--onv)}
+.node .disc{width:48px;height:48px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center}
+.pipe{height:4px;border-radius:2px;background:repeating-linear-gradient(90deg,var(--p) 0 14px,transparent 14px 28px);animation:flow 1s linear infinite}
+@keyframes flow{to{background-position:28px 0}}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stat{background:var(--s2);border-radius:16px;padding:16px}
+.stat b{display:block;font-size:22px;font-weight:500;margin-top:4px}
+.toast{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);background:#dde4e1;color:#2b3230;border-radius:8px;padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:0 6px 20px #0006;animation:pop .3s var(--e) both}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:860px){.grid{grid-template-columns:1fr}.rail{display:none}.stats{grid-template-columns:1fr}}
+</style>
+</helmet>
+<div class="app" style="position:relative">
+<nav class="rail" aria-label="Primary">
+<button class="fab" aria-label="Host a new project"><span class="ms f">add_link</span></button>
+<a class="dest on" href="Main.dc.html"><span class="pill"><span class="ms f">rocket_launch</span></span>Host</a>
+<a class="dest" href="Sessions.dc.html"><span class="pill"><span class="ms">history</span></span>Sessions</a>
+<a class="dest" href="Features.dc.html"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span>Features</a>
+<a class="dest" href="#"><span class="pill"><span class="ms">menu_book</span></span>Guide</a>
+<a class="dest" href="Settings.dc.html"><span class="pill"><span class="ms">settings</span></span>Settings</a>
+</nav>
+<div class="main">
+<div style="height:48px"></div>
+<div class="grid">
+<section class="card">
+<p class="eyebrow">Step 1 · Project</p>
+<h2 class="h2">notes-app</h2>
+<div class="file"><span class="ms f" style="color:var(--p)">description</span><div><strong>Dockerfile</strong><div class="mono" style="font-size:12px;color:var(--onv)">C:\Projects\notes-app\Dockerfile</div></div></div>
+<div class="file"><span class="ms" style="color:var(--p)">lan</span><div><strong>Local check passed</strong><div class="mono" style="font-size:12px;color:var(--onv)">http://127.0.0.1:49213</div></div></div>
+<span style="flex:1"></span>
+<button class="btn stop" aria-label="Stop sharing. Hold to confirm"><i class="hold"></i><span class="ms">stop_circle</span><span>Hold to stop sharing</span></button>
+<p class="muted" style="font-size:12px;text-align:center">Hold for one second. Stopping keeps your volumes and other containers.</p>
+</section>
+<section class="card">
+<div style="display:flex;align-items:center;justify-content:space-between"><div><p class="eyebrow">Step 2 · Public link</p><h2 class="h2">Your app is live</h2></div><span class="chip live"><span class="dot"></span>Sharing live</span></div>
+<div class="url">
+<span style="font-size:12px;font-weight:600;letter-spacing:.1em">VERIFIED OVER HTTPS</span>
+<output class="addr mono">https://quiet-river-maple.trycloudflare.com</output>
+<div style="display:flex;gap:12px;flex-wrap:wrap"><button class="btn fill" style="background:var(--onpc);color:var(--pc)" onClick="{{copy}}"><span class="ms">{{copyIcon}}</span>{{copyLabel}}</button><button class="btn tonal" style="background:#00000033;color:var(--onpc)"><span class="ms">open_in_new</span>Open app</button></div>
+</div>
+<div class="flow" aria-hidden="true"><div class="node"><span class="disc"><span class="ms f">computer</span></span>Local</div><span class="pipe"></span><div class="node"><span class="disc"><span class="ms f">conversion_path</span></span>Tunnel</div><span class="pipe"></span><div class="node"><span class="disc"><span class="ms f">public</span></span>Public</div></div>
+<div class="stats"><div class="stat"><span class="muted" style="font-size:12px">Sharing for</span><b class="mono">00:12:48</b></div><div class="stat"><span class="muted" style="font-size:12px">Last public check</span><b>4 s ago</b></div><div class="stat"><span class="muted" style="font-size:12px">Request limit</span><b>200 in flight</b></div></div>
+<p class="muted" style="font-size:13px">This address is temporary. A new session gets a new link.</p>
+</section>
+</div>
+</div>
+<sc-if value="{{copied}}" hint-placeholder-val="{{false}}"><div class="toast" role="status"><span class="ms f">content_copy</span>Link copied to clipboard</div></sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+const copied = !!(this.state && this.state.copied);
+return { copied: copied, copyLabel: copied ? 'Copied' : 'Copy link', copyIcon: copied ? 'check' : 'content_copy', copy: () => { this.setState({ copied: true }); setTimeout(() => this.setState({ copied: false }), 1800); } };
+}
+}
+</script>
+</body>
+</html>

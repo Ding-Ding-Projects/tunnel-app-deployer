@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--t:#a8cbe4;--err:#ffb4ab;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);min-height:800px;display:flex;font-size:14px;line-height:1.45}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0}
+.ms.f{font-variation-settings:"FILL" 1}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0}
+.fab{width:56px;height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;border:0;margin-bottom:20px}
+.dest{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--onv);font-size:12px;font-weight:500;text-decoration:none}
+.dest .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.dest.on{color:var(--on)}.dest.on .pill{background:var(--pc);color:var(--onpc)}
+.main{flex:1;min-width:0;display:flex;gap:16px;padding:24px 24px 24px 8px}
+.groups{width:240px;flex:none;display:flex;flex-direction:column;gap:2px}
+.g{display:flex;align-items:center;gap:12px;height:48px;padding:0 16px;border-radius:24px;color:var(--onv);font-weight:500;text-decoration:none}
+.g.on{background:var(--s4);color:var(--on)}
+.body{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px}
+.h1{font-size:32px;line-height:40px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.search{height:48px;border-radius:24px;background:var(--s3);display:flex;align-items:center;gap:10px;padding:0 6px 0 16px;color:var(--onv)}
+.search input{flex:1;background:none;border:0;color:var(--on);font:inherit;font-size:16px;outline:none}
+.chip{height:32px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font:inherit;font-size:13px;font-weight:500;background:none}
+.chip.sel{background:var(--pc);border-color:var(--pc);color:var(--onpc)}
+.rx{background:var(--s1);border-radius:20px;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;animation:drop .35s var(--e) both}
+@keyframes drop{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
+.rx code{font-family:"Roboto Mono",monospace;font-size:14px;background:var(--s3);border-radius:10px;padding:10px 12px;display:block}
+.tok{color:var(--p)}.tok2{color:var(--t)}
+.card{background:var(--s1);border-radius:28px;padding:8px}
+.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 16px;border-radius:20px}
+.item+.item{border-top:1px solid var(--s3)}
+.item strong{display:block;font-weight:500}
+.item span.d{font-size:12px;color:var(--onv)}
+.sw{width:52px;height:32px;border-radius:16px;background:var(--s4);border:2px solid var(--ol);position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:6px;left:6px;width:16px;height:16px;border-radius:50%;background:var(--ol);transition:all .3s var(--e)}
+.sw.on{background:var(--p);border-color:var(--p)}.sw.on::after{left:24px;top:2px;width:24px;height:24px;background:var(--onp)}
+.slider{width:200px;height:4px;border-radius:2px;background:linear-gradient(90deg,var(--p) 60%,var(--s4) 60%);position:relative}
+.slider::after{content:"";position:absolute;left:60%;top:-8px;width:4px;height:20px;border-radius:2px;background:var(--p)}
+.sel{font:inherit;height:40px;border-radius:8px;border:1px solid var(--ol);background:none;color:var(--on);padding:0 12px}
+mark{background:var(--pc);color:var(--onpc);border-radius:4px;padding:0 2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:860px){.rail,.groups{display:none}}
+</style>
+</helmet>
+<div class="app">
+<nav class="rail" aria-label="Primary">
+<button class="fab" aria-label="Host a new project"><span class="ms f">add_link</span></button>
+<a class="dest" href="Main.dc.html"><span class="pill"><span class="ms">rocket_launch</span></span>Host</a>
+<a class="dest" href="Sessions.dc.html"><span class="pill"><span class="ms">history</span></span>Sessions</a>
+<a class="dest" href="Features.dc.html"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span>Features</a>
+<a class="dest" href="#"><span class="pill"><span class="ms">menu_book</span></span>Guide</a>
+<a class="dest on" href="#"><span class="pill"><span class="ms f">settings</span></span>Settings</a>
+</nav>
+<div class="main">
+<nav class="groups" aria-label="Settings groups">
+<a class="g on" href="#"><span class="ms f">palette</span>Appearance</a>
+<a class="g" href="#"><span class="ms">motion_photos_on</span>Motion and sound</a>
+<a class="g" href="#"><span class="ms">translate</span>Language</a>
+<a class="g" href="#"><span class="ms">accessibility_new</span>Accessibility</a>
+<a class="g" href="#"><span class="ms">rocket_launch</span>Hosting</a>
+<a class="g" href="#"><span class="ms">notifications</span>Notifications</a>
+<a class="g" href="#"><span class="ms">lock</span>Safety</a>
+<a class="g" href="#"><span class="ms">database</span>Data and export</a>
+</nav>
+<div class="body">
+<div><h1 class="h1">Settings</h1><p class="muted">Saved on this computer. Every group can be reset on its own.</p></div>
+<label class="search"><span class="ms">search</span><input aria-label="Search settings" value="^(motion|theme)"><button class="chip sel" aria-pressed="true" aria-label="Regex builder on">.*</button></label>
+<div class="rx" aria-label="Regex builder">
+<div style="display:flex;flex-direction:column;gap:8px"><code><span class="tok">^</span><span class="tok2">(</span>motion<span class="tok">|</span>theme<span class="tok2">)</span></code><span class="muted" style="font-size:12px"><span class="tok">^</span> start of text · <span class="tok2">( )</span> group 1 · <span class="tok">|</span> either side · 2 settings match</span></div>
+<div style="display:flex;gap:6px;align-items:flex-start;flex-wrap:wrap"><button class="chip sel">i</button><button class="chip">g</button><button class="chip">m</button><button class="chip">s</button><button class="chip">u</button></div>
+</div>
+<div class="card">
+<div class="item"><span><strong><mark>Theme</mark></strong><span class="d">Follow the system, or always light or dark.</span></span><select class="sel" aria-label="Theme"><option>Follow system</option></select></div>
+<div class="item"><span><strong><mark>Motion</mark> level</strong><span class="d">Full, gentle, or off. Off also follows the system reduced-motion setting.</span></span><span class="slider" aria-label="Motion level"></span></div>
+<div class="item"><span><strong>Action sounds</strong><span class="d">Soft tones when hosting starts, goes live or stops.</span></span><span class="sw on" role="switch" aria-checked="true" aria-label="Action sounds"></span></div>
+<div class="item"><span><strong>Dialog emoji</strong><span class="d">Show a small emoji in confirmations and notifications.</span></span><span class="sw" role="switch" aria-checked="false" aria-label="Dialog emoji"></span></div>
+</div>
+<div style="display:flex;gap:8px"><button class="chip"><span class="ms" style="font-size:18px">restart_alt</span>Reset Appearance</button><button class="chip"><span class="ms" style="font-size:18px">download</span>Export settings</button></div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

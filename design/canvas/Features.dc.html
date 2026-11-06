@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Required features</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--t:#a8cbe4;--warn:#f3bf6e;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);min-height:800px;display:flex;font-size:14px;line-height:1.45}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0}
+.ms.f{font-variation-settings:"FILL" 1}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0}
+.fab{width:56px;height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;border:0;margin-bottom:20px}
+.dest{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--onv);font-size:12px;font-weight:500;text-decoration:none}
+.dest .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.dest.on{color:var(--on)}.dest.on .pill{background:var(--pc);color:var(--onpc)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;padding:24px 24px 24px 8px}
+.h1{font-size:32px;line-height:40px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.chip{height:32px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font:inherit;font-size:13px;font-weight:500;background:none}
+.chip.sel{background:var(--pc);border-color:var(--pc);color:var(--onpc)}
+.search{height:48px;border-radius:24px;background:var(--s3);display:flex;align-items:center;gap:10px;padding:0 6px 0 16px;color:var(--onv);max-width:560px}
+.search input{flex:1;background:none;border:0;color:var(--on);font:inherit;font-size:16px;outline:none}
+.meter{display:flex;gap:24px;align-items:center;background:var(--s1);border-radius:28px;padding:20px 24px;flex-wrap:wrap}
+.meter b{font-size:28px;font-weight:500}
+.track{flex:1;min-width:200px;height:12px;border-radius:6px;background:var(--s4);display:flex;overflow:hidden;gap:2px}
+.track i{display:block;height:100%}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.fc{background:var(--s1);border-radius:24px;padding:20px;display:flex;flex-direction:column;gap:10px;animation:rise .45s var(--e) both;transition:transform .3s var(--e),background .3s var(--e)}
+.fc:hover{transform:translateY(-3px);background:var(--s2)}
+.fc:nth-child(2){animation-delay:.05s}.fc:nth-child(3){animation-delay:.1s}.fc:nth-child(4){animation-delay:.15s}.fc:nth-child(5){animation-delay:.2s}.fc:nth-child(6){animation-delay:.25s}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.st{font-size:12px;font-weight:600;border-radius:8px;padding:4px 10px;align-self:flex-start;display:inline-flex;gap:4px;align-items:center}
+.st.done{background:var(--pc);color:var(--onpc)}.st.part{background:#5c4200;color:#ffdea8}.st.todo{background:var(--s4);color:var(--onv)}
+.fc h3{margin:0;font-size:16px;font-weight:600}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:860px){.rail{display:none}.cards{grid-template-columns:1fr}}
+</style>
+</helmet>
+<div class="app">
+<nav class="rail" aria-label="Primary">
+<button class="fab" aria-label="Host a new project"><span class="ms f">add_link</span></button>
+<a class="dest" href="Main.dc.html"><span class="pill"><span class="ms">rocket_launch</span></span>Host</a>
+<a class="dest" href="Sessions.dc.html"><span class="pill"><span class="ms">history</span></span>Sessions</a>
+<a class="dest on" href="#"><span class="pill"><span class="ms f">auto_awesome_mosaic</span></span>Features</a>
+<a class="dest" href="#"><span class="pill"><span class="ms">menu_book</span></span>Guide</a>
+<a class="dest" href="Settings.dc.html"><span class="pill"><span class="ms">settings</span></span>Settings</a>
+</nav>
+<div class="main">
+<div><h1 class="h1">Features</h1><p class="muted">What this app does for you, and where each part honestly stands.</p></div>
+<label class="search"><span class="ms">search</span><input aria-label="Search features" placeholder="Search features"><button class="chip" aria-label="Regex builder">.*</button></label>
+<div class="meter"><div><b>[N] of [TOTAL]</b><div class="muted" style="font-size:12px">delivered in this build</div></div><div class="track" aria-hidden="true"><i style="width:40%;background:var(--p)"></i><i style="width:20%;background:var(--warn)"></i></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="chip sel">All</button><button class="chip">Delivered</button><button class="chip">Partial</button><button class="chip">Planned</button></div></div>
+<div class="cards">
+<article class="fc"><span class="st done"><span class="ms f" style="font-size:16px">check</span>Delivered</span><h3>Command palette</h3><p class="muted">Press Ctrl+Shift+F to jump anywhere or run any action from the keyboard.</p></article>
+<article class="fc"><span class="st done"><span class="ms f" style="font-size:16px">check</span>Delivered</span><h3>Session history and export</h3><p class="muted">Every attempt is kept on this computer and exports as JSON, CSV or Markdown.</p></article>
+<article class="fc"><span class="st part"><span class="ms f" style="font-size:16px">timelapse</span>Partial</span><h3>Regex builder</h3><p class="muted">Live token explanation and flags on every search. Full RegexBuddy parity is still planned.</p></article>
+<article class="fc"><span class="st done"><span class="ms f" style="font-size:16px">check</span>Delivered</span><h3>Material motion</h3><p class="muted">Three motion levels, with an instant path for reduced motion.</p></article>
+<article class="fc"><span class="st done"><span class="ms f" style="font-size:16px">check</span>Delivered</span><h3>Hold-to-confirm stop</h3><p class="muted">Stopping a live link needs a deliberate hold, so a stray click never cuts visitors off.</p></article>
+<article class="fc"><span class="st todo"><span class="ms" style="font-size:16px">schedule</span>Planned</span><h3>Automatic updates</h3><p class="muted">Not built yet. Download new releases from the releases page for now.</p></article>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Onboarding</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--t:#a8cbe4;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);width:1280px;height:800px;display:grid;place-items:center;font-size:14px;line-height:1.45}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;font-variation-settings:"FILL" 1}
+.card{width:720px;background:var(--s1);border-radius:28px;padding:40px;display:flex;flex-direction:column;gap:24px;animation:in .5s var(--e) both}
+@keyframes in{from{opacity:0;transform:translateY(20px)}}
+.dots{display:flex;gap:8px}
+.dots i{height:8px;width:8px;border-radius:4px;background:var(--s4);transition:width .3s var(--e)}
+.dots i.on{width:32px;background:var(--p)}
+.h1{font-size:36px;line-height:44px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0;font-size:16px}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.st{background:var(--s2);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:10px}
+.st .ic{width:48px;height:48px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center}
+.st strong{font-size:15px}
+.btn{height:48px;border-radius:24px;border:0;font:inherit;font-weight:600;font-size:15px;display:inline-flex;align-items:center;gap:10px;padding:0 24px}
+.btn.fill{background:var(--p);color:var(--onp)}
+.btn.text{background:none;color:var(--p)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="app">
+<section class="card" aria-labelledby="ob">
+<div class="dots" aria-label="Step 1 of 3"><i class="on"></i><i></i><i></i></div>
+<h1 id="ob" class="h1">Share a local app in three steps</h1>
+<p class="muted">Tunnel App Deployer runs your project in Docker on this computer and gives it a temporary public HTTPS link. No account, no domain.</p>
+<div class="steps">
+<div class="st"><span class="ic"><span class="ms">folder_open</span></span><strong>Choose a project</strong><span style="color:var(--onv)">A Dockerfile or a Compose file.</span></div>
+<div class="st"><span class="ic"><span class="ms">rocket_launch</span></span><strong>Press Host</strong><span style="color:var(--onv)">It builds, starts and checks your app.</span></div>
+<div class="st"><span class="ic"><span class="ms">link</span></span><strong>Share the link</strong><span style="color:var(--onv)">It works while this computer runs.</span></div>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center"><button class="btn text">Skip tour</button><button class="btn fill">Check Docker<span class="ms">arrow_forward</span></button></div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

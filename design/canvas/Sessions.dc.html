@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sessions history</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--err:#ffb4ab;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);min-height:800px;display:flex;font-size:14px;line-height:1.45}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0}
+.ms.f{font-variation-settings:"FILL" 1}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0}
+.fab{width:56px;height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;border:0;margin-bottom:20px}
+.dest{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--onv);font-size:12px;font-weight:500;text-decoration:none}
+.dest .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.dest.on{color:var(--on)}.dest.on .pill{background:var(--pc);color:var(--onpc)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;padding:24px 24px 24px 8px;gap:16px}
+.h1{font-size:32px;line-height:40px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{height:32px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font:inherit;font-size:13px;font-weight:500;background:none}
+.chip.sel{background:var(--pc);border-color:var(--pc);color:var(--onpc)}
+.search{height:40px;border-radius:20px;background:var(--s3);display:flex;align-items:center;gap:8px;padding:0 6px 0 14px;min-width:300px;color:var(--onv)}
+.search input{flex:1;background:none;border:0;color:var(--on);font:inherit;outline:none}
+.list{background:var(--s1);border-radius:28px;padding:8px;display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:40px minmax(0,2fr) minmax(0,2fr) 120px 110px 40px;gap:16px;align-items:center;padding:12px 16px;border-radius:20px;animation:rise .4s var(--e) both}
+.row:hover{background:var(--s3)}
+.row:nth-child(2){animation-delay:.05s}.row:nth-child(3){animation-delay:.1s}.row:nth-child(4){animation-delay:.15s}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.av{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--s4)}
+.mono{font-family:"Roboto Mono",monospace;font-size:12px;color:var(--onv);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.state{font-size:12px;font-weight:600;border-radius:8px;padding:4px 10px;justify-self:start}
+.state.ok{background:var(--pc);color:var(--onpc)}.state.bad{background:#93000a;color:#ffdad6}.state.stop{background:var(--s4);color:var(--onv)}
+.icon-btn{width:40px;height:40px;border-radius:20px;border:0;background:none;color:var(--onv);display:grid;place-items:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+@media (max-width:860px){.rail{display:none}.row{grid-template-columns:40px 1fr 40px}.row .mono,.row .state,.row .t{display:none}}
+</style>
+</helmet>
+<div class="app">
+<nav class="rail" aria-label="Primary">
+<button class="fab" aria-label="Host a new project"><span class="ms f">add_link</span></button>
+<a class="dest" href="Main.dc.html"><span class="pill"><span class="ms">rocket_launch</span></span>Host</a>
+<a class="dest on" href="#"><span class="pill"><span class="ms f">history</span></span>Sessions</a>
+<a class="dest" href="Features.dc.html"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span>Features</a>
+<a class="dest" href="#"><span class="pill"><span class="ms">menu_book</span></span>Guide</a>
+<a class="dest" href="Settings.dc.html"><span class="pill"><span class="ms">settings</span></span>Settings</a>
+</nav>
+<div class="main">
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap"><div><h1 class="h1">Sessions</h1><p class="muted">Every hosting attempt on this computer, kept locally.</p></div>
+<div class="tools"><label class="search"><span class="ms" style="font-size:20px">search</span><input aria-label="Search sessions" placeholder="Search sessions"><button class="chip" aria-label="Regex builder">.*</button></label><button class="chip"><span class="ms" style="font-size:18px">download</span>Export</button></div></div>
+<div class="tools" role="group" aria-label="Filter"><button class="chip sel"><span class="ms" style="font-size:18px">check</span>All · 4</button><button class="chip">Shared · 2</button><button class="chip">Failed · 1</button><button class="chip">Cancelled · 1</button></div>
+<div class="list" role="list">
+<div class="row" role="listitem"><span class="av"><span class="ms f" style="color:var(--p)">description</span></span><div><strong>notes-app</strong><div class="muted" style="font-size:12px">Dockerfile · port 3000</div></div><span class="mono">quiet-river-maple.trycloudflare.com</span><span class="state ok">Shared</span><span class="muted t" style="font-size:12px">Today 15:02 · 12 m</span><button class="icon-btn" aria-label="More actions"><span class="ms">more_vert</span></button></div>
+<div class="row" role="listitem"><span class="av"><span class="ms f" style="color:var(--p)">stacks</span></span><div><strong>shop-stack</strong><div class="muted" style="font-size:12px">Compose · service web</div></div><span class="mono">dawn-cedar-loop.trycloudflare.com</span><span class="state ok">Shared</span><span class="muted t" style="font-size:12px">Yesterday · 1 h 4 m</span><button class="icon-btn" aria-label="More actions"><span class="ms">more_vert</span></button></div>
+<div class="row" role="listitem"><span class="av"><span class="ms f" style="color:var(--err)">description</span></span><div><strong>notes-app</strong><div class="muted" style="font-size:12px">Dockerfile · port 3000</div></div><span class="mono">No public link</span><span class="state bad">Failed</span><span class="muted t" style="font-size:12px">Today 14:51</span><button class="icon-btn" aria-label="More actions"><span class="ms">more_vert</span></button></div>
+<div class="row" role="listitem"><span class="av"><span class="ms" style="color:var(--onv)">stacks</span></span><div><strong>blog</strong><div class="muted" style="font-size:12px">Compose · service app</div></div><span class="mono">No public link</span><span class="state stop">Cancelled</span><span class="muted t" style="font-size:12px">Mon 09:14</span><button class="icon-btn" aria-label="More actions"><span class="ms">more_vert</span></button></div>
+</div>
+<p class="muted" style="font-size:12px">Links shown here are historical. Quick Tunnel addresses stop working when their session ends.</p>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{"v":3,"createdOnFiles":{"v":1,"at":"2026-11-06T20:40:00Z"},"title":"Tunnel App Deployer redesign","launch":{"view":"canvas"},"pages":[],"boards":{
+"Main.dc.html":{"x":0,"y":300,"w":1280,"h":800,"title":"Host · ready","expand":"fill"},
+"Building.dc.html":{"x":1360,"y":300,"w":1280,"h":800,"title":"Host · image building","expand":"fill"},
+"Live.dc.html":{"x":2720,"y":300,"w":1280,"h":800,"title":"Host · live link","expand":"fill","is_interactive":true},
+"Failed.dc.html":{"x":4080,"y":300,"w":1280,"h":800,"title":"Host · error","expand":"fill"},
+"Sessions.dc.html":{"x":0,"y":1220,"w":1280,"h":800,"title":"Sessions history","expand":"fill"},
+"Settings.dc.html":{"x":1360,"y":1220,"w":1280,"h":800,"title":"Settings with search and regex builder","expand":"fill"},
+"Features.dc.html":{"x":2720,"y":1220,"w":1280,"h":800,"title":"Required features","expand":"fill"},
+"Palette.dc.html":{"x":4080,"y":1220,"w":1280,"h":800,"title":"Command palette · Ctrl+Shift+F","is_interactive":true},
+"Onboarding.dc.html":{"x":0,"y":2140,"w":1280,"h":800,"title":"Onboarding"},
+"Narrow.dc.html":{"x":1360,"y":2140,"w":420,"h":860,"title":"Narrow app window"},
+"Site.dc.html":{"x":0,"y":3420,"w":1440,"h":2600,"title":"Website","expand":"fill"}
+},
+"order":["Main.dc.html","Building.dc.html","Live.dc.html","Failed.dc.html","Sessions.dc.html","Settings.dc.html","Features.dc.html","Palette.dc.html","Onboarding.dc.html","Narrow.dc.html","Site.dc.html"],
+"notes":{
+"appTitle":{"x":0,"y":0,"text":"App screens","kind":"title1","maxW":5360},
+"siteTitle":{"x":0,"y":3120,"text":"Website","kind":"title1","maxW":1440},
+"motionNote":{"x":1860,"y":2140,"w":420,"text":"Motion: every state change uses Material emphasized easing (cubic-bezier(.2,0,0,1)), 200 to 500 ms. Tunnel dashes flow only while a session is running. Reduced motion swaps every movement for an instant cross-fade.","fill":"teal"}
+},
+"designSystems":[]}

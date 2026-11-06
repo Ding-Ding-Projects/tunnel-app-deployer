@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Command palette</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--pc:#005143;--onpc:#9ef2db;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);width:1280px;height:800px;position:relative;overflow:hidden;font-size:14px;line-height:1.45}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0}
+.behind{position:absolute;inset:0;padding:96px 120px;display:grid;grid-template-columns:5fr 7fr;gap:16px;filter:blur(2px);opacity:.5}
+.behind div{background:var(--s1);border-radius:28px}
+.scrim{position:absolute;inset:0;background:#000a;animation:fade .2s var(--e) both}
+@keyframes fade{from{opacity:0}}
+.dlg{position:absolute;left:50%;top:120px;width:640px;margin-left:-320px;background:var(--s3);border-radius:28px;box-shadow:0 24px 64px #0008;overflow:hidden;animation:in .3s var(--e) both}
+@keyframes in{from{opacity:0;transform:translateY(-16px) scale(.98)}}
+.q{display:flex;align-items:center;gap:12px;padding:0 20px;height:64px;border-bottom:1px solid var(--ol)}
+.q input{flex:1;background:none;border:0;color:var(--on);font:inherit;font-size:18px;outline:none}
+.kbd{font-family:"Roboto Mono",monospace;font-size:11px;padding:2px 6px;border-radius:6px;background:var(--s4);color:var(--onv)}
+.sec{font-size:12px;font-weight:600;color:var(--onv);padding:12px 20px 4px;letter-spacing:.05em}
+.it{display:grid;grid-template-columns:24px 1fr auto;gap:14px;align-items:center;padding:12px 20px;color:var(--on);text-decoration:none;border:0;background:none;width:100%;font:inherit;text-align:left}
+.it.on{background:var(--pc);color:var(--onpc)}
+.it.on .kbd{background:#0003;color:var(--onpc)}
+.it .d{font-size:12px;color:var(--onv)}.it.on .d{color:var(--onpc)}
+.foot{display:flex;gap:16px;padding:12px 20px;border-top:1px solid var(--ol);font-size:12px;color:var(--onv)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</helmet>
+<div class="app">
+<div class="behind" aria-hidden="true"><div></div><div></div></div>
+<div class="scrim" aria-hidden="true"></div>
+<div class="dlg" role="dialog" aria-label="Command palette">
+<label class="q"><span class="ms">search</span><input aria-label="Type a command" value="sto"><span class="kbd">Esc</span></label>
+<div class="sec">ACTIONS</div>
+<sc-for list="{{items}}" as="item" hint-placeholder-count="4">
+<button class="{{item.cls}}" onClick="{{item.pick}}"><span class="ms">{{item.icon}}</span><span>{{item.label}}<div class="d">{{item.desc}}</div></span><span class="kbd">{{item.key}}</span></button>
+</sc-for>
+<div class="foot"><span><span class="kbd">↑</span> <span class="kbd">↓</span> move</span><span><span class="kbd">Enter</span> run</span><span><span class="kbd">Ctrl Shift F</span> open anywhere</span></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+renderVals() {
+const sel = (this.state && this.state.sel) || 0;
+const rows = [
+['stop_circle','Stop sharing','Ends the live link after a hold','Ctrl .'],
+['history','Open Sessions','Past hosting attempts','Ctrl 2'],
+['restart_alt','Restore default settings','Asks before resetting','Ctrl Shift R'],
+['download','Export session history','JSON, CSV or Markdown','Ctrl E']
+];
+return { items: rows.map((r, i) => ({ icon: r[0], label: r[1], desc: r[2], key: r[3], cls: i === sel ? 'it on' : 'it', pick: () => this.setState({ sel: i }) })) };
+}
+}
+</script>
+</body>
+</html>

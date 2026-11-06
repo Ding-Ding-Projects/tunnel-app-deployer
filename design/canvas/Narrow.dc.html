@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Narrow window, live</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.app{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--err:#ffb4ab;--e:cubic-bezier(.2,0,0,1);font-family:"Roboto Flex",system-ui,sans-serif;background:var(--bg);color:var(--on);width:420px;height:860px;display:flex;flex-direction:column;font-size:14px;line-height:1.45}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0}
+.ms.f{font-variation-settings:"FILL" 1}
+.bar{height:64px;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px}
+.icon-btn{width:48px;height:48px;border-radius:24px;border:0;background:none;color:var(--onv);display:grid;place-items:center}
+.body{flex:1;padding:0 16px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.chip{height:32px;border-radius:8px;display:inline-flex;align-items:center;gap:6px;padding:0 12px;font-size:13px;font-weight:500;background:var(--pc);color:var(--onpc);align-self:flex-start}
+.url{border-radius:24px;background:var(--pc);color:var(--onpc);padding:20px;display:flex;flex-direction:column;gap:12px}
+.mono{font-family:"Roboto Mono",monospace}
+.btn{height:48px;border-radius:24px;border:0;font:inherit;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 20px;flex:1}
+.card{background:var(--s1);border-radius:24px;padding:16px;display:flex;gap:12px;align-items:center}
+.nav{height:80px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:var(--s2)}
+.nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;color:var(--onv);text-decoration:none;font-weight:500}
+.nav .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.nav a.on{color:var(--on)}.nav a.on .pill{background:var(--pc);color:var(--onpc)}
+</style>
+</helmet>
+<div class="app">
+<div class="bar"><strong style="flex:1;font-size:18px;font-weight:500">Host</strong><button class="icon-btn" aria-label="Search"><span class="ms">search</span></button><button class="icon-btn" aria-label="Notifications"><span class="ms">notifications</span></button></div>
+<div class="body">
+<span class="chip"><span class="ms f" style="font-size:18px">wifi_tethering</span>Sharing live</span>
+<div class="url"><span style="font-size:12px;font-weight:600;letter-spacing:.1em">VERIFIED OVER HTTPS</span><output class="mono" style="font-size:18px;overflow-wrap:anywhere">https://quiet-river-maple.trycloudflare.com</output><div style="display:flex;gap:8px"><button class="btn" style="background:var(--onpc);color:var(--pc)"><span class="ms">content_copy</span>Copy</button><button class="btn" style="background:#0003;color:var(--onpc)"><span class="ms">open_in_new</span>Open</button></div></div>
+<div class="card"><span class="ms f" style="color:var(--p)">description</span><div><strong>notes-app</strong><div style="font-size:12px;color:var(--onv)">Dockerfile · port 3000 · 12 m</div></div></div>
+<button class="btn" style="background:none;border:1px solid var(--ol);color:var(--err);flex:none"><span class="ms">stop_circle</span>Hold to stop sharing</button>
+</div>
+<nav class="nav" aria-label="Primary"><a class="on" href="#"><span class="pill"><span class="ms f">rocket_launch</span></span>Host</a><a href="#"><span class="pill"><span class="ms">history</span></span>Sessions</a><a href="#"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span>Features</a><a href="#"><span class="pill"><span class="ms">menu_book</span></span>Guide</a><a href="#"><span class="pill"><span class="ms">settings</span></span>Settings</a></nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":420,"height":860}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
