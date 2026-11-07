@@ -593,8 +593,21 @@ function Op-Pack($r) {
     }
     Step 'detach' 1 1
     $details = [VDiskApi]::Details($r.path, 3)
-    @{ ok = $true; path = $r.path; files = $files.Count; folders = $dirs.Count; bytes = $total; grows = @($grows); skipped = @($skipped); partial = ($skipped.Count -gt 0); verified = $true;
-       virtualSize = $details['virtualSize']; fileSize = (FileSize $r.path) }
+    # One value per statement with its type spelled out: Windows PowerShell failed to build the
+    # single literal ("Argument types do not match"), and a failure here now names its own line.
+    $out = [ordered]@{}
+    $out['ok'] = $true
+    $out['path'] = [string]$r.path
+    $out['files'] = [int]$files.Count
+    $out['folders'] = [int]$dirs.Count
+    $out['bytes'] = [long]$total
+    $out['grows'] = [object[]]$grows.ToArray()
+    $out['skipped'] = [object[]]$skipped.ToArray()
+    $out['partial'] = [bool]($skipped.Count -gt 0)
+    $out['verified'] = $true
+    $out['virtualSize'] = [long]$details['virtualSize']
+    $out['fileSize'] = [long](FileSize $r.path)
+    $out
   } catch {
     if ($created) {
       try { Get-DiskImage -ImagePath $r.path | Get-Disk | Get-Partition | Where-Object { $_.AccessPaths -contains "$mnt\" } | ForEach-Object { Remove-PartitionAccessPath -InputObject $_ -AccessPath "$mnt\" -ErrorAction SilentlyContinue } } catch { }
