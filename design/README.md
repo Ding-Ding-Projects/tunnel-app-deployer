@@ -22,6 +22,9 @@ Read [the designer handoff](../HANDOFF.md) first. [DESIGN.md](../DESIGN.md) is t
 | `Sweep.dc.html` | Final review of every screen: findings by severity with their root-cause fixes, and the polish direction |
 | `Rail.dc.html` | Navigation rail, expanded (names beside icons) and compact |
 | `Base64Drop.dc.html` | Base64 files beside their originals: the two drop targets, their five states and the results list |
+| `VDisks.dc.html` | Tools › Virtual disks: library of attached disks and disk files, details with volumes, chain, actions and the equivalent script |
+| `VDiskCreate.dc.html` | New virtual disk side sheet: presets, format, type, size, save location, volume preparation and the free-space check |
+| `VDiskPack.dc.html` | Quick pack: drop, packing with automatic growth, done; waiting for permission, declined, the merge confirmation and the 390 px layout |
 
 ### Design language
 

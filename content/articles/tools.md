@@ -2,6 +2,8 @@
 
 Two local helpers on the **Tools** screen. Nothing you paste or open there leaves this computer.
 
+The same screen has **Authenticator** and **Virtual disks** tabs, each with its own article.
+
 ## Base64
 
 - **Encode** text or a file, or **Decode** Base64 back to text.
@@ -35,4 +37,4 @@ Turn a JSON list of objects, CSV or TSV into CSV, TSV, Markdown or JSON. Before 
 
 Streaming very large text in the Input box, a preview of decoded files, ZIP export and YAML are planned.
 
-Related: getting-around, sessions, accessibility
+Related: virtual-disks, authenticator, getting-around, sessions, accessibility

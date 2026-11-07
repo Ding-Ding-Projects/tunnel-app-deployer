@@ -217,6 +217,30 @@
    "title": "Base64 · drop beside the original, restore the extension",
    "expand": "fill",
    "is_interactive": true
+  },
+  "VDisks.dc.html": {
+   "x": 0,
+   "y": 16300,
+   "w": 1440,
+   "h": 1180,
+   "title": "Virtual disks · library and details",
+   "expand": "fill"
+  },
+  "VDiskCreate.dc.html": {
+   "x": 1520,
+   "y": 16300,
+   "w": 1440,
+   "h": 1120,
+   "title": "Virtual disks · new disk sheet",
+   "expand": "fill"
+  },
+  "VDiskPack.dc.html": {
+   "x": 3040,
+   "y": 16300,
+   "w": 1440,
+   "h": 1040,
+   "title": "Virtual disks · Quick pack, permission and merge",
+   "expand": "fill"
   }
  },
  "order": [
@@ -246,7 +270,10 @@
   "Tabs.dc.html",
   "Sweep.dc.html",
   "Rail.dc.html",
-  "Base64Drop.dc.html"
+  "Base64Drop.dc.html",
+  "VDisks.dc.html",
+  "VDiskCreate.dc.html",
+  "VDiskPack.dc.html"
  ],
  "notes": {
   "appTitle": {
@@ -311,6 +338,13 @@
    "text": "Base64 same-folder drop, 2026-11-07",
    "kind": "title1",
    "maxW": 1440
+  },
+  "vdisks": {
+   "x": 0,
+   "y": 16180,
+   "text": "Virtual disks · VHD, VHDX, VHD Set and ISO, 2026-11-07",
+   "kind": "title1",
+   "maxW": 4480
   }
  },
  "designSystems": []

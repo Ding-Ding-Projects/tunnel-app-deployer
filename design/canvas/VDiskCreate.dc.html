@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Virtual disks: new disk sheet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.b{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--olv:#899390;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--sc:#334b45;--onsc:#cce8e0;--t:#a9cbe3;--tc:#284a5e;--err:#ffb4ab;--errc:#93000a;--warn:#ffd68a;--warnc:#5c4200;
+  width:1440px;box-sizing:border-box;padding:40px;background:#0a0f0e;color:var(--on);font:14px/20px "Roboto Flex",system-ui,sans-serif;display:flex;flex-direction:column;gap:24px}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;width:1em;overflow:hidden;font-variation-settings:"FILL" 0;flex:none}
+.f{font-variation-settings:"FILL" 1}
+.sm{font-size:18px}
+.lab{font-size:12px;font-weight:600;color:var(--p);margin:0 0 10px}
+.app{display:flex;background:var(--bg);border-radius:24px;border:1px solid var(--s3);overflow:hidden}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0}
+.fab{width:56px;height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;margin-bottom:12px}
+.dest{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--onv);font-size:12px;font-weight:500}
+.dest .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.dest.on{color:var(--on)}.dest.on .pill{background:var(--pc);color:var(--onpc)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px;padding:20px 24px 24px 8px}
+.h1{font-size:32px;line-height:40px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.small{font-size:12px;line-height:16px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--s3)}
+.tab{height:48px;padding:0 18px;color:var(--onv);font-weight:500;display:flex;gap:8px;align-items:center;border-bottom:3px solid transparent}
+.tab.on{color:var(--p);border-bottom-color:var(--p)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filled{height:40px;border-radius:20px;background:var(--p);color:var(--onp);font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:0 20px 0 16px}
+.tonal{height:40px;border-radius:20px;background:var(--sc);color:var(--onsc);font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:0 18px 0 14px}
+.text{height:40px;border-radius:20px;color:var(--p);font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:0 12px}
+.outl{height:40px;border-radius:20px;border:1px solid var(--ol);color:var(--on);font-weight:500;display:inline-flex;align-items:center;gap:8px;padding:0 16px 0 12px}
+.chip{min-height:32px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font-size:13px;font-weight:500}
+.chip.sel{background:var(--sc);border-color:var(--sc);color:var(--onsc)}
+.search{height:48px;border-radius:24px;background:var(--s3);display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;color:var(--onv);flex:1;min-width:220px;max-width:420px}
+.search .rx{margin-left:auto;height:32px;border-radius:16px;padding:0 10px;display:grid;place-items:center;font-family:"Roboto Mono",monospace;font-size:13px;color:var(--p)}
+.card{background:var(--s1);border-radius:28px;padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.pill2{display:inline-flex;align-items:center;gap:6px;height:26px;border-radius:13px;padding:0 10px;font-size:12px;font-weight:600;background:var(--s4);color:var(--onv)}
+.pill2.on{background:var(--pc);color:var(--onpc)}.pill2.ro{background:var(--tc);color:#cce5ff}.pill2.warn{background:var(--warnc);color:#ffdea8}
+.mono{font-family:"Roboto Mono",monospace}
+.note{font-size:12px;line-height:16px;color:var(--onv);margin:0}
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.n{background:var(--s1);border-radius:20px;padding:16px;font-size:13px;line-height:19px;color:var(--onv)}
+.n b{color:var(--on);display:block;margin-bottom:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<style>
+.stage{position:relative;height:860px;background:var(--bg);border-radius:24px;border:1px solid var(--s3);overflow:hidden}
+.scrim{position:absolute;inset:0;background:#0006}
+.sheet{position:absolute;right:0;top:0;bottom:0;width:640px;background:var(--s1);border-radius:28px 0 0 28px;padding:24px;display:flex;flex-direction:column;gap:16px;box-shadow:0 8px 24px #0008;overflow:hidden}
+.sheet h2{margin:0;font-size:22px;line-height:28px;font-weight:500;display:flex;justify-content:space-between;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--ol);border-radius:20px;overflow:hidden}
+.seg span{height:38px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;font-weight:500;border-left:1px solid var(--ol)}
+.seg span:first-child{border-left:none}.seg span.on{background:var(--sc);color:var(--onsc)}
+.fld{display:flex;flex-direction:column;gap:6px}.fld label{font-size:12px;font-weight:600;color:var(--onv)}
+.inp{height:48px;border-radius:12px;border:1px solid var(--ol);background:var(--s2);display:flex;align-items:center;padding:0 14px;gap:8px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) 120px;gap:8px}
+.hint{font-size:12px;line-height:16px;color:var(--onv)}
+.box{background:var(--s2);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.sw{width:52px;height:32px;border-radius:16px;background:var(--p);position:relative;flex:none}.sw::after{content:"";position:absolute;right:4px;top:4px;width:24px;height:24px;border-radius:12px;background:var(--onp)}
+.pre{display:flex;gap:10px;align-items:flex-start;background:var(--sc);color:var(--onsc);border-radius:16px;padding:12px 14px}
+.foot{margin-top:auto;display:flex;justify-content:flex-end;gap:8px;align-items:center}
+.ghost{position:absolute;left:24px;top:24px;right:664px;display:flex;flex-direction:column;gap:12px;opacity:.5}
+.gb{height:40px;border-radius:20px;background:var(--s3)}.gc{height:120px;border-radius:28px;background:var(--s2)}
+</style>
+<div class="b">
+<p class="lab">New virtual disk · side sheet over Tools (1280 × 860)</p>
+<div class="stage">
+<div class="ghost"><div class="gb" style="width:60%"></div><div class="gc"></div><div class="gc"></div><div class="gc"></div></div>
+<div class="scrim"></div>
+<div class="sheet" role="dialog" aria-label="New virtual disk">
+<h2>New virtual disk<span class="ms">close</span></h2>
+<div class="row"><span class="chip sel"><span class="ms sm">tune</span>Custom</span><span class="chip"><span class="ms sm">usb</span>Portable data disk</span><span class="chip"><span class="ms sm">code</span>Dev Drive</span><span class="chip"><span class="ms sm">account_tree</span>Differencing copy</span></div>
+<div class="fld"><label>Format</label><div class="seg"><span class="on"><span class="ms sm">check</span>VHDX</span><span>VHD</span><span>VHD Set</span></div><span class="hint">VHDX is recommended: up to 64 TB and safer after a power cut.</span></div>
+<div class="fld"><label>Type</label><div class="seg"><span class="on"><span class="ms sm">check</span>Dynamically expanding</span><span>Fixed size</span><span>Differencing</span></div><span class="hint">Starts small and grows as you write, up to its size.</span></div>
+<div class="two"><div class="fld"><label>Size</label><div class="inp">64</div></div><div class="fld"><label>Unit</label><div class="inp">GB<span class="ms" style="margin-left:auto">arrow_drop_down</span></div></div></div>
+<span class="hint" style="margin-top:-10px">3 MB to 64 TB for VHDX.</span>
+<div class="fld"><label>Save as</label><div class="inp mono" style="font-size:13px">D:\Archive\Photos.vhdx<span class="text" style="margin-left:auto;height:32px">Browse</span></div></div>
+<div class="box"><div class="row" style="justify-content:space-between"><b>Prepare a volume</b><span class="sw" role="switch" aria-checked="true"></span></div>
+<div class="row"><span class="chip sel">GPT</span><span class="chip">MBR</span><span class="chip sel">NTFS</span><span class="chip">ReFS</span><span class="chip">exFAT</span><span class="chip">FAT32</span></div>
+<div class="row"><div class="inp" style="flex:1">Photos</div><div class="inp" style="width:150px">Next free letter<span class="ms" style="margin-left:auto">arrow_drop_down</span></div></div>
+<span class="hint">Quick format · default allocation unit · Advanced: block size, sector sizes, copy from a disk, access filter</span></div>
+<div class="pre"><span class="ms f">check_circle</span><div><b>Room to grow</b><div class="small">D: has 212 GB free. This disk starts near 260 MB and can grow to 64 GB.</div></div></div>
+<div class="foot"><span class="note" style="margin-right:auto">Windows asks for administrator permission once.</span><span class="text">Cancel</span><span class="filled"><span class="ms">add</span>Create</span></div>
+</div>
+</div>
+<div class="notes">
+<div class="n"><b>One sheet, top to bottom</b>Presets fill every field; the person can still change any of them. Limits and the space estimate update live, so a fixed 2 TB disk on a 500 GB drive is caught before anything is written.</div>
+<div class="n"><b>Choices stay honest</b>VHD shows its 2,040 GB limit, Differencing asks for a parent, VHD Set says it needs Hyper-V for checkpoints, and Dev Drive checks the Windows build and the 50 GB minimum first.</div>
+<div class="n"><b>Keyboard and focus</b>The sheet traps focus, Escape closes it, segmented buttons use arrow keys, and Create is the only filled button.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1120}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -412,8 +412,9 @@
   {
    "id": "virtual-disk-manager",
    "title": "Virtual disk manager",
-   "status": "planned",
-   "note": "Not built yet. Planned: a full manager for VHD, VHDX and VHD Set files on Windows (create, attach, resize, compact, convert, differencing chains, checkpoints, Dev Drive and native boot), plus Quick pack: drop files and folders to get a new VHDX beside them that grows on its own when they do not fit.",
+   "status": "partial",
+   "article": "virtual-disks",
+   "note": "Tools › Virtual disks lists attached disks and disk files, reads details from the file header, and attaches (read-only, without a letter or at sign-in), detaches, grows, shrinks, compacts, converts, makes differencing children, merges, sets a new parent path or identifier, edits VHDX metadata and brings disks online, each with its PowerShell and DiskPart equivalent. New virtual disk has presets, volume preparation and free-space checks. Quick pack turns dropped files and folders into a VHDX beside them that grows when they do not fit and checks every file by SHA-256. Proven on a Windows runner. Not yet: VHD Set checkpoints, native boot entries, mirroring and change tracking.",
    "group": "tools"
   },
   {

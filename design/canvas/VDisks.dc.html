@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Virtual disks: library and details</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.b{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--olv:#899390;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--sc:#334b45;--onsc:#cce8e0;--t:#a9cbe3;--tc:#284a5e;--err:#ffb4ab;--errc:#93000a;--warn:#ffd68a;--warnc:#5c4200;
+  width:1440px;box-sizing:border-box;padding:40px;background:#0a0f0e;color:var(--on);font:14px/20px "Roboto Flex",system-ui,sans-serif;display:flex;flex-direction:column;gap:24px}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;width:1em;overflow:hidden;font-variation-settings:"FILL" 0;flex:none}
+.f{font-variation-settings:"FILL" 1}
+.sm{font-size:18px}
+.lab{font-size:12px;font-weight:600;color:var(--p);margin:0 0 10px}
+.app{display:flex;background:var(--bg);border-radius:24px;border:1px solid var(--s3);overflow:hidden}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0}
+.fab{width:56px;height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;margin-bottom:12px}
+.dest{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--onv);font-size:12px;font-weight:500}
+.dest .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.dest.on{color:var(--on)}.dest.on .pill{background:var(--pc);color:var(--onpc)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:14px;padding:20px 24px 24px 8px}
+.h1{font-size:32px;line-height:40px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.small{font-size:12px;line-height:16px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--s3)}
+.tab{height:48px;padding:0 18px;color:var(--onv);font-weight:500;display:flex;gap:8px;align-items:center;border-bottom:3px solid transparent}
+.tab.on{color:var(--p);border-bottom-color:var(--p)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filled{height:40px;border-radius:20px;background:var(--p);color:var(--onp);font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:0 20px 0 16px}
+.tonal{height:40px;border-radius:20px;background:var(--sc);color:var(--onsc);font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:0 18px 0 14px}
+.text{height:40px;border-radius:20px;color:var(--p);font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:0 12px}
+.outl{height:40px;border-radius:20px;border:1px solid var(--ol);color:var(--on);font-weight:500;display:inline-flex;align-items:center;gap:8px;padding:0 16px 0 12px}
+.chip{min-height:32px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font-size:13px;font-weight:500}
+.chip.sel{background:var(--sc);border-color:var(--sc);color:var(--onsc)}
+.search{height:48px;border-radius:24px;background:var(--s3);display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;color:var(--onv);flex:1;min-width:220px;max-width:420px}
+.search .rx{margin-left:auto;height:32px;border-radius:16px;padding:0 10px;display:grid;place-items:center;font-family:"Roboto Mono",monospace;font-size:13px;color:var(--p)}
+.card{background:var(--s1);border-radius:28px;padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.pill2{display:inline-flex;align-items:center;gap:6px;height:26px;border-radius:13px;padding:0 10px;font-size:12px;font-weight:600;background:var(--s4);color:var(--onv)}
+.pill2.on{background:var(--pc);color:var(--onpc)}.pill2.ro{background:var(--tc);color:#cce5ff}.pill2.warn{background:var(--warnc);color:#ffdea8}
+.mono{font-family:"Roboto Mono",monospace}
+.note{font-size:12px;line-height:16px;color:var(--onv);margin:0}
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.n{background:var(--s1);border-radius:20px;padding:16px;font-size:13px;line-height:19px;color:var(--onv)}
+.n b{color:var(--on);display:block;margin-bottom:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<style>
+.panes{display:grid;grid-template-columns:380px minmax(0,1fr);gap:16px;align-items:start}
+.list{background:var(--s1);border-radius:28px;padding:8px;display:flex;flex-direction:column;gap:2px}
+.it{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 12px;border-radius:20px}
+.it .ic{width:40px;height:40px;border-radius:14px;background:var(--s3);color:var(--p);display:grid;place-items:center}
+.it.sel{background:var(--sc)}.it.sel .ic{background:var(--pc);color:var(--onpc)}
+.it .nm{font-family:"Roboto Mono",monospace;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it .sub{font-size:12px;line-height:16px;color:var(--onv)}
+.grp{font-size:12px;font-weight:600;color:var(--onv);padding:10px 14px 4px}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;border-radius:20px;overflow:hidden}
+.fact{background:var(--s2);padding:10px 14px}
+.fact .k{font-size:12px;color:var(--onv)}.fact .v{font-weight:500;overflow-wrap:anywhere}
+.chain{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-family:"Roboto Mono",monospace;font-size:13px}
+.chain .node{background:var(--s2);border-radius:12px;padding:6px 10px}.chain .node.me{background:var(--pc);color:var(--onpc)}
+.acts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.act{background:var(--s2);border-radius:16px;padding:12px;display:grid;grid-template-columns:24px minmax(0,1fr);gap:2px 10px}
+.act .ms{grid-row:span 2;color:var(--p)}.act b{font-weight:600}.act span.d{font-size:12px;line-height:16px;color:var(--onv)}
+.act.off{opacity:1}.act.off .ms{color:var(--olv)}.act.off b{color:var(--onv)}
+.vol{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--s2);border-radius:16px;padding:10px 14px}
+.meter{height:6px;border-radius:3px;background:var(--s4);overflow:hidden}.meter i{display:block;height:100%;width:38%;background:var(--p)}
+details.code{background:var(--s2);border-radius:16px;padding:10px 14px}
+details.code summary{font-weight:600;cursor:pointer}
+pre{margin:8px 0 0;font:12px/18px "Roboto Mono",monospace;color:var(--on);white-space:pre-wrap}
+</style>
+<div class="b">
+<p class="lab">Tools · Virtual disks · library and details (1280 × 820, dark)</p>
+<div class="app">
+<nav class="rail" aria-label="Primary"><span class="fab"><span class="ms f">add_link</span></span>
+<span class="dest"><span class="pill"><span class="ms">rocket_launch</span></span>Host</span><span class="dest"><span class="pill"><span class="ms">history</span></span>Sessions</span><span class="dest on"><span class="pill"><span class="ms f">construction</span></span>Tools</span><span class="dest"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span>Features</span><span class="dest"><span class="pill"><span class="ms">menu_book</span></span>Guide</span><span class="dest"><span class="pill"><span class="ms">settings</span></span>Settings</span></nav>
+<div class="main">
+<div class="tabs"><span class="tab"><span class="ms">data_object</span>Base64</span><span class="tab"><span class="ms">swap_horiz</span>Convert</span><span class="tab"><span class="ms">password</span>Authenticator</span><span class="tab on"><span class="ms">hard_drive</span>Virtual disks</span></div>
+<div class="row"><span class="filled"><span class="ms">add</span>New virtual disk</span><span class="tonal"><span class="ms">folder_open</span>Open disk file</span><span class="tonal"><span class="ms">inventory_2</span>Quick pack</span><span class="search"><span class="ms">search</span>Search disks<span class="rx">.*</span></span></div>
+<div class="row"><span class="chip sel"><span class="ms sm">check</span>All 6</span><span class="chip">Attached 2</span><span class="chip">Files 4</span><span class="chip">VHDX</span><span class="chip">VHD</span><span class="chip">ISO</span><span class="chip">VHD Set</span></div>
+<div class="panes">
+<div class="list" role="listbox" aria-label="Virtual disks">
+<div class="grp">Attached on this PC</div>
+<div class="it sel"><span class="ic"><span class="ms f">hard_drive</span></span><div><div class="nm">Photos.vhdx</div><div class="sub">VHDX · Dynamic · 64 GB · 23.9 GB on disk</div></div><span class="pill2 on">E:</span></div>
+<div class="it"><span class="ic"><span class="ms f">album</span></span><div><div class="nm">Win11_24H2.iso</div><div class="sub">ISO · 5.8 GB</div></div><span class="pill2 ro">F: · read-only</span></div>
+<div class="grp">Files</div>
+<div class="it"><span class="ic"><span class="ms">hard_drive</span></span><div><div class="nm">Builds.vhdx</div><div class="sub">VHDX · Fixed · 20 GB</div></div><span class="pill2">Detached</span></div>
+<div class="it"><span class="ic"><span class="ms">account_tree</span></span><div><div class="nm">Builds-scratch.avhdx</div><div class="sub">Differencing · parent Builds.vhdx</div></div><span class="pill2">Detached</span></div>
+<div class="it"><span class="ic"><span class="ms">hard_drive</span></span><div><div class="nm">old-backup.vhd</div><div class="sub">VHD · Dynamic · 127 GB · 41 GB on disk</div></div><span class="pill2">Detached</span></div>
+<div class="it"><span class="ic"><span class="ms">stacks</span></span><div><div class="nm">cluster-data.vhds</div><div class="sub">VHD Set · needs Hyper-V for details</div></div><span class="pill2 warn">Limited</span></div>
+</div>
+<div class="card">
+<div class="row" style="justify-content:space-between"><div><div style="font-size:22px;line-height:28px;font-weight:500">Photos.vhdx</div><div class="note mono">D:\Archive\Photos.vhdx</div></div><div class="row"><span class="pill2 on"><span class="ms sm f">link</span>Attached · E:</span><span class="tonal"><span class="ms">eject</span>Detach</span><span class="outl"><span class="ms">folder_open</span>Open E:</span></div></div>
+<div class="facts">
+<div class="fact"><div class="k">Format</div><div class="v">VHDX</div></div><div class="fact"><div class="k">Type</div><div class="v">Dynamically expanding</div></div><div class="fact"><div class="k">Virtual size</div><div class="v">64 GB</div></div><div class="fact"><div class="k">On disk</div><div class="v">23.9 GB</div></div>
+<div class="fact"><div class="k">Smallest safe size</div><div class="v">25.1 GB</div></div><div class="fact"><div class="k">Block size</div><div class="v">32 MB</div></div><div class="fact"><div class="k">Sectors</div><div class="v">512 logical · 4096 physical</div></div><div class="fact"><div class="k">Disk number</div><div class="v">3 · GPT · online</div></div>
+</div>
+<div class="vol"><span class="ms f" style="color:var(--p)">storage</span><div><b>E: Photos</b> <span class="muted small">NTFS · 39.6 GB free of 64 GB</span><div class="meter"><i></i></div></div><span class="text"><span class="ms">open_in_new</span>Open</span></div>
+<div class="chain"><span class="muted small" style="font-family:'Roboto Flex'">Chain</span><span class="node me">Photos.vhdx</span><span class="muted small" style="font-family:'Roboto Flex'">no parent · chain test passed</span></div>
+<div class="acts">
+<div class="act"><span class="ms">open_in_full</span><b>Grow</b><span class="d">Bigger disk, volume extended</span></div>
+<div class="act"><span class="ms">close_fullscreen</span><b>Shrink</b><span class="d">VHDX, down to 25.1 GB</span></div>
+<div class="act"><span class="ms">compress</span><b>Compact</b><span class="d">Give free blocks back</span></div>
+<div class="act"><span class="ms">sync_alt</span><b>Convert</b><span class="d">VHD, VHDX, fixed, dynamic</span></div>
+<div class="act"><span class="ms">account_tree</span><b>Differencing child</b><span class="d">Changes go to a new file</span></div>
+<div class="act off"><span class="ms">merge</span><b>Merge into parent</b><span class="d">Only for differencing disks</span></div>
+<div class="act"><span class="ms">fingerprint</span><b>New identifier</b><span class="d">For a copied disk</span></div>
+<div class="act"><span class="ms">sell</span><b>Metadata</b><span class="d">3 custom items</span></div>
+</div>
+<details class="code" open><summary>Equivalent script · PowerShell</summary><pre>Mount-DiskImage -ImagePath 'D:\Archive\Photos.vhdx' -Access ReadWrite
+Get-DiskImage -ImagePath 'D:\Archive\Photos.vhdx' | Get-Disk | Get-Partition | Get-Volume</pre></details>
+<p class="note">Ran with the Storage module · every action names its route and needs administrator permission only when Windows requires it.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="notes">
+<div class="n"><b>Library</b>Attached disks come from Windows itself; files come from Open, drops and recent use. Rows keep format, type, size and attach state in one glance, with the attach pill as the one strong colour.</div>
+<div class="n"><b>Details</b>Facts read from the file header need no permission. Actions explain themselves; an action that does not apply stays visible with its reason instead of disappearing.</div>
+<div class="n"><b>Honest limits</b>A VHD Set needs the Hyper-V module for its checkpoint list, so the row says Limited and the details say why and how to enable it.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1180}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
