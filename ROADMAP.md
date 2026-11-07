@@ -71,6 +71,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 
 - [~] **File converter**: Converts JSON lists, CSV and TSV to CSV, TSV, Markdown or JSON and states any loss before you save. Other formats are not built.
 - [~] **Base64 tools**: Text and file encoding, standard, URL-safe and MIME alphabets, padding, three text encodings, strict decoding with exact positions, data: URLs, SHA-256 round-trip checks and session history. Streaming, pause and ZIP export are not built.
+- [ ] **Virtual disk manager**: Not built yet. Planned: a full manager for VHD, VHDX and VHD Set files on Windows (create, attach, resize, compact, convert, differencing chains, checkpoints, Dev Drive and native boot), plus Quick pack: drop files and folders to get a new VHDX beside them that grows on its own when they do not fit.
 - [ ] **Minecraft server manager**: Not built yet.
 - [ ] **Minecraft world generator**: Not built yet.
 - [ ] **Ollama manager**: Not built yet.

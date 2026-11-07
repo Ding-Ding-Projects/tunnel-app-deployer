@@ -410,6 +410,13 @@
    "article": "tools"
   },
   {
+   "id": "virtual-disk-manager",
+   "title": "Virtual disk manager",
+   "status": "planned",
+   "note": "Not built yet. Planned: a full manager for VHD, VHDX and VHD Set files on Windows (create, attach, resize, compact, convert, differencing chains, checkpoints, Dev Drive and native boot), plus Quick pack: drop files and folders to get a new VHDX beside them that grows on its own when they do not fit.",
+   "group": "tools"
+  },
+  {
    "id": "minecraft-server-manager",
    "title": "Minecraft server manager",
    "status": "planned",
