@@ -21,7 +21,7 @@ async function step(name, fn) {
 async function run(op, args, opts) {
   const progress = [];
   const r = await engine.run(op, args, { ...opts, onProgress: p => progress.push(p) });
-  if (!r.ok) throw new Error(`${op}: ${r.code} ${r.message || ''}`.trim());
+  if (!r.ok) throw new Error(`${op}: ${r.code} ${r.message || ''}${r.line ? ` (script line ${r.line})` : ''}`.trim());
   return Object.assign(r, { progress });
 }
 const p = name => path.join(root, name);

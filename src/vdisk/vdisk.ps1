@@ -565,8 +565,11 @@ function Op-Pack($r) {
         if ($r.keepAcl) { try { Set-Acl -LiteralPath $dst -AclObject (Get-Acl -LiteralPath $f.src) } catch { } }
         if ((Hash $f.src) -ne (Hash $dst)) { Stop-With 'verify' 'A copied file did not match its original.' @{ file = $f.rel } }
         # Read-only, hidden, system, archive and not-indexed are the flags a file can be given directly.
-        $keep = [int]$si.Attributes -band 0x2027
-        [IO.File]::SetAttributes((Long $dst), [IO.FileAttributes]$(if ($keep) { $keep } else { 0x80 }))
+        # Plain statements on purpose: Windows PowerShell rejects an if-expression whose branches mix an
+        # object with a number ("Argument types do not match").
+        $keep = [IO.FileAttributes]([int]$si.Attributes -band 0x2027)
+        if ([int]$keep -eq 0) { $keep = [IO.FileAttributes]::Normal }
+        [IO.File]::SetAttributes((Long $dst), $keep)
       }
       $done += $f.size
       Step 'copy' $done $total @{ file = $f.rel; index = $index; count = $files.Count }
@@ -618,6 +621,8 @@ try {
   $out = [ordered]@{ ok = $false; code = $code; message = $ex.Message }
   if ($ex -is [ComponentModel.Win32Exception]) { $out['win32'] = $ex.NativeErrorCode }
   foreach ($k in $ex.Data.Keys) { if ($k -ne 'code') { $out[[string]$k] = $ex.Data[$k] } }
+  # Unexpected failures carry the script line, so a report from another computer can be traced.
+  if ($code -eq 'failed' -and $_.InvocationInfo) { $out['line'] = $_.InvocationInfo.ScriptLineNumber }
   Write-Json $resultFile $out
   exit 1
 }
