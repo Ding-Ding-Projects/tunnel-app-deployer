@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Navigation rail: expanded and compact</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.b{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--pc:#005143;--onpc:#9ef2db;
+  width:1440px;height:900px;background:#0a0f0e;color:var(--on);font:14px/20px "Roboto Flex",system-ui,sans-serif;display:flex;gap:32px;padding:40px;box-sizing:border-box}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;font-variation-settings:"FILL" 0;display:inline-block;width:1em;overflow:hidden}
+.f{font-variation-settings:"FILL" 1}
+.lab{font-size:12px;font-weight:600;color:var(--p);margin:0 0 10px}
+.col{display:flex;flex-direction:column}
+.frame{display:flex;background:var(--bg);border-radius:24px;overflow:hidden;border:1px solid var(--s3);height:760px}
+.rail{display:flex;flex-direction:column;gap:12px;padding:16px 12px;background:var(--bg)}
+.rail.x{width:220px;box-sizing:border-box;align-items:stretch}
+.rail.c{width:88px;box-sizing:border-box;align-items:center;padding:16px 0}
+.tog{width:48px;height:48px;border-radius:24px;display:grid;place-items:center;color:var(--onv)}
+.rail.x .tog{margin-left:4px}
+.fab{height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:flex;align-items:center;gap:12px;box-shadow:0 2px 6px #0003;margin-bottom:12px}
+.rail.x .fab{padding:0 20px 0 16px;align-self:flex-start;font-weight:600}
+.rail.c .fab{width:56px;justify-content:center}
+.dest{display:flex;align-items:center;color:var(--onv);font-weight:500}
+.rail.x .dest{height:56px;border-radius:28px;padding:0 16px;gap:12px;font-size:14px}
+.rail.x .dest.on{background:var(--pc);color:var(--onpc)}
+.rail.x .dest.hov{background:var(--s3)}
+.rail.c .dest{flex-direction:column;gap:4px;font-size:12px;width:80px}
+.rail.c .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.rail.c .dest.on .pill{background:var(--pc);color:var(--onpc)}
+.rail.c .dest.on{color:var(--on)}
+.content{flex:1;padding:16px 24px;display:flex;flex-direction:column;gap:16px}
+.search{height:48px;border-radius:24px;background:var(--s3);display:flex;align-items:center;gap:10px;padding:0 16px;color:var(--onv);max-width:520px}
+.card{background:var(--s1);border-radius:28px;flex:1}
+.note{font-size:12px;line-height:16px;color:var(--onv);margin-top:12px;max-width:520px}
+</style>
+</helmet>
+<div class="b">
+  <div class="col" style="flex:1">
+    <p class="lab">Expanded (default, 1100 px and wider)</p>
+    <div class="frame">
+      <nav class="rail x">
+        <span class="tog"><span class="ms">menu_open</span></span>
+        <span class="fab"><span class="ms f">add_link</span>New host</span>
+        <span class="dest on"><span class="ms f">rocket_launch</span>Host</span>
+        <span class="dest"><span class="ms">history</span>Sessions</span>
+        <span class="dest"><span class="ms">construction</span>Tools</span>
+        <span class="dest hov"><span class="ms">auto_awesome_mosaic</span>Features</span>
+        <span class="dest"><span class="ms">menu_book</span>Guide</span>
+        <span class="dest"><span class="ms">settings</span>Settings</span>
+      </nav>
+      <div class="content"><div class="search"><span class="ms">search</span>Search screens, actions, settings</div><div class="card"></div></div>
+    </div>
+    <p class="note">Text sits beside every icon at body size. The selected pill spans icon and label; hover tints the whole row. The menu button collapses the rail, and the choice is kept in Settings › Appearance.</p>
+  </div>
+  <div class="col">
+    <p class="lab">Compact (toggle, or 860 to 1099 px)</p>
+    <div class="frame">
+      <nav class="rail c">
+        <span class="tog"><span class="ms">menu</span></span>
+        <span class="fab"><span class="ms f">add_link</span></span>
+        <span class="dest on"><span class="pill"><span class="ms f">rocket_launch</span></span>Host</span>
+        <span class="dest"><span class="pill"><span class="ms">history</span></span>Sessions</span>
+        <span class="dest"><span class="pill"><span class="ms">construction</span></span>Tools</span>
+        <span class="dest"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span>Features</span>
+        <span class="dest"><span class="pill"><span class="ms">menu_book</span></span>Guide</span>
+        <span class="dest"><span class="pill"><span class="ms">settings</span></span>Settings</span>
+      </nav>
+      <div class="content" style="width:300px"><div class="search"><span class="ms">search</span>Search…</div><div class="card"></div></div>
+    </div>
+    <p class="note">Labels stay under the icons. Below 860 px the bottom bar takes over, as before.</p>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

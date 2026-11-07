@@ -200,6 +200,14 @@
    "h": 2520,
    "title": "Final sweep · every app and website surface",
    "expand": "fill"
+  },
+  "Rail.dc.html": {
+   "x": 0,
+   "y": 13680,
+   "w": 1440,
+   "h": 900,
+   "title": "Navigation rail · expanded and compact",
+   "expand": "fill"
   }
  },
  "order": [
@@ -227,7 +235,8 @@
   "Updates.dc.html",
   "Auth.dc.html",
   "Tabs.dc.html",
-  "Sweep.dc.html"
+  "Sweep.dc.html",
+  "Rail.dc.html"
  ],
  "notes": {
   "appTitle": {
@@ -276,6 +285,13 @@
    "x": 0,
    "y": 10800,
    "text": "Final sweep · findings and polish direction",
+   "kind": "title1",
+   "maxW": 1440
+  },
+  "rail": {
+   "x": 0,
+   "y": 13560,
+   "text": "Navigation rail · text beside every icon",
    "kind": "title1",
    "maxW": 1440
   }

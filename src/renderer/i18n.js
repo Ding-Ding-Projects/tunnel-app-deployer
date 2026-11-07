@@ -5,7 +5,7 @@
   const en = {
     'app.name': 'Tunnel App Deployer',
     'nav.host': 'Host', 'nav.sessions': 'Sessions', 'nav.features': 'Features', 'nav.guide': 'Guide', 'nav.settings': 'Settings',
-    'nav.newHost': 'Host a new project',
+    'nav.newHost': 'Host a new project', 'nav.collapse': 'Collapse navigation', 'nav.expand': 'Expand navigation', 'set.rail': 'Navigation rail', 'set.rail.d': 'Expanded shows each name beside its icon. Compact puts small labels under the icons. Windows narrower than 1100 pixels always use compact.', 'set.rail.expanded': 'Expanded', 'set.rail.compact': 'Compact',
     'top.search': 'Search everything', 'top.searchHint': 'Search screens, actions, settings',
     'top.notifications': 'Notifications', 'top.theme': 'Switch theme', 'top.version': 'Version',
     'top.buildUnknown': 'Build time unavailable', 'top.built': 'built',
@@ -185,7 +185,7 @@
   const yue = {
     'app.name': 'Tunnel App Deployer',
     'nav.host': '分享', 'nav.sessions': '紀錄', 'nav.features': '功能', 'nav.guide': '教學', 'nav.settings': '設定',
-    'nav.newHost': '分享新項目',
+    'nav.newHost': '分享新項目', 'nav.collapse': '收起導覽列', 'nav.expand': '展開導覽列', 'set.rail': '導覽列', 'set.rail.d': '展開就喺圖示旁邊寫名；緊湊就喺圖示下面用細字。窗口窄過 1100 像素時一定用緊湊。', 'set.rail.expanded': '展開', 'set.rail.compact': '緊湊',
     'top.search': '搵嘢', 'top.searchHint': '搵畫面、動作、設定', 'top.notifications': '通知', 'top.theme': '轉主題',
     'top.version': '版本', 'top.buildUnknown': '冇建置時間資料', 'top.built': '建置於',
     'regex.toggle': '正規表達式工具', 'regex.title': '正規表達式工具', 'regex.flags': '旗標', 'regex.matches': '個符合',

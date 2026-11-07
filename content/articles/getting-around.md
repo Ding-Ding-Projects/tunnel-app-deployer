@@ -11,7 +11,7 @@ Six destinations, one search bar, and a menu on everything you can right-click.
 - **Guide**: these articles, bundled inside the app so they open offline.
 - **Settings**: appearance, motion, language, focus modes and data.
 
-In a wide window they sit in the navigation rail on the left. Below 860 pixels they move to a bar at the bottom.
+In a wide window they sit in the navigation rail on the left, each name written beside its icon. The menu button at the top of the rail collapses it to icons with small labels underneath, and expands it again; the choice is kept in **Settings › Appearance › Navigation rail**. Windows narrower than 1100 pixels use the compact rail, and below 860 pixels the destinations move to a bar at the bottom.
 
 ## Context menus
 

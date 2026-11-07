@@ -20,6 +20,7 @@
           "Version and build time on the first screen, and a release on every build of main"
         ],
         "Changed": [
+          "The navigation rail writes each destination's name beside its icon on wide windows; the menu button at its top, or Settings › Appearance › Navigation rail, collapses it to the compact rail",
           "The website was rebuilt with the feature inventory, articles, language modes and a command palette",
           "Windows title bar drawn by the app, with the version, dim sum code name and build time, and Windows' own caption buttons and Snap layouts",
           "One Material 3 type scale, focus rings around search boxes, menu items and date fields, and buttons whose corners square up when pressed",

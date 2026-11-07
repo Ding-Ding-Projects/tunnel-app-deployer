@@ -68,7 +68,7 @@ On Windows the app draws its own title bar: the window has no system frame, the 
 
 ## Layout
 
-- Navigation rail at 860 px and wider, bottom navigation below.
+- Navigation: an expanded rail (240 px, each name beside its icon, the selected pill spanning both, a labelled New host button) at 1100 px and wider unless the person collapses it; the compact rail (88 px, labels under the icons) from 860 px; bottom navigation below. The rail's width animates and its labels slide in.
 - Settings rows put the control beside its label when there is room and below it on narrow windows.
 - Nothing is cut off or pushed off screen at 390, 768, 960 by 540 (a 1080p screen at 200 percent) or 1440 px, in English, Cantonese or both. `npm run clip` and `npm run audit:ui` check this.
 

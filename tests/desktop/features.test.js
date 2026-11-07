@@ -227,3 +227,12 @@ test('article headings start at level 2 under the page title', () => {
   assert.match(html, /<h2 id="h-section">Section<\/h2>/);
   assert.match(html, /<h3 id="h-detail">Detail<\/h3>/);
 });
+
+test('the navigation rail can expand with names beside its icons', () => {
+  const html = fs.readFileSync(path.join(root, 'src/renderer/index.html'), 'utf8');
+  assert.match(html, /<button class="rail-toggle" id="rail-toggle" data-tip="nav.collapse"[^>]*aria-expanded="true"/);
+  assert.match(html, /<button class="fab" id="fab"><span class="ms f" aria-hidden="true">add_link<\/span><span class="fab-lbl" data-i18n="nav.newHost">/);
+  const css = fs.readFileSync(path.join(root, 'src/renderer/styles.css'), 'utf8');
+  assert.match(css, /@media \(min-width:1100px\)\{\s*html\[data-rail=expanded\] \.rail\{width:240px/);
+  for (const lang of ['en', 'yue']) for (const k of ['nav.collapse', 'nav.expand', 'set.rail', 'set.rail.d', 'set.rail.expanded', 'set.rail.compact']) assert.ok(I18n[lang][k], `${lang} ${k}`);
+});

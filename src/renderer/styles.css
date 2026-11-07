@@ -57,7 +57,10 @@ html[data-chrome=overlay]{--tb:40px}
 .tb-name{color:var(--on);font-weight:500}
 .tb-meta{min-width:0;overflow:hidden;text-overflow:ellipsis}
 html[data-chrome=overlay] .provenance{display:none}
-.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0;background:var(--bg)}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0;background:var(--bg);transition:width var(--t3) var(--e),padding var(--t3) var(--e)}
+/* Labels slide in each time the rail expands and fade in when it collapses. */
+@keyframes rail-label{from{opacity:0;transform:translateX(-6px)}}
+html[data-rail=compact] .rail .lbl{animation:fade var(--t3) var(--e) both}
 .fab{width:56px;height:56px;border-radius:16px;border:0;background:var(--pc);color:var(--onpc);display:grid;place-items:center;margin-bottom:20px;box-shadow:0 2px 6px #0003;transition:border-radius var(--t2) var(--e),transform var(--t2) var(--e)}
 .fab:hover{border-radius:20px}.fab:active{transform:scale(.94)}
 .dests{display:flex;flex-direction:column;gap:12px}
@@ -69,6 +72,26 @@ html[data-chrome=overlay] .provenance{display:none}
 .dest[aria-current=page]{color:var(--on)}
 .dest[aria-current=page] .pill::before{transform:scaleX(1)}
 .dest[aria-current=page] .pill .ms{color:var(--onpc);font-variation-settings:"FILL" 1}
+/* Rail toggle and the New host label. Compact keeps the label for assistive technology only. */
+.rail-toggle{width:48px;height:48px;border-radius:24px;border:0;background:none;color:var(--onv);display:grid;place-items:center;flex:none;transition:background var(--t2) var(--e),color var(--t2) var(--e)}
+.rail-toggle:hover{background:var(--s3);color:var(--on)}
+.rail .fab-lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:1099px){.rail-toggle{display:none}}
+/* Expanded rail (Material 3 Expressive): the name sits beside each icon and the selected pill spans both. */
+@media (min-width:1100px){
+  html[data-rail=expanded] .rail{width:240px;align-items:stretch;padding:16px 12px}
+  html[data-rail=expanded] .rail-toggle{margin-left:4px}
+  html[data-rail=expanded] .fab{width:auto;max-width:100%;overflow:hidden;min-height:56px;height:auto;align-self:flex-start;display:flex;align-items:center;gap:12px;padding:0 20px 0 16px;font-weight:600;font-size:var(--fs-body);text-align:left}
+  html[data-rail=expanded] .rail .fab-lbl{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:nowrap;padding:8px 0;animation:rail-label var(--t3) var(--e) both}
+  html[data-rail=expanded] .dests{gap:4px}
+  html[data-rail=expanded] .rail .dest{flex-direction:row;justify-content:flex-start;gap:12px;width:auto;min-height:56px;padding:0 16px;border-radius:28px;font-size:var(--fs-body);text-align:left;position:relative;overflow:hidden;transition:background var(--t2) var(--e)}
+  html[data-rail=expanded] .rail .dest .pill{position:static;width:24px;height:24px;overflow:visible;flex:none}
+  html[data-rail=expanded] .rail .dest .pill::before{inset:0;border-radius:28px}
+  html[data-rail=expanded] .rail .dest .lbl{position:relative;padding:6px 0;white-space:nowrap;animation:rail-label var(--t3) var(--e) both}
+  html[data-rail=expanded] .rail .dest:hover{background:var(--s3)}
+  html[data-rail=expanded] .rail .dest:hover .pill{background:none}
+  html[data-rail=expanded] .rail .dest[aria-current=page]{color:var(--onpc)}
+}
 .main{flex:1;min-width:0;display:flex;flex-direction:column;gap:var(--gap);padding:12px 24px 24px 8px;overflow:auto;outline:none}
 .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .searchbar{flex:1 1 320px;max-width:560px;min-width:min(100%,260px);height:48px;border-radius:24px;border:0;background:var(--s3);display:flex;align-items:center;gap:12px;padding:0 12px 0 16px;color:var(--onv);text-align:left;transition:background var(--t2) var(--e)}

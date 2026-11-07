@@ -20,12 +20,13 @@ Read [the designer handoff](../HANDOFF.md) first. [DESIGN.md](../DESIGN.md) is t
 | `Narrow.dc.html` | 420 px window with bottom navigation |
 | `Site.dc.html` | Website: hero, how it works, feature inventory, limits, download |
 | `Sweep.dc.html` | Final review of every screen: findings by severity with their root-cause fixes, and the polish direction |
+| `Rail.dc.html` | Navigation rail, expanded (names beside icons) and compact |
 
 ### Design language
 
 - Material 3, dark first with a matching light scheme. Seed colour teal (`#82d5c0` primary on dark, `#006b58` on light).
 - Type: Roboto Flex for text, Roboto Mono for addresses, paths and timings. Icons: Material Symbols Rounded, one weight throughout.
-- Navigation rail with six destinations (Host, Sessions, Tools, Features, Guide, Settings); a bottom navigation bar below 860 px. On Windows a 40 px app-drawn title bar sits above both.
+- Navigation rail with six destinations (Host, Sessions, Tools, Features, Guide, Settings): expanded with names beside the icons from 1100 px (collapsible to the compact rail), compact from 860 px, a bottom navigation bar below. On Windows a 40 px app-drawn title bar sits above both.
 - The tunnel diagram (this computer, Quick Tunnel, public) is the signature element. Its line animates only while a session is active.
 - Motion: Material emphasized easing `cubic-bezier(.2,0,0,1)`, 200 to 500 ms. Cards rise in, the live link pops in, failures shake once. Every animation is removed under reduced motion.
 - Placeholders in square brackets (`[VERSION]`, `[N] of [TOTAL]`) are filled from real data in the implementation; the design never states a number it cannot know.

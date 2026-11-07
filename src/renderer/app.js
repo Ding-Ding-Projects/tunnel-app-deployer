@@ -17,7 +17,7 @@ const DEFAULTS = Object.freeze({
   theme: 'system', seed: '#4fbfa5', motion: 'full', sounds: true, volume: 50,
   language: 'en', funnyEn: 5, funnyYue: 5, emoji: false,
   focus: false, lowStim: false, time: false, oneThing: false, momentum: false,
-  textSize: 100, density: 'comfortable', toastTime: 6, paletteSize: 'card', dimSum: true, displayName: '',
+  rail: 'expanded', textSize: 100, density: 'comfortable', toastTime: 6, paletteSize: 'card', dimSum: true, displayName: '',
   narrator: false, voiceEn: 'auto', voiceYue: 'auto', rate: 1, pitch: 1, vocabOn: true, school: false,
   schedules: [
     { id: 'evening', name: 'Evening', from: '18:00', to: '07:00', on: false, values: { theme: 'dark', motion: 'gentle', sounds: '', focus: '' } },
@@ -91,6 +91,12 @@ function applySettings() {
   root.dataset.scheme = dark ? 'dark' : 'light';
   root.dataset.motion = settings.motion;
   root.dataset.density = settings.density;
+  root.dataset.rail = settings.rail;
+  // The rail toggle names the action it will take; the New host button is named by its own label.
+  const railOpen = settings.rail === 'expanded';
+  $('rail-toggle').dataset.tip = railOpen ? 'nav.collapse' : 'nav.expand';
+  $('rail-toggle').setAttribute('aria-expanded', String(railOpen));
+  $('rail-toggle').querySelector('.ms').textContent = railOpen ? 'menu_open' : 'menu';
   root.dataset.focus = settings.focus;
   root.dataset.lowstim = settings.lowStim;
   root.dataset.onething = settings.oneThing;
@@ -109,6 +115,7 @@ function applyI18n() {
   for (const el of document.querySelectorAll('[data-i18n]')) el.innerHTML = label(el.dataset.i18n);
   for (const el of document.querySelectorAll('[data-i18n-aria]')) el.setAttribute('aria-label', t(el.dataset.i18nAria));
   for (const el of document.querySelectorAll('[data-tip]')) { el.setAttribute('aria-label', t(el.dataset.tip)); el.title = plainBoth(el.dataset.tip); }
+  $('fab').title = plainBoth('nav.newHost');
   renderBadge();
 }
 
@@ -586,7 +593,7 @@ document.addEventListener('click', e => {
 
 // ---------- settings ----------
 const GROUPS = [
-  ['appearance', 'palette', [['theme', 'select', ['system', 'light', 'dark']], ['seed', 'seed'], ['dimSum', 'switch']]],
+  ['appearance', 'palette', [['theme', 'select', ['system', 'light', 'dark']], ['seed', 'seed'], ['rail', 'select', ['expanded', 'compact']], ['dimSum', 'switch']]],
   ['motion', 'motion_photos_on', [['motion', 'select', ['full', 'gentle', 'off']], ['sounds', 'switch'], ['volume', 'range', 0, 100, 5]]],
   ['language', 'translate', [['language', 'select', ['en', 'yue', 'both']], ['funnyEn', 'range', 1, 5, 1], ['funnyYue', 'range', 1, 5, 1], ['emoji', 'switch'], ['narrator', 'switch'], ['voiceEn', 'voice'], ['voiceYue', 'voice'], ['rate', 'range', 0.5, 2, 0.1], ['pitch', 'range', 0.5, 2, 0.1], ['vocab', 'vocab'], ['vocabOn', 'switch'], ['school', 'school']]],
   ['schedules', 'schedule', [['schedules', 'schedules']]],
@@ -809,7 +816,7 @@ function menuControl(it, how) {
 // A context-menu row for a setting shows that setting's own live control.
 function controlFor(key) {
   const g = GROUPS.flatMap(x => x[2]).find(x => x[0] === key); if (!g || schoolHidden(key)) return null;
-  const icon = { sounds: 'volume_up', theme: 'dark_mode', motion: 'motion_photos_on', focus: 'self_improvement', lowStim: 'filter_drama', time: 'schedule', oneThing: 'looks_one', momentum: 'arrow_forward', narrator: 'record_voice_over', density: 'density_medium', language: 'translate', emoji: 'mood', vocabOn: 'dictionary', dimSum: 'ramen_dining', paletteSize: 'open_in_full' }[key] || 'tune';
+  const icon = { rail: 'side_navigation', sounds: 'volume_up', theme: 'dark_mode', motion: 'motion_photos_on', focus: 'self_improvement', lowStim: 'filter_drama', time: 'schedule', oneThing: 'looks_one', momentum: 'arrow_forward', narrator: 'record_voice_over', density: 'density_medium', language: 'translate', emoji: 'mood', vocabOn: 'dictionary', dimSum: 'ramen_dining', paletteSize: 'open_in_full' }[key] || 'tune';
   if (g[1] === 'switch') return { control: 'switch', setting: key, icon, label: t(lk(key)) };
   if (g[1] === 'select') return { control: 'choice', setting: key, icon, label: t(lk(key)), options: g[2].filter(v => !(settings.school && key === 'language' && v !== 'en')) };
   return null;
@@ -1258,6 +1265,7 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('click', e => { if (menuState && !e.target.closest('#ctx')) closeMenu(false); });
 $('theme-toggle').onclick = () => setSetting('theme', isDark() ? 'light' : 'dark');
+$('rail-toggle').onclick = () => setSetting('rail', settings.rail === 'expanded' ? 'compact' : 'expanded');
 
 // ---------- start ----------
 // On Windows the app draws its own title bar; the system caption buttons sit over its right end.
