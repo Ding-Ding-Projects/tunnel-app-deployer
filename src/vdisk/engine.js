@@ -104,6 +104,8 @@ function packPlan(items, options = {}) {
 
 // ---------- running PowerShell ----------
 let elevatedCache = null;
+// The temp folder can come back as an 8.3 short path; Windows reports mount points by long path.
+function longTemp() { try { return fs.realpathSync.native(os.tmpdir()); } catch { return os.tmpdir(); } }
 function powershell() { return path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe'); }
 function isElevated() {
   if (elevatedCache !== null) return Promise.resolve(elevatedCache);
@@ -126,7 +128,7 @@ class Engine {
     let request;
     try { request = { op, ...validate(op, args) }; } catch (e) { return { ok: false, code: e.code || 'invalid', message: e.message, ...(e.min ? { min: e.min } : {}), ...(e.max ? { max: e.max } : {}) }; }
     const id = crypto.randomUUID();
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'tad-vdisk-'));
+    const dir = fs.mkdtempSync(path.join(longTemp(), 'tad-vdisk-'));
     const script = path.join(dir, 'vdisk.ps1');
     fs.writeFileSync(script, fs.readFileSync(this.scriptPath, 'utf8'), 'utf8');
     fs.writeFileSync(path.join(dir, 'request.json'), JSON.stringify(request), 'utf8');
@@ -163,6 +165,15 @@ class Engine {
     catch { result = exit.code === 1223 ? { ok: false, code: 'declined', message: 'Administrator permission was not given. Nothing changed.' } : { ok: false, code: 'failed', message: (exit.stderr || 'PowerShell stopped without a result.').trim().slice(0, 2000) }; }
     if (!job.keep) fs.rm(dir, { recursive: true, force: true }, () => {});
     return { ...result, id, route: op === 'list' || op === 'state' ? 'Storage module' : op === 'pack' ? 'VirtDisk API and Storage module' : 'VirtDisk API', elevated: needs };
+  }
+
+  // Pausing holds Quick pack between files; the flag file is the only channel to the elevated script.
+  pause(id, on) {
+    const job = this.jobs.get(id);
+    if (!job || job.done) return false;
+    const flag = path.join(job.dir, 'pause.flag');
+    try { if (on) fs.writeFileSync(flag, '1'); else fs.rmSync(flag, { force: true }); } catch { return false; }
+    return true;
   }
 
   cancel(id) {

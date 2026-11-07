@@ -10,7 +10,7 @@ const { Engine, packPlan } = require('../../src/vdisk/engine');
 const F = require('../../src/vdisk/format');
 
 const engine = new Engine({ elevate: 'auto' });
-const root = fs.mkdtempSync(path.join(os.tmpdir(), 'vdisk-it-'));
+const root = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'vdisk-it-')));
 const results = [];
 const MiB = F.MiB;
 async function step(name, fn) {
@@ -45,7 +45,7 @@ const p = name => path.join(root, name);
     await run('attach', { path: p('a.vhdx') });
     const list = await run('list', {});
     const mine = list.disks.find(d => String(d.path).toLowerCase() === p('a.vhdx').toLowerCase());
-    assert.ok(mine, 'listed as attached');
+    assert.ok(mine, `listed as attached; listed: ${JSON.stringify(list.disks.map(d => d.path))}`);
     const state = await run('state', { path: p('a.vhdx') });
     assert.equal(state.attached, true);
     const letter = state.disk.volumes.find(v => v.letter)?.letter;
@@ -95,7 +95,7 @@ const p = name => path.join(root, name);
     const before = await run('details', { path: p('a-fixed.vhdx') }), page83 = F.inspectFile(p('a-fixed.vhdx')).diskId;
     const r = await run('newid', { path: p('a-fixed.vhdx') });
     const after = await run('details', { path: p('a-fixed.vhdx') }), page83b = F.inspectFile(p('a-fixed.vhdx')).diskId;
-    assert.notEqual(after.identifier, before.identifier);
+    assert.notEqual(after.virtualDiskId, before.virtualDiskId, 'virtual disk id (page 83) changed'); assert.notEqual(page83b, page83, 'page 83 metadata changed');
     return `identifier changed; virtual disk id ${before.virtualDiskId === after.virtualDiskId ? 'unchanged' : 'changed'}; page 83 ${page83 === page83b ? 'unchanged' : 'changed'}`;
   });
   await step('custom metadata set, read, delete', async () => {

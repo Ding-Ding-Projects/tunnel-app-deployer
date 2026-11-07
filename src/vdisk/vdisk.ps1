@@ -26,7 +26,15 @@ function Stop-With([string]$code, [string]$message, $extra = @{}) {
   foreach ($k in $extra.Keys) { $e.Data[$k] = $extra[$k] }
   throw $e
 }
-function Test-Cancel { if (Test-Path -LiteralPath $cancelFile) { Stop-With 'cancelled' 'Cancelled.' } }
+$pauseFile = Join-Path $Job 'pause.flag'
+function Test-Cancel {
+  if (Test-Path -LiteralPath $cancelFile) { Stop-With 'cancelled' 'Cancelled.' }
+  if (Test-Path -LiteralPath $pauseFile) {
+    Step 'paused' 0 0
+    while (Test-Path -LiteralPath $pauseFile) { Start-Sleep -Milliseconds 300; if (Test-Path -LiteralPath $cancelFile) { Stop-With 'cancelled' 'Cancelled.' } }
+    Step 'resumed' 0 0
+  }
+}
 
 Add-Type -Language CSharp -TypeDefinition @'
 using System;
@@ -159,11 +167,16 @@ public static class VDiskApi {
     try { Marshal.WriteInt32(p, 0, 1); Marshal.WriteIntPtr(p, 8, s); Check(SetVirtualDiskInformation(handle, p)); }
     finally { Close(handle); Marshal.FreeHGlobal(p); Marshal.FreeHGlobal(s); }
   }
+  // Version 5 sets the virtual disk ID that Windows reports as the SCSI page 0x83 identifier (what
+  // Set-VHD -ResetDiskIdentifier changes); version 2 renews the file's own unique identifier too.
   public static string NewIdentifier(string path, int deviceId) {
     IntPtr handle = Open(path, deviceId, false, false, 0), p = Alloc(24);
     Guid id = Guid.NewGuid();
-    try { Marshal.WriteInt32(p, 0, 2); WriteGuid(p, 8, id); Check(SetVirtualDiskInformation(handle, p)); return id.ToString(); }
-    finally { Close(handle); Marshal.FreeHGlobal(p); }
+    try {
+      Marshal.WriteInt32(p, 0, 5); WriteGuid(p, 8, id); Check(SetVirtualDiskInformation(handle, p));
+      Marshal.WriteInt32(p, 0, 2); WriteGuid(p, 8, Guid.NewGuid()); SetVirtualDiskInformation(handle, p);
+      return id.ToString();
+    } finally { Close(handle); Marshal.FreeHGlobal(p); }
   }
 
   // GET_VIRTUAL_DISK_INFO, union at offset 8. Each version is read on its own so one unsupported
@@ -234,6 +247,8 @@ public static class VDiskApi {
 '@
 
 $req = [IO.File]::ReadAllText((Join-Path $Job 'request.json'), $utf8) | ConvertFrom-Json
+# Windows reports mount points and disk locations by long path, so the job folder must be one too.
+$Job = (New-Object -ComObject Scripting.FileSystemObject).GetFolder($Job).Path
 $devices = @{ '.iso' = 1; '.vhd' = 2; '.avhd' = 2; '.vhdx' = 3; '.avhdx' = 3; '.vhds' = 4 }
 function DeviceOf([string]$path) { $d = $devices[[IO.Path]::GetExtension($path).ToLowerInvariant()]; if (-not $d) { Stop-With 'format' 'Unsupported file type.' }; $d }
 $script:tickStep = 'work'
@@ -477,7 +492,8 @@ function Mount-Pack([string]$path, [string]$mnt) {
   Attach $path $false $true
   $disk = Get-DiskImage -ImagePath $path | Get-Disk
   $part = Get-Partition -DiskNumber $disk.Number | Where-Object { $_.Type -ne 'Reserved' } | Sort-Object Offset | Select-Object -Last 1
-  if (-not ($part.AccessPaths -contains "$mnt\")) { Add-PartitionAccessPath -InputObject $part -AccessPath "$mnt\" }
+  # The mount manager remembers the folder mount across a detach, so only add it when it is gone.
+  if (-not ((Get-Item -LiteralPath $mnt -Force).Attributes -band [IO.FileAttributes]::ReparsePoint)) { Add-PartitionAccessPath -InputObject $part -AccessPath "$mnt\" }
   $part
 }
 function Op-Pack($r) {
