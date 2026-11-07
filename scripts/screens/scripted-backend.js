@@ -59,8 +59,67 @@ window.tunnel = {
     if (q.get('b64') !== 'working') setTimeout(() => resolve(list.map(f => b64Staged[f.name] || { ok: true, mode, sourceName: f.name, folder: 'Downloads', outputName: mode === 'encode' ? `${f.name}.base64.txt` : f.name.replace(/\.base64\.txt$/i, ''), renamed: false, restoredFrom: mode === 'decode' ? 'name' : null, bytes: f.size, outputBytes: f.size, verified: true, token: f.name })), 40);
   }),
   b64Control: async () => true, b64Reveal: async () => true,
-  onB64Progress: cb => { b64Listener = cb; return () => {}; }
+  onB64Progress: cb => { b64Listener = cb; return () => {}; },
+  vd: virtualDisks()
 };
+// Sample disks for Tools > Virtual disks, matching the design board. Nothing here touches a disk.
+function virtualDisks() {
+  const GiB = 2 ** 30, MiB = 2 ** 20;
+  const disk = (token, name, folder, format, type, virtualSize, fileSize, extra = {}) => ({ token, name, path: `${folder}\\${name}`, folder, format, type, virtualSize, fileSize, attached: false, ...extra });
+  const items = [
+    disk('photos', 'Photos.vhdx', 'D:\\Archive', 'vhdx', 'dynamic', 64 * GiB, 23.9 * GiB, { attached: true, diskNumber: 3, readOnly: false, style: 'GPT', volumes: [{ partition: 2, letter: 'E', label: 'Photos', fileSystem: 'NTFS', size: 64 * GiB - 16 * MiB, free: 39.6 * GiB, type: 'Basic', paths: ['E:\\'] }] }),
+    disk('win11', 'Win11_24H2.iso', 'D:\\Downloads', 'iso', 'read-only', 5.8 * GiB, 5.8 * GiB, { attached: true, readOnly: true, label: 'CCCOMA_X64FRE', volumes: [{ letter: 'F', label: 'CCCOMA_X64FRE' }] }),
+    disk('builds', 'Builds.vhdx', 'D:\\VMs', 'vhdx', 'fixed', 20 * GiB, 20 * GiB),
+    disk('scratch', 'Builds-scratch.avhdx', 'D:\\VMs', 'vhdx', 'differencing', 20 * GiB, 1.2 * GiB, { hasParent: true }),
+    disk('backup', 'old-backup.vhd', 'E:\\Backups', 'vhd', 'dynamic', 127 * GiB, 41 * GiB),
+    disk('cluster', 'cluster-data.vhds', 'D:\\Cluster', 'vhdset', null, null, 64 * 1024, { limited: true })
+  ];
+  const byToken = t => items.find(i => i.token === t);
+  const info = i => ({ format: i.format, type: i.type, virtualSize: i.virtualSize, fileSize: i.fileSize, blockSize: i.format === 'vhdx' ? 32 * MiB : i.format === 'vhd' ? 2 * MiB : null,
+    logicalSectorSize: i.format === 'iso' ? null : 512, physicalSectorSize: i.format === 'vhdx' ? 4096 : 512, diskId: i.format === 'vhdx' ? '6B250732-3E3C-4445-9130-3A44CF4266D8' : null, label: i.label || null,
+    modified: Date.parse('2026-11-05T21:14:00Z') });
+  let progress, packTimer;
+  const emit = e => progress?.({ id: 'job-1', ...e });
+  return {
+    library: async () => ({ available: true, listed: true, items }),
+    inspect: async token => {
+      const i = byToken(token);
+      const chain = i.type === 'differencing' ? [{ name: i.name, path: i.path }, { name: 'Builds.vhdx', path: 'D:\\VMs\\Builds.vhdx' }] : [{ name: i.name, path: i.path }];
+      return { ...i, info: info(i), chain, state: { ok: true, attached: i.attached, signIn: false, ...(i.diskNumber != null ? { disk: { number: i.diskNumber, offline: false, readOnly: i.readOnly, style: i.style, offlineReason: '', volumes: [{ partition: 1, type: 'Reserved', size: 16 * MiB }, ...i.volumes] } } : {}) } };
+    },
+    details: async () => ({ ok: true, smallestSafeSize: 25.1 * GiB, fragmentation: 3, is4kAligned: true, virtualDiskId: 'd8259f81-98cb-4fbd-8372-55cc7dcb7bf8' }),
+    scripts: async (op, token) => {
+      const f = token ? byToken(token)?.path : 'D:\\Archive\\Photos.vhdx';
+      return op === 'detach' ? { powershell: `Dismount-DiskImage -ImagePath '${f}'`, diskpart: `select vdisk file="${f}"\ndetach vdisk` }
+        : op === 'create' ? { powershell: `New-VHD -Path '${f}' -SizeBytes 68719476736 -Dynamic |\n    Mount-VHD -Passthru | Initialize-Disk -PartitionStyle GPT -Passthru |\n    New-Partition -UseMaximumSize -AssignDriveLetter |\n    Format-Volume -FileSystem NTFS -NewFileSystemLabel 'Photos' -Confirm:$false`, diskpart: `create vdisk file="${f}" maximum=65536 type=expandable` }
+        : { powershell: `Mount-DiskImage -ImagePath '${f}' -Access ReadWrite`, diskpart: `select vdisk file="${f}"\nattach vdisk` };
+    },
+    open: async () => [], add: async () => [], forget: async () => true,
+    chooseSave: async () => ({ token: 'new', name: 'Photos.vhdx', folder: 'D:\\Archive', drive: 'D:\\', renamed: false, free: 212 * GiB }),
+    pickParent: async () => items[2], pickItems: async () => null,
+    plan: async () => ({ ok: true, token: 'plan-1', name: 'Trips.vhdx', wanted: 'Trips.vhdx', folder: 'D:\\Trips', mixedFolders: false, files: 1204, folders: 37, total: 3.81 * GiB, size: 4.26 * GiB, items: 3 }),
+    run: (op, args) => new Promise(resolve => {
+      if (op !== 'pack') { setTimeout(() => resolve({ ok: true }), 20); return; }
+      const mode = q.get('vd');
+      emit({ op, step: 'permission', done: 0, total: 0 });
+      if (mode === 'permission') return;
+      packTimer = setTimeout(() => {
+        emit({ op, step: 'measure', done: 3.81 * GiB, total: 3.81 * GiB, files: 1204, folders: 37 });
+        emit({ op, step: 'create', done: 1, total: 1 });
+        emit({ op, step: 'format', done: 1, total: 1 });
+        emit({ op, step: 'copy', done: 2.2 * GiB, total: 3.81 * GiB, file: 'IMG_2206.jpg', index: 700, count: 1204 });
+        emit({ op, step: 'grow', done: 2.3 * GiB, total: 3.81 * GiB, from: 4.26 * GiB, to: 4.9 * GiB, file: 'IMG_2207.jpg' });
+        emit({ op, step: 'copy', done: 2.37 * GiB, total: 3.81 * GiB, file: 'IMG_2207.jpg', index: 754, count: 1204 });
+        if (mode !== 'done') return;
+        emit({ op, step: 'detach', done: 1, total: 1 });
+        resolve({ ok: true, path: 'D:\\Trips\\Trips (1).vhdx', files: 1204, folders: 37, bytes: 3.81 * GiB, grows: [{ from: 4.26 * GiB, to: 4.9 * GiB, file: 'IMG_2207.jpg' }], skipped: [], partial: false, verified: true, virtualSize: 4.9 * GiB, fileSize: 3.97 * GiB,
+          entry: disk('trips', 'Trips (1).vhdx', 'D:\\Trips', 'vhdx', 'dynamic', 4.9 * GiB, 3.97 * GiB) });
+      }, 30);
+    }),
+    cancel: async () => true, pause: async () => true, reveal: async () => true, openVolume: async () => true,
+    onProgress: cb => { progress = cb; return () => {}; }
+  };
+}
 window.__screens = { state, view, listener: () => listener };
 })();
 if (!new URLSearchParams(location.search).get('dimsum')) Math.random = () => 0.5;

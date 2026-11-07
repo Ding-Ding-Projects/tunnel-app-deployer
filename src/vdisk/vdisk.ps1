@@ -324,10 +324,14 @@ function Op-List {
   })
   @{ ok = $true; disks = $disks; isos = $isos }
 }
+function SignInTask([string]$path) { 'Tunnel App Deployer attach ' + ([IO.Path]::GetFileName($path) -replace '[^\w\-. ]', '_') }
 function Op-State($r) {
   $a = Get-Attach $r.path
   $out = [ordered]@{ ok = $true; attached = [bool]$a }
   if ($a -and $null -ne $a.number) { $d = Get-Disk -Number $a.number; $out['disk'] = [ordered]@{ number = $d.Number; offline = [bool]$d.IsOffline; readOnly = [bool]$d.IsReadOnly; style = [string]$d.PartitionStyle; offlineReason = [string]$d.OfflineReason; volumes = @(Get-Volumes $d.Number) } }
+  # Whether a sign-in task re-attaches this file, so the screen can offer to stop it.
+  $out['signIn'] = $false
+  try { if (Get-ScheduledTask -TaskPath '\TunnelAppDeployer\' -TaskName (SignInTask $r.path) -ErrorAction Stop) { $out['signIn'] = $true } } catch { }
   $out
 }
 function Op-Details($r) {
@@ -363,7 +367,7 @@ function Op-Attach($r) {
   Attach $r.path ([bool]$r.readOnly) ([bool]$r.noLetter)
   $out = Op-State $r
   if ($r.atSignIn) {
-    $name = 'Tunnel App Deployer attach ' + ([IO.Path]::GetFileName($r.path) -replace '[^\w\-. ]', '_')
+    $name = SignInTask $r.path
     $cmd = "Mount-DiskImage -ImagePath '$($r.path -replace "'", "''")' -Access $(if ($r.readOnly) { 'ReadOnly' } else { 'ReadWrite' })"
     $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -WindowStyle Hidden -Command `"$cmd`""
     $trigger = New-ScheduledTaskTrigger -AtLogOn
@@ -379,8 +383,7 @@ function Op-Detach($r) {
   @{ ok = $true }
 }
 function Op-ForgetTask($r) {
-  $name = 'Tunnel App Deployer attach ' + ([IO.Path]::GetFileName($r.path) -replace '[^\w\-. ]', '_')
-  Unregister-ScheduledTask -TaskName $name -TaskPath '\TunnelAppDeployer\' -Confirm:$false -ErrorAction SilentlyContinue
+  Unregister-ScheduledTask -TaskName (SignInTask $r.path) -TaskPath '\TunnelAppDeployer\' -Confirm:$false -ErrorAction SilentlyContinue
   @{ ok = $true }
 }
 function Op-Grow($r) {

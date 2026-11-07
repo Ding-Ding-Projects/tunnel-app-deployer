@@ -22,7 +22,7 @@ jobs:
   virtual-disks:
     name: Virtual disks on Windows
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -36,10 +36,18 @@ jobs:
           if ($errors) { $errors | ForEach-Object { Write-Host "$($_.Extent.StartLineNumber): $($_.Message)" }; exit 1 }
       - name: Create, attach, resize, convert, merge and Quick-pack real disks
         run: node tests/windows/vdisk.integration.js
-      - name: Keep the step results
+      - name: Install the app
+        run: npm ci --no-audit --no-fund
+      - name: Drive the real app through Tools > Virtual disks
+        run: |
+          npm install --no-save --no-audit --no-fund playwright-core@1.63.0
+          node tests/windows/vdisk-ui.e2e.js
+      - name: Keep the step results and screenshots
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: virtual-disk-results
-          path: ${{ runner.temp }}/vdisk-results.json
+          path: |
+            ${{ runner.temp }}/vdisk-results.json
+            ${{ runner.temp }}/vdisk-ui
           if-no-files-found: ignore

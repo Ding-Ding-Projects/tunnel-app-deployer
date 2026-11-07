@@ -22,6 +22,16 @@ window.addEventListener('load', () => setTimeout(async () => {
     else { drop('encode', ['report.pdf', 'archive.zip', 'video.mp4']); await new Promise(r => setTimeout(r, 120)); }
     $('b64-beside').scrollIntoView({ block: 'end' });
   }
+  if (act?.startsWith('vd')) {
+    document.querySelector('[data-tool="vdisk"]').click(); await new Promise(r => setTimeout(r, 200));
+    if (act === 'vd') { document.querySelector('[data-vdi="photos"]')?.click(); await new Promise(r => setTimeout(r, 120)); $('vd-more')?.click(); await new Promise(r => setTimeout(r, 120)); }
+    if (act === 'vdnew') { $('vd-new').click(); await tick(); $('vd-s-target').click(); await new Promise(r => setTimeout(r, 120)); }
+    if (act === 'vdpack') {
+      const dt = new DataTransfer(); for (const n of ['IMG_2201.jpg', 'IMG_2202.jpg', 'itinerary.pdf']) dt.items.add(new File([new Uint8Array(64)], n));
+      $('vd-zone').dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true }));
+      await new Promise(r => setTimeout(r, 250)); $('vd-pack').scrollIntoView({ block: 'end' });
+    }
+  }
   if (act === 'conv') { document.querySelector('[data-tool="conv"]').click(); $('conv-in').value = '[\n  {"service": "web", "port": 3000},\n  {"service": "db", "port": 5432}\n]'; $('conv-in').dispatchEvent(new Event('input')); }
   if (act === 'lang' || act === 'sched' || act === 'ctxset') { const g = act === 'sched' ? 'schedules' : act === 'lang' ? 'language' : 'motion'; document.querySelector('[data-g="' + g + '"]').click(); await tick(); }
   if (act === 'ctxset') { const row = document.querySelector('.item[data-key="sounds"]'); const r = row.getBoundingClientRect(); row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: r.left + 200, clientY: r.top + 20 })); }

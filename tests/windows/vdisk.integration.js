@@ -54,6 +54,15 @@ const p = name => path.join(root, name);
     assert.equal((await run('state', { path: p('a.vhdx') })).attached, false);
     return letter ? `wrote to ${letter}:` : 'no drive letter assigned';
   });
+  await step('attach at sign-in adds a task, and forgetting it removes the task', async () => {
+    const r = await run('attach', { path: p('a.vhdx'), readOnly: true, atSignIn: true });
+    assert.ok(r.task, 'task registered');
+    assert.equal((await run('state', { path: p('a.vhdx') })).signIn, true, 'state reports the task');
+    await run('forgettask', { path: p('a.vhdx') });
+    assert.equal((await run('state', { path: p('a.vhdx') })).signIn, false, 'task removed');
+    await run('detach', { path: p('a.vhdx') });
+    return r.task;
+  });
   await step('grow to 600 MB and extend the volume', async () => {
     await run('grow', { path: p('a.vhdx'), size: 600 * MiB, extend: true });
     assert.equal(F.inspectFile(p('a.vhdx')).virtualSize, 600 * MiB);

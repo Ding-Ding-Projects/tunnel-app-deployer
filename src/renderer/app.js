@@ -864,6 +864,11 @@ function allCommands() {
   act('close', plainBoth('host.cancel'), doStop, '', () => (busy || active()) && !live());
   act('refresh', plainBoth('req.again'), checkRequirements);
   act('password', plainBoth('auth.tab'), () => { toolState.tool = 'auth'; go('tools'); });
+  const toDisks = then => () => { toolState.tool = 'vdisk'; go('tools'); then?.(); };
+  act('hard_drive', plainBoth('vd.tab'), toDisks());
+  act('add', plainBoth('vd.new'), toDisks(() => window.vdOpenSheet?.()), '', () => !!api?.vd);
+  act('folder_open', plainBoth('vd.open'), toDisks(() => window.vdOpenFiles?.()), '', () => !!api?.vd);
+  act('inventory_2', plainBoth('vd.pack.title'), toDisks(() => window.vdFocusPack?.()), '', () => !!api?.vd);
   act('tab', plainBoth('tabs.new'), () => openMenu($('open-palette'), tabCatalog()), 'Ctrl T');
   act('system_update_alt', plainBoth('upd.check'), checkUpdates);
   act('restart_alt', plainBoth('upd.restart'), () => $('upd-restart').click(), '', () => updates.state === 'ready');
@@ -1063,7 +1068,7 @@ function runConvert() {
 }
 function renderTools() {
   for (const b of document.querySelectorAll('[data-tool]')) b.setAttribute('aria-selected', String(b.dataset.tool === toolState.tool));
-  $('panel-b64').hidden = toolState.tool !== 'b64'; $('panel-conv').hidden = toolState.tool !== 'conv'; $('panel-auth').hidden = toolState.tool !== 'auth';
+  $('panel-b64').hidden = toolState.tool !== 'b64'; $('panel-conv').hidden = toolState.tool !== 'conv'; $('panel-auth').hidden = toolState.tool !== 'auth'; $('panel-vdisk').hidden = toolState.tool !== 'vdisk'; if (toolState.tool === 'vdisk') window.vdRender?.();
   if (toolState.tool === 'auth') renderAuth();
   $('b64-enc').setAttribute('aria-pressed', String(toolState.mode === 'encode')); $('b64-dec').setAttribute('aria-pressed', String(toolState.mode === 'decode'));
   $('b64-in').disabled = !!toolState.file && toolState.mode === 'encode';
@@ -1278,7 +1283,7 @@ function tabCatalog() {
   const items = [{ head: true, label: t('tabs.destinations') }];
   for (const [v, icon] of [['host', 'rocket_launch'], ['sessions', 'history'], ['tools', 'construction'], ['features', 'auto_awesome_mosaic'], ['guide', 'menu_book'], ['settings', 'settings']]) items.push({ icon, label: t(`nav.${v}`), run: () => openTab({ type: 'view', ref: v, icon, title: t(`nav.${v}`) }) });
   items.push({ head: true, label: t('tabs.tools') });
-  for (const [tool, icon, key] of [['b64', 'data_object', 'tools.b64'], ['conv', 'swap_horiz', 'tools.convert'], ['auth', 'password', 'auth.tab']]) items.push({ icon, label: t(key), run: () => openTab({ type: 'tool', ref: tool, icon, title: t(key) }) });
+  for (const [tool, icon, key] of [['b64', 'data_object', 'tools.b64'], ['conv', 'swap_horiz', 'tools.convert'], ['auth', 'password', 'auth.tab'], ['vdisk', 'hard_drive', 'vd.tab']]) items.push({ icon, label: t(key), run: () => openTab({ type: 'tool', ref: tool, icon, title: t(key) }) });
   items.push({ head: true, label: t('tabs.settings') });
   for (const [g, icon] of GROUPS) items.push({ icon, label: t(`group.${g}`), run: () => openTab({ type: 'settings', ref: g, icon, title: t(`group.${g}`) }) });
   items.push({ head: true, label: t('tabs.articles') });
@@ -1351,7 +1356,7 @@ document.addEventListener('keydown', e => {
     menuState.index = Math.max(0, Math.min(menuState.shown.length - 1, menuState.index + (e.key === 'ArrowDown' ? 1 : -1))); renderMenuItems(); const it = menuState.shown[menuState.index]; announce(it.control === 'switch' ? `${it.label}, ${t(settings[it.setting] ? 'state.on' : 'state.off')}` : it.control === 'choice' ? `${it.label}, ${optionLabel(it.setting, settings[it.setting])}` : it.label); return;
   }
   if ((e.shiftKey && e.key === 'F10') || e.key === 'ContextMenu') { e.preventDefault(); const el = document.activeElement; const r = el?.getBoundingClientRect?.(); openMenu(el, contextItems(el), { x: r?.left || 100, y: (r?.bottom || 100) + 4 }); return; }
-  if (!$('palette').hidden || !$('confirm').hidden || !$('onboarding').hidden) return;
+  if (!$('palette').hidden || !$('confirm').hidden || !$('onboarding').hidden || !$('vd-sheet').hidden || !$('vd-ask').hidden) return;
   if (e.ctrlKey && !e.shiftKey && /^[1-6]$/.test(e.key)) { e.preventDefault(); go(VIEWS[+e.key - 1]); }
   else if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); host(); }
   else if (e.ctrlKey && e.shiftKey && k === 'c' && live()) { e.preventDefault(); $('copy-btn').click(); }
@@ -1392,4 +1397,7 @@ renderBadge();
   if (!store.get('onboarded', false)) openOnboarding(); else maybeDimSum();
 })();
 setInterval(refreshStatus, 2000);
+// Helpers shared with screens kept in their own files (vdisk-ui.js), which load after this one.
+window.App = Object.freeze({ api, $, t, both, label, compose, fill, esc, plain, notify, announce, sound, confirmAction, copyText, makeSearch, matcherFor, searches, setCount,
+  clearDropHint: () => { dropHint?.remove(); dropHint = null; } });
 })();

@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Tunnel App Deployer</title>
 <link rel="stylesheet" href="styles.css">
-<script defer src="i18n.js"></script><script defer src="regex.js"></script><script defer src="tools.js"></script><script defer src="markdown.js"></script><script defer src="content.js"></script><script defer src="app.js"></script>
+<script defer src="i18n.js"></script><script defer src="regex.js"></script><script defer src="tools.js"></script><script defer src="markdown.js"></script><script defer src="content.js"></script><script defer src="app.js"></script><script defer src="vdisk-ui.js"></script>
 </head>
 <body>
 <a class="skip" href="#main" data-i18n="nav.skip">Skip to content</a>
@@ -113,6 +113,7 @@
       <button class="tab" role="tab" id="tab-b64" aria-controls="panel-b64" data-tool="b64"><span class="ms" aria-hidden="true">data_object</span><span data-i18n="tools.b64">Base64</span></button>
       <button class="tab" role="tab" id="tab-conv" aria-controls="panel-conv" data-tool="conv"><span class="ms" aria-hidden="true">swap_horiz</span><span data-i18n="tools.convert">Convert</span></button>
       <button class="tab" role="tab" id="tab-auth" aria-controls="panel-auth" data-tool="auth"><span class="ms" aria-hidden="true">password</span><span data-i18n="auth.tab">Authenticator</span></button>
+      <button class="tab" role="tab" id="tab-vdisk" aria-controls="panel-vdisk" data-tool="vdisk"><span class="ms" aria-hidden="true">hard_drive</span><span data-i18n="vd.tab">Virtual disks</span></button>
     </div>
     <div class="tool-grid" id="panel-b64" role="tabpanel" aria-labelledby="tab-b64">
       <section class="card"><div class="card-head"><h2 class="h3" data-i18n="tools.input">Input</h2><div class="seg small-seg" role="group"><button id="b64-enc" aria-pressed="true" data-i18n="tools.encode">Encode</button><button id="b64-dec" aria-pressed="false" data-i18n="tools.decode">Decode</button></div></div>
@@ -163,6 +164,35 @@
       </section>
     </div>
 
+    <div id="panel-vdisk" role="tabpanel" aria-labelledby="tab-vdisk" hidden class="vd" data-pane="list">
+      <div class="vd-bar">
+        <button class="btn fill" id="vd-new"><span class="ms" aria-hidden="true">add</span><span data-i18n="vd.new">New virtual disk</span></button>
+        <button class="btn tonal" id="vd-open"><span class="ms" aria-hidden="true">folder_open</span><span data-i18n="vd.open">Open disk file</span></button>
+        <button class="btn tonal" id="vd-packgo"><span class="ms" aria-hidden="true">inventory_2</span><span data-i18n="vd.pack">Quick pack</span></button>
+        <div class="search-slot vd-search" id="vd-search"></div>
+        <button class="icon-btn" id="vd-refresh" data-tip="vd.refresh" aria-label="Refresh"><span class="ms" aria-hidden="true">refresh</span></button>
+      </div>
+      <div class="chips vd-filters" id="vd-filters" role="group" data-i18n-aria="vd.filter" aria-label="Show"></div>
+      <p class="vd-note" id="vd-note" role="status" hidden></p>
+      <div class="vd-strip" id="vd-strip" hidden></div>
+      <div class="vd-panes">
+        <div class="vd-listwrap"><div class="vd-list" id="vd-list" role="group" data-i18n-aria="vd.library" aria-label="Virtual disks"></div></div>
+        <section class="vd-detail" id="vd-detail" aria-labelledby="vd-detail-h"></section>
+      </div>
+      <section class="card vd-pack" id="vd-pack" aria-labelledby="vd-pack-h">
+        <div class="card-head"><h2 class="h3" id="vd-pack-h" data-i18n="vd.pack.title">Quick pack</h2><span class="muted small" data-i18n="vd.pack.hint">Files and folders become one VHDX beside them.</span></div>
+        <div class="vd-packgrid">
+          <div class="zone" id="vd-zone">
+            <span class="zone-ico"><span class="ms f" aria-hidden="true">inventory_2</span></span>
+            <span class="zone-title" id="vd-zone-t" data-i18n="vd.pack.zone">Pack into a new VHDX</span>
+            <span class="zone-sub" id="vd-zone-d" data-i18n="vd.pack.zoneSub">Drop files and folders. A VHDX appears in the folder they came from, holding all of them.</span>
+            <div class="zone-acts"><button class="btn tonal" id="vd-pick-files" aria-describedby="vd-zone-t vd-zone-d"><span class="ms" aria-hidden="true">draft</span><span data-i18n="vd.pack.files">Choose files</span></button><button class="btn tonal" id="vd-pick-folder" aria-describedby="vd-zone-t vd-zone-d"><span class="ms" aria-hidden="true">folder</span><span data-i18n="vd.pack.folder">Choose a folder</span></button></div>
+          </div>
+          <div class="vd-opts" id="vd-pack-opts"></div>
+        </div>
+        <div class="vd-pack-body" id="vd-pack-body"></div>
+      </section>
+    </div>
     <div id="panel-auth" role="tabpanel" aria-labelledby="tab-auth" hidden class="auth-panel">
       <div class="tools"><div class="search-slot" id="auth-search"></div><button class="btn fill" id="auth-add"><span class="ms" aria-hidden="true">add</span><span data-i18n="auth.add">Add account</span></button><button class="chip" id="auth-export"><span class="ms" aria-hidden="true">download</span><span data-i18n="auth.export">Export list</span></button><button class="chip danger" id="auth-export-secrets"><span class="ms" aria-hidden="true">key</span><span data-i18n="auth.exportSecrets">Export with secrets…</span></button></div>
       <form class="card auth-form" id="auth-form" hidden>
@@ -232,6 +262,8 @@
   <div class="palette-list" id="palette-list" role="listbox"></div>
   <div class="palette-foot"><span><kbd>↑</kbd> <kbd>↓</kbd> <span data-i18n="palette.move">move</span></span><span><kbd>Enter</kbd> <span data-i18n="palette.run">run</span></span><span><kbd>Esc</kbd> <span data-i18n="palette.close">close</span></span></div>
 </div>
+<div class="dialog vd-sheet" id="vd-sheet" role="dialog" aria-modal="true" aria-labelledby="vd-sheet-h" hidden></div>
+<div class="dialog vd-ask" id="vd-ask" role="dialog" aria-modal="true" aria-labelledby="vd-ask-h" hidden></div>
 <div class="dialog confirm" id="confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-body" hidden>
   <h2 class="h2" id="confirm-title"><span class="ms f" aria-hidden="true">warning</span><span id="confirm-title-text"></span></h2>
   <p class="muted" id="confirm-body"></p>

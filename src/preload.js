@@ -31,6 +31,26 @@ contextBridge.exposeInMainWorld('tunnel', Object.freeze({
     return ipcRenderer.invoke('app:b64-files', { id: String(id), mode: String(mode), paths, options: { variant: String(options?.variant || 'standard'), padding: options?.padding !== false, strict: options?.strict !== false } });
   },
   b64Control: (id, action) => ipcRenderer.invoke('app:b64-control', String(id), String(action)),
+  // Virtual disks: the page refers to disks by tokens; dropped files resolve to paths only here.
+  vd: {
+    library: () => ipcRenderer.invoke('vd:library'),
+    inspect: token => ipcRenderer.invoke('vd:inspect', String(token)),
+    details: (token, elevated) => ipcRenderer.invoke('vd:details', String(token), !!elevated),
+    scripts: (op, token, extra) => ipcRenderer.invoke('vd:scripts', String(op), token ? String(token) : null, extra && typeof extra === 'object' ? JSON.parse(JSON.stringify(extra)) : {}),
+    open: () => ipcRenderer.invoke('vd:open'),
+    add: files => ipcRenderer.invoke('vd:add', Array.from(files || []).slice(0, 50).map(file => { try { return webUtils.getPathForFile(file) || ''; } catch { return ''; } })),
+    forget: token => ipcRenderer.invoke('vd:forget', String(token)),
+    chooseSave: request => ipcRenderer.invoke('vd:choose-save', { format: String(request?.format || 'vhdx'), name: String(request?.name || 'Disk') }),
+    pickParent: () => ipcRenderer.invoke('vd:pick-parent'),
+    pickItems: folders => ipcRenderer.invoke('vd:pick-items', !!folders),
+    plan: (items, options) => ipcRenderer.invoke('vd:plan', Array.from(items || []).slice(0, 1000).map(item => typeof item === 'string' ? item : (() => { try { return webUtils.getPathForFile(item) || ''; } catch { return ''; } })()), { fileSystem: String(options?.fileSystem || 'NTFS') }),
+    run: (op, args) => ipcRenderer.invoke('vd:run', String(op), args && typeof args === 'object' ? JSON.parse(JSON.stringify(args)) : {}),
+    cancel: id => ipcRenderer.invoke('vd:cancel', String(id)),
+    pause: (id, on) => ipcRenderer.invoke('vd:pause', String(id), !!on),
+    reveal: token => ipcRenderer.invoke('vd:reveal', String(token)),
+    openVolume: letter => ipcRenderer.invoke('vd:open-volume', String(letter)),
+    onProgress: callback => { const listener = (_event, value) => callback(value); ipcRenderer.on('vd:progress', listener); return () => ipcRenderer.removeListener('vd:progress', listener); }
+  },
   b64Reveal: token => ipcRenderer.invoke('app:b64-reveal', String(token)),
   onB64Progress: callback => { const listener = (_event, value) => callback(value); ipcRenderer.on('app:b64-progress', listener); return () => ipcRenderer.removeListener('app:b64-progress', listener); },
   onProgress: callback => {

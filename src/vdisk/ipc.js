@@ -50,8 +50,22 @@ function register({ handle, dialog, shell, app, getWindow, engine = new Engine()
     return { ...e, info, chain, state };
   });
   handle('vd:details', async (token, elevated) => engine.run('details', { path: pathOf(token) }, { elevated: !!elevated }));
+  // The new file a convert or child operation writes: beside its source, never over anything.
+  const besideFor = (op, subject, a) => {
+    const stem = path.basename(subject).replace(/\.[^.]+$/, ''), dir = path.dirname(subject);
+    if (op === 'convert') return freeName(dir, `${stem}${a.format === F.formatOf(subject) ? ` ${a.type}` : ''}${a.format === 'vhd' ? '.vhd' : a.format === 'vhdset' ? '.vhds' : '.vhdx'}`);
+    return freeName(dir, `${stem} child${F.formatOf(subject) === 'vhd' ? '.vhd' : '.avhdx'}`);
+  };
   handle('vd:scripts', (op, token, extra) => {
-    const a = { ...(extra && typeof extra === 'object' ? extra : {}), path: token ? pathOf(token) : '' };
+    const x = extra && typeof extra === 'object' ? extra : {};
+    const subject = token ? pathOf(token) : '';
+    const a = { ...x, path: subject };
+    try {
+      if (subject && (op === 'convert' || op === 'child')) a.target = besideFor(op, subject, x);
+      if (op === 'merge' && subject) a.parent = F.chainOf(subject)[1]?.path || '';
+      if (op === 'reparent' || (op === 'create' && x.parent)) a.parent = x.parent ? pathOf(x.parent) : '';
+      if (op === 'create') { a.path = x.target ? pathOf(x.target) : ''; a.source = x.source ? pathOf(x.source) : undefined; }
+    } catch { /* the script still shows with what is known */ }
     return F.scriptsFor(String(op), a);
   });
   handle('vd:open', async () => {
@@ -75,7 +89,9 @@ function register({ handle, dialog, shell, app, getWindow, engine = new Engine()
     let file = r.filePath.toLowerCase().endsWith(`.${ext}`) ? r.filePath : `${r.filePath}.${ext}`;
     const renamed = fs.existsSync(file);
     if (renamed) file = freeName(path.dirname(file), path.basename(file));
-    return { token: tokenFor(file), name: path.basename(file), folder: path.dirname(file), renamed };
+    let free = null;
+    try { const st = fs.statfsSync(path.dirname(file)); free = Number(st.bavail) * Number(st.bsize); } catch { /* shown as unknown */ }
+    return { token: tokenFor(file), name: path.basename(file), folder: path.dirname(file), drive: path.parse(file).root, renamed, free };
   });
   handle('vd:pick-parent', async () => {
     const r = await dialog.showOpenDialog(getWindow(), { properties: ['openFile'], filters: DISK_FILTER });
@@ -90,18 +106,17 @@ function register({ handle, dialog, shell, app, getWindow, engine = new Engine()
     if (!items.length) return { ok: false, code: 'items' };
     const plan = packPlan(items, options || {}), token = crypto.randomUUID();
     plans.set(token, { items, fileSystem: plan.fileSystem });
-    return { ok: true, token, name: path.basename(plan.path), folder: plan.folder, mixedFolders: plan.mixedFolders, files: plan.files, folders: plan.folders, total: plan.total, size: plan.size, items: items.length };
+    return { ok: true, token, name: path.basename(plan.path), wanted: `${plan.name}.vhdx`, folder: plan.folder, mixedFolders: plan.mixedFolders, files: plan.files, folders: plan.folders, total: plan.total, size: plan.size, items: items.length };
   });
   handle('vd:run', async (op, args) => {
     const a = args && typeof args === 'object' ? args : {};
     let request;
     try {
       const subject = a.token ? pathOf(a.token) : null;
-      const beside = (ext, suffix = '') => freeName(path.dirname(subject), `${path.basename(subject).replace(/\.[^.]+$/, '')}${suffix}${ext}`);
       switch (op) {
         case 'create': request = { ...a, path: pathOf(a.target), parent: a.parent ? pathOf(a.parent) : undefined, source: a.source ? pathOf(a.source) : undefined }; break;
-        case 'convert': request = { path: subject, target: beside(a.format === 'vhd' ? '.vhd' : a.format === 'vhdset' ? '.vhds' : '.vhdx', a.format === F.formatOf(subject) ? ` ${a.type}` : ''), type: a.type, blockSize: a.blockSize, virtualSize: a.virtualSize }; break;
-        case 'child': request = { path: subject, target: beside(F.formatOf(subject) === 'vhd' ? '.vhd' : '.avhdx', ' child') }; break;
+        case 'convert': request = { path: subject, target: besideFor('convert', subject, a), type: a.type, blockSize: a.blockSize, virtualSize: a.virtualSize }; break;
+        case 'child': request = { path: subject, target: besideFor('child', subject, a) }; break;
         case 'reparent': request = { path: subject, parent: pathOf(a.parent) }; break;
         case 'pack': {
           const plan = plans.get(a.plan);

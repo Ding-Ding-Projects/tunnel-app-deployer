@@ -203,6 +203,8 @@ async function start() {
     autoUpdater.quitAndInstall();
     return true;
   });
+  // Virtual disks: tokens for files, one elevated PowerShell per change (src/vdisk).
+  require('./vdisk/ipc').register({ handle, dialog, shell, app, getWindow: () => window });
   // Same-folder Base64: one job per id, files one at a time, a result for every file.
   const base64Files = require('./base64-files');
   const b64Jobs = new Map(), b64Written = new Map();
