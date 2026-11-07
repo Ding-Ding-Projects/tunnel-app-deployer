@@ -14,8 +14,32 @@ jobs:
           node-version: '24'
       - name: Check script syntax
         run: |
-          for f in docs/app.js src/renderer/*.js src/*.js; do node --check "$f"; done
+          for f in docs/app.js src/renderer/*.js src/*.js src/vdisk/*.js; do node --check "$f"; done
       - name: Check generated content is current
         run: node scripts/build-content.mjs --check
       - name: Run tests
         run: npm test
+  virtual-disks:
+    name: Virtual disks on Windows
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check the PowerShell script parses
+        shell: pwsh
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile("$PWD\src\vdisk\vdisk.ps1", [ref]$null, [ref]$errors) | Out-Null
+          if ($errors) { $errors | ForEach-Object { Write-Host "$($_.Extent.StartLineNumber): $($_.Message)" }; exit 1 }
+      - name: Create, attach, resize, convert, merge and Quick-pack real disks
+        run: node tests/windows/vdisk.integration.js
+      - name: Keep the step results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: virtual-disk-results
+          path: ${{ runner.temp }}/vdisk-results.json
+          if-no-files-found: ignore
