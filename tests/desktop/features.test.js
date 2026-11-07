@@ -236,3 +236,25 @@ test('the navigation rail can expand with names beside its icons', () => {
   assert.match(css, /@media \(min-width:1100px\)\{\s*html\[data-rail=expanded\] \.rail\{width:240px/);
   for (const lang of ['en', 'yue']) for (const k of ['nav.collapse', 'nav.expand', 'set.rail', 'set.rail.d', 'set.rail.expanded', 'set.rail.compact']) assert.ok(I18n[lang][k], `${lang} ${k}`);
 });
+
+test('same-folder Base64 requests are validated before any file is touched', () => {
+  const { validateB64Request } = require('../../src/main');
+  const ok = validateB64Request({ id: 'encode-abc', mode: 'encode', paths: ['C:\\Downloads\\a.pdf'], options: { variant: 'mime', padding: false, strict: false } });
+  assert.deepEqual(ok.options, { variant: 'mime', padding: false, strict: false });
+  assert.equal(validateB64Request({ id: 'x', mode: 'decode', paths: ['/a'], options: { variant: 'evil' } }).options.variant, 'standard');
+  const bad = [null, [], { id: '../x', mode: 'encode', paths: ['/a'] }, { id: 'x', mode: 'delete', paths: ['/a'] }, { id: 'x', mode: 'encode', paths: [] },
+    { id: 'x', mode: 'encode', paths: Array(201).fill('/a') }, { id: 'x', mode: 'encode', paths: [42] }, { id: 'x', mode: 'encode', paths: ['/a\0b'] }, { id: 'x', mode: 'encode', paths: ['/a'], options: [] }];
+  for (const request of bad) assert.throws(() => validateB64Request(request), JSON.stringify(request));
+});
+
+test('the Base64 card has two drop targets with keyboard routes and a preload that resolves paths itself', () => {
+  const html = fs.readFileSync(path.join(root, 'src/renderer/index.html'), 'utf8'), pre = fs.readFileSync(path.join(root, 'src/preload.js'), 'utf8');
+  for (const mode of ['encode', 'decode']) {
+    assert.match(html, new RegExp(`id="b64-zone-${mode}"`));
+    assert.match(html, new RegExp(`<button class="btn tonal" id="b64-pick-${mode}"`));
+    assert.match(html, new RegExp(`id="b64-bar-${mode}" role="progressbar"`));
+  }
+  assert.match(pre, /webUtils\.getPathForFile\(file\)/, 'paths come from real File objects');
+  assert.doesNotMatch(pre, /b64Files: \(id, mode, paths/, 'the page cannot pass arbitrary paths');
+  for (const key of ['tools.zoneEnc', 'tools.zoneDec', 'tools.err.invalid', 'tools.res.contents', 'tools.releaseEnc', 'tools.job.left']) { assert.ok(I18n.en[key], key); assert.ok(I18n.yue[key], key); }
+});

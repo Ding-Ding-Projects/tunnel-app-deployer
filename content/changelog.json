@@ -17,7 +17,8 @@
           "English, Hong Kong Cantonese and bilingual modes with playfulness sliders",
           "Command palette on Ctrl+Shift+F, context menus, notification centre and two-key confirmations",
           "Focus modes, text size, density, accent colour, motion levels and action sounds",
-          "Version and build time on the first screen, and a release on every build of main"
+          "Version and build time on the first screen, and a release on every build of main",
+          "Base64 files beside their originals: drop or choose files to write name.ext.base64.txt next to each one, or drop the .txt to get the original back with its name and extension, streamed with pause and cancel, never overwriting and checked by SHA-256"
         ],
         "Changed": [
           "The navigation rail writes each destination's name beside its icon on wide windows; the menu button at its top, or Settings › Appearance › Navigation rail, collapses it to the compact rail",

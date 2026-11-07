@@ -15,7 +15,7 @@ dark='settings=%7B%22theme%22%3A%22dark%22%7D'
 shots=(
   "host-live|state=live&$dark|1280,800" "host-building|state=building&$dark|1280,800" "host-failed|state=failed&$dark|1280,800"
   "sessions|state=ready&view=sessions&$dark|1280,800" "settings-rx|state=ready&view=settings&act=rx&$dark|1280,800"
-  "confirm|state=live&act=confirm&$dark|1280,800" "tools-b64|state=ready&view=tools&act=b64&$dark|1280,800"
+  "confirm|state=live&act=confirm&$dark|1280,800" "tools-b64|state=ready&view=tools&act=b64&$dark|1280,800" "tools-b64-files|state=ready&view=tools&act=b64drop&$dark|1280,800"
   "tools-convert|state=ready&view=tools&act=conv&$dark|1280,800" "context-controls|state=ready&view=settings&act=ctxset&$dark|1280,800"
   "schedules|state=ready&view=settings&act=sched&$dark|1280,800"
   "authenticator|state=ready&view=tools&act=auth&$dark|1280,800" "tabs|state=ready&act=tabs&$dark|1280,800" "sessions-chart|state=ready&view=sessions&act=chart&$dark|1280,800"

@@ -16,6 +16,12 @@ window.addEventListener('load', () => setTimeout(async () => {
   const group = q.get('group'); if (group) { document.querySelector(`[data-g="${group}"]`)?.click(); await new Promise(r => setTimeout(r, 150)); }
   const tick = () => new Promise(r => setTimeout(r, 120));
   if (act === 'b64') { $('b64-in').value = 'Docker compose up --build'; $('b64-in').dispatchEvent(new Event('input')); await tick(); }
+  if (act === 'b64drop' || act === 'b64work') {
+    const drop = (mode, names) => { const dt = new DataTransfer(); for (const n of names) dt.items.add(new File([new Uint8Array(n === 'report.pdf' ? 4096 : 512)], n)); $(`b64-zone-${mode}`).dispatchEvent(new DragEvent('drop', { dataTransfer: dt, bubbles: true, cancelable: true })); };
+    if (act === 'b64drop') { drop('decode', ['photo.txt', 'notes.txt']); await new Promise(r => setTimeout(r, 120)); drop('encode', ['report.pdf']); await new Promise(r => setTimeout(r, 160)); }
+    else { drop('encode', ['report.pdf', 'archive.zip', 'video.mp4']); await new Promise(r => setTimeout(r, 120)); }
+    $('b64-beside').scrollIntoView({ block: 'end' });
+  }
   if (act === 'conv') { document.querySelector('[data-tool="conv"]').click(); $('conv-in').value = '[\n  {"service": "web", "port": 3000},\n  {"service": "db", "port": 5432}\n]'; $('conv-in').dispatchEvent(new Event('input')); }
   if (act === 'lang' || act === 'sched' || act === 'ctxset') { const g = act === 'sched' ? 'schedules' : act === 'lang' ? 'language' : 'motion'; document.querySelector('[data-g="' + g + '"]').click(); await tick(); }
   if (act === 'ctxset') { const row = document.querySelector('.item[data-key="sounds"]'); const r = row.getBoundingClientRect(); row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: r.left + 200, clientY: r.top + 20 })); }

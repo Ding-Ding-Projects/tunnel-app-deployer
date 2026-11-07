@@ -21,6 +21,7 @@ Read [the designer handoff](../HANDOFF.md) first. [DESIGN.md](../DESIGN.md) is t
 | `Site.dc.html` | Website: hero, how it works, feature inventory, limits, download |
 | `Sweep.dc.html` | Final review of every screen: findings by severity with their root-cause fixes, and the polish direction |
 | `Rail.dc.html` | Navigation rail, expanded (names beside icons) and compact |
+| `Base64Drop.dc.html` | Base64 files beside their originals: the two drop targets, their five states and the results list |
 
 ### Design language
 

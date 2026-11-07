@@ -33,7 +33,13 @@ const statuses = {
   live: { phase: 'ready', verified: true, publicUrl: 'https://quiet-river-maple.trycloudflare.com', localUrl: 'http://127.0.0.1:49213' },
   failed: { phase: 'error', error: 'HTTP readiness timed out' }
 };
-let listener;
+let listener, b64Listener;
+// Staged results for the same-folder Base64 card, keyed by the dropped file's name.
+const b64Staged = {
+  'report.pdf': { ok: true, mode: 'encode', sourceName: 'report.pdf', folder: 'Downloads', outputName: 'report.pdf.base64.txt', renamed: false, bytes: 66080512, outputBytes: 88107352, verified: true, token: 's1' },
+  'photo.txt': { ok: true, mode: 'decode', sourceName: 'photo.txt', folder: 'Downloads', outputName: 'photo (1).png', renamed: true, restoredFrom: 'contents', bytes: 2411520, outputBytes: 2411520, verified: true, token: 's2' },
+  'notes.txt': { ok: false, sourceName: 'notes.txt', code: 'invalid', reason: 'char', offset: 1204, char: '#' }
+};
 window.tunnel = {
   prerequisites: async () => q.get('prereq') === 'missing'
     ? { docker: false, compose: false, cloudflared: false, cloudflaredDownloadAvailable: false, missing: ['Docker Desktop is not running.', 'Docker Compose was not found.'] }
@@ -46,7 +52,14 @@ window.tunnel = {
   copyText: async () => true, editors: async () => [{ name: 'Visual Studio Code' }], openProject: async () => true, setTitle: async () => true, openLink: async () => true, save: async () => true,
   vaultAvailable: async () => q.get('vault') !== 'off', vaultSeal: async t => btoa(t), vaultOpen: async s => atob(s),
   updateState: async () => q.get('upd') ? { state: q.get('upd'), installed: true, version: '0.2.10', notesUrl: 'https://github.com/Ding-Ding-Projects/tunnel-app-deployer/releases/latest', error: q.get('upd') === 'failed' ? 'The update feed could not be reached.' : undefined, checkedAt: new Date().toISOString() } : { state: 'idle', installed: true }, checkUpdates: async () => ({ state: 'current' }), installUpdate: async () => true, onUpdate: () => () => {},
-  onProgress: cb => { listener = cb; return () => {}; }
+  onProgress: cb => { listener = cb; return () => {}; },
+  b64Files: (id, mode, files) => new Promise(resolve => {
+    const list = [...files], first = list[0], total = 66080512;
+    setTimeout(() => b64Listener?.({ id, index: 0, count: list.length, name: first.name, phase: mode, done: Math.round(total * 0.62), total }), 10);
+    if (q.get('b64') !== 'working') setTimeout(() => resolve(list.map(f => b64Staged[f.name] || { ok: true, mode, sourceName: f.name, folder: 'Downloads', outputName: mode === 'encode' ? `${f.name}.base64.txt` : f.name.replace(/\.base64\.txt$/i, ''), renamed: false, restoredFrom: mode === 'decode' ? 'name' : null, bytes: f.size, outputBytes: f.size, verified: true, token: f.name })), 40);
+  }),
+  b64Control: async () => true, b64Reveal: async () => true,
+  onB64Progress: cb => { b64Listener = cb; return () => {}; }
 };
 window.__screens = { state, view, listener: () => listener };
 })();

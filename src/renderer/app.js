@@ -1018,6 +1018,7 @@ document.addEventListener('drop', e => { e.preventDefault(); dropHint?.remove();
 // ---------- tools ----------
 const T = window.Tools;
 const toolState = { tool: 'b64', mode: 'encode', file: null, history: [], from: 'json', to: 'markdown', b64Out: '', convOut: '' };
+const besideJobs = { encode: null, decode: null }, besideResults = [];
 const hex = bytes => [...bytes.slice(0, 4096)].map(b => b.toString(16).padStart(2, '0')).join(' ') + (bytes.length > 4096 ? ' …' : '');
 let b64Timer;
 async function runB64(record = true) {
@@ -1072,6 +1073,7 @@ function renderTools() {
   for (const b of $('conv-from').children) b.onclick = () => { toolState.from = b.dataset.from; renderTools(); };
   for (const b of $('conv-to').children) b.onclick = () => { toolState.to = b.dataset.to; renderTools(); };
   runB64(false); runConvert();
+  renderBesideJob('encode'); renderBesideJob('decode'); renderBesideResults();
 }
 for (const b of document.querySelectorAll('[data-tool]')) b.onclick = () => { toolState.tool = b.dataset.tool; renderTools(); };
 $('b64-enc').onclick = () => { toolState.mode = 'encode'; renderTools(); };
@@ -1088,6 +1090,103 @@ $('file-b64').onchange = () => {
   reader.onerror = () => notify(reader.error?.message || t('error.generic'), 'error');
   reader.readAsArrayBuffer(f);
 };
+// ---------- Base64 beside the original ----------
+// Dropped or chosen files are converted by the main process, written next to their source, never
+// over an existing file, and checked before they count as done. Paths never pass through here.
+const fill = (s, vars) => s == null ? s : s.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+// Both languages, each with its own nested phrases filled in: compose('tools.err.invalid', { at: 4 }, { what: ['tools.why.char', { c: '#' }] }).
+function compose(key, vars = {}, nested = {}) {
+  const out = both(key).map((s, li) => {
+    if (s == null) return s;
+    const v = { ...vars };
+    for (const [name, [nestedKey, nestedVars]] of Object.entries(nested)) { const p = both(nestedKey); v[name] = fill(p[li] ?? p[0], nestedVars || {}); }
+    return fill(s, v);
+  });
+  return out[1] ? `${esc(out[0])}<span class="alt" lang="yue-Hant-HK">${esc(out[1])}</span>` : esc(out[0]);
+}
+const plain = html => { const d = document.createElement('div'); d.innerHTML = html; return d.textContent; };
+const sizeText = n => n >= 1e9 ? `${(n / 1e9).toFixed(1)} GB` : n >= 1e6 ? `${(n / 1e6).toFixed(1)} MB` : n >= 1e3 ? `${(n / 1e3).toFixed(1)} KB` : `${n} B`;
+const durationText = s => s >= 90 ? `${Math.round(s / 60)} min` : `${Math.max(1, Math.round(s))} s`;
+const besideOptions = () => ({ variant: $('b64-variant').value, padding: $('b64-pad').checked, strict: $('b64-strict').checked });
+const ERR_CODES = new Set(['path', 'missing', 'folder', 'special', 'names', 'changed', 'verify', 'failed']);
+const WHY = new Set(['whitespace', 'afterPadding', 'char', 'padding', 'incomplete', 'tooMuchPadding', 'dataUrl', 'dataUrlText']);
+function besideError(r) {
+  if (r.code === 'cancelled') return label('tools.res.cancelled');
+  if (r.code === 'invalid' && WHY.has(r.reason)) return compose('tools.err.invalid', { at: Number(r.offset ?? 0).toLocaleString('en') }, { what: [`tools.why.${r.reason}`, { c: r.char ?? '' }] });
+  if (r.code === 'space') return compose('tools.err.space', { n: sizeText(Number(r.shortfall) || 0) });
+  return label(`tools.err.${ERR_CODES.has(r.code) ? r.code : 'failed'}`);
+}
+function renderBesideJob(mode) {
+  const job = besideJobs[mode], zone = $(`b64-zone-${mode}`);
+  $(`b64-job-${mode}`).hidden = !job;
+  $(`b64-pick-${mode}`).parentElement.hidden = !!job;
+  zone.classList.toggle('busy', !!job);
+  if (!job) return;
+  const pct = job.total ? Math.min(100, Math.floor(100 * job.done / job.total)) : 0;
+  const bar = $(`b64-bar-${mode}`);
+  bar.setAttribute('aria-valuenow', String(pct));
+  bar.firstElementChild.style.transform = `scaleX(${pct / 100})`;
+  const elapsed = (Date.now() - job.started) / 1000, rate = elapsed > 1 && job.done ? job.done / elapsed : 0;
+  const parts = [compose(`tools.job.${job.phase}`, { name: job.name }), `${pct}%`];
+  if (job.total) parts.push(`${sizeText(job.done)} / ${sizeText(job.total)}`);
+  if (job.count > 1) parts.push(compose('tools.job.of', { i: job.index + 1, n: job.count }));
+  if (job.paused) parts.push(label('tools.paused'));
+  else if (rate && job.total > job.done) parts.push(compose('tools.job.left', { t: durationText((job.total - job.done) / rate) }));
+  $(`b64-meta-${mode}`).innerHTML = parts.map(x => `<span class="nw">${x}</span>`).join(' · ');
+  const pause = $(`b64-pause-${mode}`);
+  pause.querySelector('.ms').textContent = job.paused ? 'play_arrow' : 'pause';
+  pause.querySelector('.lbl').innerHTML = label(job.paused ? 'tools.resume' : 'tools.pause');
+}
+function renderBesideResults() {
+  $('b64-results').innerHTML = besideResults.map((r, i) => {
+    if (!r.ok) return `<div class="bres bad" role="listitem"><span class="ms f" aria-hidden="true">${r.code === 'cancelled' ? 'block' : 'error'}</span><div><div class="name">${esc(r.sourceName)}</div><div class="why">${besideError(r)}</div></div></div>`;
+    const tags = [r.mode === 'decode' && r.restoredFrom ? `<span class="rtag">${label(`tools.res.${r.restoredFrom}`)}</span>` : '', r.renamed ? `<span class="rtag">${label('tools.res.renamed')}</span>` : ''].join('');
+    const where = compose(r.mode === 'encode' ? 'tools.res.beside' : 'tools.res.from', { name: r.sourceName, folder: r.folder });
+    const check = label(r.mode === 'encode' ? 'tools.verified' : 'tools.res.verifiedDec');
+    return `<div class="bres" role="listitem"><span class="ms f ok" aria-hidden="true">check_circle</span><div><div class="name">${esc(r.outputName)}${tags}</div><div class="why">${where} · ${esc(sizeText(r.outputBytes))} · ${check}${r.renamed ? ` · ${label('tools.res.renamedLong')}` : ''}</div></div><button class="btn text" data-reveal="${i}"><span class="ms" aria-hidden="true">folder_open</span><span>${label('tools.res.show')}</span></button></div>`;
+  }).join('');
+  for (const b of $('b64-results').querySelectorAll('[data-reveal]')) b.onclick = () => api.b64Reveal(besideResults[+b.dataset.reveal].token).catch(e => notify(e.message, 'warn'));
+}
+async function runBeside(mode, list) {
+  const files = [...(list || [])];
+  if (!files.length || besideJobs[mode]) return;
+  if (!api?.b64Files) { notify('tools.err.desktop', 'warn'); return; }
+  const id = `${mode}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  besideJobs[mode] = { id, paused: false, started: Date.now(), count: files.length, index: 0, name: files[0].name, phase: mode, done: 0, total: files[0].size || 0 };
+  renderBesideJob(mode);
+  announce(plain(compose(`tools.job.${mode}`, { name: files[0].name })));
+  let results;
+  try { results = await api.b64Files(id, mode, files, besideOptions()); }
+  catch { results = files.map(f => ({ ok: false, sourceName: f.name, code: 'failed' })); }
+  finally { besideJobs[mode] = null; renderBesideJob(mode); }
+  besideResults.unshift(...results.map(r => ({ ...r, mode })));
+  besideResults.splice(50);
+  renderBesideResults();
+  const ok = results.filter(r => r.ok).length, failed = results.some(r => !r.ok && r.code !== 'cancelled');
+  if (ok) notify('tools.done', 'ok', { quietOn: 'tools' });
+  if (failed) { sound('fail'); announce(plain(besideError(results.find(r => !r.ok && r.code !== 'cancelled')))); } else if (ok) sound('tap');
+}
+api?.onB64Progress?.(p => {
+  const mode = p.id.startsWith('encode') ? 'encode' : 'decode', job = besideJobs[mode];
+  if (!job || job.id !== p.id) return;
+  Object.assign(job, { index: p.index, count: p.count, name: p.name, phase: p.phase, done: p.done, total: p.total });
+  renderBesideJob(mode);
+});
+for (const mode of ['encode', 'decode']) {
+  const zone = $(`b64-zone-${mode}`), input = $(`file-b64-${mode}`), title = $(`b64-zone-${mode}-t`);
+  const idle = mode === 'encode' ? 'tools.zoneEnc' : 'tools.zoneDec', ready = mode === 'encode' ? 'tools.releaseEnc' : 'tools.releaseDec';
+  const hasFiles = e => [...(e.dataTransfer?.items || [])].some(i => i.kind === 'file');
+  const over = on => { zone.classList.toggle('over', on); title.innerHTML = label(on ? ready : idle); if (on) { dropHint?.remove(); dropHint = null; } };
+  let depth = 0;
+  zone.addEventListener('dragenter', e => { if (!hasFiles(e)) return; e.preventDefault(); e.stopPropagation(); if (!besideJobs[mode] && depth++ === 0) over(true); });
+  zone.addEventListener('dragover', e => { if (!hasFiles(e)) return; e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = besideJobs[mode] ? 'none' : 'copy'; dropHint?.remove(); dropHint = null; });
+  zone.addEventListener('dragleave', e => { e.stopPropagation(); if (depth && --depth === 0) over(false); });
+  zone.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); depth = 0; over(false); runBeside(mode, e.dataTransfer?.files); });
+  $(`b64-pick-${mode}`).onclick = () => input.click();
+  input.onchange = () => { const files = [...input.files]; input.value = ''; runBeside(mode, files); };
+  $(`b64-pause-${mode}`).onclick = async () => { const job = besideJobs[mode]; if (!job) return; job.paused = !job.paused; renderBesideJob(mode); await api.b64Control(job.id, job.paused ? 'pause' : 'resume').catch(() => {}); };
+  $(`b64-cancel-${mode}`).onclick = () => { const job = besideJobs[mode]; if (job) api.b64Control(job.id, 'cancel').catch(() => {}); };
+}
 $('b64-copy').onclick = () => toolState.b64Out && copyText(toolState.b64Out).then(ok => ok && notify('toast.copied', 'ok'));
 $('b64-save').onclick = () => toolState.b64Out && saveFile(toolState.mode === 'encode' ? 'base64.txt' : 'decoded.txt', toolState.b64Out);
 $('conv-copy').onclick = () => toolState.convOut && copyText(toolState.convOut).then(ok => ok && notify('toast.copied', 'ok'));

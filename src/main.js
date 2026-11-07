@@ -25,6 +25,20 @@ function validateOptions(value) {
   }
   return result;
 }
+// Same-folder Base64 requests come from files the person dropped or chose; the paths are resolved
+// in the preload from real File objects and checked again here and in base64-files.js.
+const B64_MODES = new Set(['encode', 'decode']), B64_VARIANTS = new Set(['standard', 'url', 'mime']);
+function validateB64Request(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid conversion request.');
+  const { id, mode, paths, options = {} } = value;
+  if (typeof id !== 'string' || !/^[A-Za-z0-9-]{1,64}$/.test(id)) throw new Error('Invalid conversion id.');
+  if (!B64_MODES.has(mode)) throw new Error('Unknown conversion.');
+  if (!Array.isArray(paths) || paths.length < 1 || paths.length > 200) throw new Error('Choose between 1 and 200 files.');
+  if (paths.some(p => typeof p !== 'string' || p.length > 32767 || p.includes('\0'))) throw new Error('Invalid file path.');
+  if (!options || typeof options !== 'object' || Array.isArray(options)) throw new Error('Invalid conversion options.');
+  return { id, mode, paths, options: { variant: B64_VARIANTS.has(options.variant) ? options.variant : 'standard', padding: options.padding !== false, strict: options.strict !== false } };
+}
+const B64_ACTIONS = new Set(['pause', 'resume', 'cancel']);
 const SAVE_TYPES = { json: 'JSON', csv: 'CSV', tsv: 'Tab-separated values', md: 'Markdown', txt: 'Text' };
 function validateSave(name, content) {
   if (typeof name !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$/.test(name) || name.includes('..')) throw new Error('Invalid file name.');
@@ -189,6 +203,52 @@ async function start() {
     autoUpdater.quitAndInstall();
     return true;
   });
+  // Same-folder Base64: one job per id, files one at a time, a result for every file.
+  const base64Files = require('./base64-files');
+  const b64Jobs = new Map(), b64Written = new Map();
+  handle('app:b64-files', async request => {
+    const job = validateB64Request(request);
+    if (b64Jobs.has(job.id)) throw new Error('This conversion is already running.');
+    const controller = new AbortController(), gate = new base64Files.Gate(controller.signal);
+    b64Jobs.set(job.id, { controller, gate });
+    const run = job.mode === 'encode' ? base64Files.encodeBeside : base64Files.decodeBeside;
+    const results = [];
+    let sent = 0;
+    try {
+      for (const [index, file] of job.paths.entries()) {
+        const name = path.basename(file || '');
+        const onProgress = p => {
+          const now = Date.now();
+          if (now - sent < 100 && p.done < p.total) return;
+          sent = now;
+          if (window && !window.isDestroyed()) window.webContents.send('app:b64-progress', { id: job.id, index, count: job.paths.length, name, phase: p.phase, done: p.done, total: p.total, paused: gate.paused });
+        };
+        try {
+          const r = await run(file, job.options, { signal: controller.signal, gate, onProgress });
+          const token = require('node:crypto').randomUUID();
+          b64Written.set(token, r.output);
+          results.push({ ok: true, mode: r.mode, sourceName: name, folder: path.basename(path.dirname(r.output)), outputName: r.outputName, renamed: r.renamed, restoredFrom: r.restoredFrom || null, bytes: r.bytes, outputBytes: r.outputBytes ?? r.bytes, sha256: r.sha256, verified: r.verified, token });
+        } catch (err) {
+          results.push({ ok: false, sourceName: name, code: err.code || 'failed', reason: err.reason || null, offset: err.offset ?? null, char: err.char ?? null, shortfall: err.shortfall ?? null });
+          if (err.code === 'cancelled') break;
+        }
+      }
+    } finally { b64Jobs.delete(job.id); }
+    return results;
+  });
+  handle('app:b64-control', (id, action) => {
+    if (!B64_ACTIONS.has(action)) throw new Error('Unknown action.');
+    const job = b64Jobs.get(id);
+    if (!job) return false;
+    if (action === 'pause') job.gate.pause(); else if (action === 'resume') job.gate.resume(); else job.controller.abort();
+    return true;
+  });
+  handle('app:b64-reveal', token => {
+    const file = typeof token === 'string' ? b64Written.get(token) : undefined;
+    if (!file) throw new Error('This file is no longer known to the app.');
+    shell.showItemInFolder(file);
+    return true;
+  });
   handle('app:copy-text', text => { if (typeof text !== 'string' || text.length > 20000) throw new Error('Invalid text.'); clipboard.writeText(text); return true; });
   handle('app:titlebar', colors => { const value = validateTitlebarColors(colors); if (process.platform !== 'win32') return false; window.setTitleBarOverlay(value); return true; });
   handle('app:set-title', title => { if (typeof title !== 'string' || title.length > 80) throw new Error('Invalid title.'); window.setTitle(title.trim() || 'Tunnel App Deployer'); return true; });
@@ -237,4 +297,4 @@ async function start() {
   createWindow();
 }
 if (require.main === module || (process.versions.electron && process.type === 'browser')) start().catch(error => { console.error(error.message); process.exitCode = 1; });
-module.exports = { isTunnelUrl, validateOptions, validSender, validateSave, isAllowedLink, readBuildInfo, detectEditors, squirrelCommand, windowChromeOptions, validateTitlebarColors };
+module.exports = { isTunnelUrl, validateOptions, validSender, validateSave, validateB64Request, isAllowedLink, readBuildInfo, detectEditors, squirrelCommand, windowChromeOptions, validateTitlebarColors };

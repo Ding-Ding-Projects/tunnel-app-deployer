@@ -1,5 +1,5 @@
 'use strict';
-const { contextBridge, ipcRenderer } = require('electron');
+const { contextBridge, ipcRenderer, webUtils } = require('electron');
 contextBridge.exposeInMainWorld('tunnel', Object.freeze({
   prerequisites: () => ipcRenderer.invoke('host:prerequisites'),
   status: () => ipcRenderer.invoke('host:status'),
@@ -25,6 +25,14 @@ contextBridge.exposeInMainWorld('tunnel', Object.freeze({
   vaultSeal: text => ipcRenderer.invoke('app:vault-seal', String(text)),
   vaultOpen: sealed => ipcRenderer.invoke('app:vault-open', String(sealed)),
   save: (name, content) => ipcRenderer.invoke('app:save', String(name), String(content)),
+  // Same-folder Base64. Paths come only from real dropped or chosen File objects, resolved here.
+  b64Files: (id, mode, files, options) => {
+    const paths = Array.from(files || []).slice(0, 200).map(file => { try { return webUtils.getPathForFile(file) || ''; } catch { return ''; } });
+    return ipcRenderer.invoke('app:b64-files', { id: String(id), mode: String(mode), paths, options: { variant: String(options?.variant || 'standard'), padding: options?.padding !== false, strict: options?.strict !== false } });
+  },
+  b64Control: (id, action) => ipcRenderer.invoke('app:b64-control', String(id), String(action)),
+  b64Reveal: token => ipcRenderer.invoke('app:b64-reveal', String(token)),
+  onB64Progress: callback => { const listener = (_event, value) => callback(value); ipcRenderer.on('app:b64-progress', listener); return () => ipcRenderer.removeListener('app:b64-progress', listener); },
   onProgress: callback => {
     const listener = (_event, value) => callback(value);
     ipcRenderer.on('host:progress', listener);

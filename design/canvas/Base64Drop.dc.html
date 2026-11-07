@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Base64 same-folder drop</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.b{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--olv:#899390;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--sc:#334b45;--onsc:#cce8e0;--err:#ffb4ab;--errc:#93000a;--e:cubic-bezier(.2,0,0,1);
+  width:1440px;min-height:1240px;box-sizing:border-box;padding:40px;background:#0a0f0e;color:var(--on);font:14px/20px "Roboto Flex",system-ui,sans-serif;display:flex;flex-direction:column;gap:28px}
+.ms{font-family:"Material Symbols Rounded";font-size:24px;line-height:1;display:inline-block;width:1em;overflow:hidden;font-variation-settings:"FILL" 0}
+.f{font-variation-settings:"FILL" 1}
+.lab{font-size:12px;font-weight:600;color:var(--p);margin:0 0 10px}
+.app{display:flex;background:var(--bg);border-radius:24px;border:1px solid var(--s3);overflow:hidden;min-height:760px}
+.rail{width:88px;flex:none;display:flex;flex-direction:column;align-items:center;gap:12px;padding:16px 0}
+.fab{width:56px;height:56px;border-radius:16px;background:var(--pc);color:var(--onpc);display:grid;place-items:center;margin-bottom:12px}
+.dest{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--onv);font-size:12px;font-weight:500}
+.dest .pill{width:56px;height:32px;border-radius:16px;display:grid;place-items:center}
+.dest.on{color:var(--on)}.dest.on .pill{background:var(--pc);color:var(--onpc)}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px;padding:24px 24px 24px 8px}
+.h1{font-size:32px;line-height:40px;font-weight:500;margin:0}
+.muted{color:var(--onv);margin:0}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--s3)}
+.tab{height:48px;padding:0 20px;color:var(--onv);font-weight:500;display:flex;gap:8px;align-items:center;border-bottom:3px solid transparent}
+.tab.on{color:var(--p);border-bottom-color:var(--p)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.card{background:var(--s1);border-radius:28px;padding:20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card h2{font-size:16px;line-height:24px;font-weight:600;margin:0;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.span{grid-column:1 / -1}
+.area{min-height:92px;border-radius:16px;border:1px solid var(--ol);background:var(--s2);padding:12px 14px;font-family:"Roboto Mono",monospace;font-size:13px;color:var(--on);white-space:pre-wrap;overflow-wrap:anywhere}
+.chip{min-height:32px;border-radius:8px;border:1px solid var(--ol);color:var(--onv);display:inline-flex;align-items:center;gap:6px;padding:0 12px;font-size:13px;font-weight:500}
+.chip .ms{font-size:18px}
+.chip.sel{background:var(--sc);border-color:var(--sc);color:var(--onsc)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.targets{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.zone{position:relative;border-radius:20px;background:var(--s2);border:2px dashed var(--ol);padding:18px 18px 16px;display:grid;grid-template-columns:48px minmax(0,1fr);gap:4px 14px;align-items:start;transition:background .25s var(--e),border-color .25s var(--e)}
+.zone .ico{grid-row:span 3;width:48px;height:48px;border-radius:16px;background:var(--s3);color:var(--p);display:grid;place-items:center;transition:transform .25s var(--e)}
+.zone b{font-size:16px;line-height:24px;font-weight:600}
+.zone .sub{color:var(--onv);font-size:13px;line-height:18px}
+.zone .sub code{font-family:"Roboto Mono",monospace;font-size:12px;color:var(--on)}
+.zone .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.zone.over{border:3px solid var(--p);background:var(--sc);padding:17px 17px 15px}
+.zone.over .ico{transform:scale(1.08);background:var(--pc);color:var(--onpc)}
+.tonal{height:40px;border-radius:20px;background:var(--sc);color:var(--onsc);font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:0 18px 0 14px;cursor:pointer}
+.text{height:40px;border-radius:20px;color:var(--p);font-weight:600;display:inline-flex;align-items:center;gap:8px;padding:0 14px;cursor:pointer}
+.tonal .ms,.text .ms{font-size:20px}
+.prog{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.track{height:4px;border-radius:2px;background:var(--s4);overflow:hidden}
+.bar{height:100%;width:62%;background:var(--p);border-radius:2px}
+.meta{font-family:"Roboto Mono",monospace;font-size:12px;color:var(--onv)}
+.results{display:flex;flex-direction:column;gap:2px;border-radius:20px;overflow:hidden}
+.res{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:14px;align-items:center;padding:12px 16px;background:var(--s2)}
+.res .ms.ok{color:var(--p)}
+.res .ms.bad{color:var(--err)}
+.res .name{font-family:"Roboto Mono",monospace;font-size:13px;color:var(--on);overflow-wrap:anywhere}
+.res .why{color:var(--onv);font-size:12px;line-height:16px;margin-top:2px}
+.tag{display:inline-flex;align-items:center;height:22px;border-radius:6px;background:var(--s4);color:var(--onv);font-size:11px;font-weight:600;padding:0 8px;margin-left:6px}
+.tag.p{background:var(--pc);color:var(--onpc)}
+.states{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.st{background:var(--bg);border:1px solid var(--s3);border-radius:24px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.st h3{margin:0;font-size:13px;font-weight:600;color:var(--p)}
+.st .zone{grid-template-columns:40px minmax(0,1fr);padding:14px}
+.st .zone.over{padding:13px}
+.st .zone .ico{width:40px;height:40px;border-radius:14px}
+.st .zone b{font-size:14px;line-height:20px}
+.note{font-size:12px;line-height:16px;color:var(--onv);margin:0}
+.errbox{border-radius:16px;background:var(--errc);color:#ffdad6;padding:10px 12px;font-size:12px;line-height:16px}
+.notes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.n{background:var(--s1);border-radius:20px;padding:16px;font-size:13px;line-height:19px;color:var(--onv)}
+.n b{color:var(--on);display:block;margin-bottom:4px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div class="b">
+<div>
+<p class="lab">Tools · Base64 · new card under Input and Output</p>
+<div class="app">
+<nav class="rail" aria-label="Primary">
+<span class="fab"><span class="ms f">add_link</span></span>
+<span class="dest"><span class="pill"><span class="ms">rocket_launch</span></span>Host</span>
+<span class="dest"><span class="pill"><span class="ms">history</span></span>Sessions</span>
+<span class="dest on"><span class="pill"><span class="ms f">construction</span></span>Tools</span>
+<span class="dest"><span class="pill"><span class="ms">auto_awesome_mosaic</span></span>Features</span>
+<span class="dest"><span class="pill"><span class="ms">menu_book</span></span>Guide</span>
+<span class="dest"><span class="pill"><span class="ms">settings</span></span>Settings</span>
+</nav>
+<div class="main">
+<div><h1 class="h1">Tools</h1><p class="muted">Small local helpers. Nothing you paste or drop here leaves this computer.</p></div>
+<div class="tabs"><span class="tab on"><span class="ms">data_object</span>Base64</span><span class="tab"><span class="ms">swap_horiz</span>Convert</span><span class="tab"><span class="ms">password</span>Authenticator</span></div>
+<div class="grid">
+<section class="card"><h2>Input<span class="row"><span class="chip sel">Encode</span><span class="chip">Decode</span></span></h2><div class="area">docker compose up --build</div><div class="row"><span class="chip">Standard</span><span class="chip">UTF-8</span><span class="chip sel"><span class="ms">check</span>Padding</span><span class="chip"><span class="ms">upload_file</span>Encode a file</span></div></section>
+<section class="card"><h2>Output<span class="row"><span class="chip"><span class="ms">content_copy</span>Copy</span><span class="chip"><span class="ms">download</span>Save</span></span></h2><div class="area">ZG9ja2VyIGNvbXBvc2UgdXAgLS1idWlsZA==</div><span class="muted" style="font-size:12px">SHA-256 round trip verified</span></section>
+<section class="card span">
+<h2>Files beside their originals<span class="muted" style="font-size:12px;font-weight:500">Uses the alphabet and padding chosen above</span></h2>
+<div class="targets">
+<div class="zone">
+<span class="ico"><span class="ms f">upload_file</span></span>
+<b>Encode to a .txt beside the file</b>
+<span class="sub">Drop files here or choose them. <code>report.pdf</code> becomes <code>report.pdf.base64.txt</code> in the same folder.</span>
+<sc-if value="{{working}}" hint-placeholder-val="{{false}}">
+<div class="prog"><div class="track"><div class="bar"></div></div><span class="meta">Encoding report.pdf · 62% · 41 of 66 MB · 18 s left</span><div class="acts"><span class="tonal"><span class="ms">pause</span>Pause</span><span class="text" onClick="{{finish}}">Cancel</span></div></div>
+</sc-if>
+<sc-if value="{{idle}}" hint-placeholder-val="{{true}}">
+<div class="acts"><span class="tonal" onClick="{{start}}"><span class="ms">folder_open</span>Choose files</span></div>
+</sc-if>
+</div>
+<div class="zone">
+<span class="ico"><span class="ms f">restore_page</span></span>
+<b>Decode a .txt back to its file</b>
+<span class="sub">Drop <code>.base64.txt</code> or <code>.b64</code> files. The original name and extension come back in the same folder.</span>
+<div class="acts"><span class="tonal"><span class="ms">folder_open</span>Choose files</span></div>
+</div>
+</div>
+<div class="results" role="list">
+<div class="res" role="listitem"><span class="ms f ok">check_circle</span><div><div class="name">report.pdf.base64.txt<span class="tag p">Verified</span></div><div class="why">Beside report.pdf · 88.1 MB · SHA-256 round trip verified</div></div><span class="text"><span class="ms">folder_open</span>Show in folder</span></div>
+<div class="res" role="listitem"><span class="ms f ok">check_circle</span><div><div class="name">photo (1).png<span class="tag">Type from contents</span><span class="tag">Name was taken</span></div><div class="why">From photo.txt · 2.4 MB · photo.png already existed, so nothing was overwritten</div></div><span class="text"><span class="ms">folder_open</span>Show in folder</span></div>
+<div class="res" role="listitem"><span class="ms f bad">error</span><div><div class="name">notes.txt</div><div class="why">Not Base64: “#” at position 1,204. Nothing was written.</div></div><span></span></div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</div>
+<div>
+<p class="lab">Target states</p>
+<div class="states">
+<div class="st"><h3>Idle</h3><div class="zone"><span class="ico"><span class="ms f">upload_file</span></span><b>Encode beside</b><span class="sub">Drop or choose files</span></div><p class="note">Dashed outline marks a drop target. The button is the keyboard and screen-reader route.</p></div>
+<div class="st"><h3>Dragging over</h3><div class="zone over"><span class="ico"><span class="ms f">upload_file</span></span><b>Release to encode</b><span class="sub">3 files</span></div><p class="note">Solid ring and tonal fill; the icon grows. The window-wide personal vocabulary hint hides while over a target.</p></div>
+<div class="st"><h3>Working</h3><div class="zone"><span class="ico"><span class="ms f">upload_file</span></span><b>Encoding 2 of 3</b><div class="prog" style="grid-column:2"><div class="track"><div class="bar"></div></div><span class="meta">62% · 18 s left</span></div></div><p class="note">Streams in chunks, so memory stays flat. Pause, resume and cancel stay where the work started.</p></div>
+<div class="st"><h3>Done</h3><div class="zone"><span class="ico"><span class="ms f">task_alt</span></span><b>3 files written</b><span class="sub">All verified by SHA-256</span></div><p class="note">Each result names the written file, how its extension was found, and offers Show in folder.</p></div>
+<div class="st"><h3>Refused</h3><div class="errbox">notes.txt is not Base64: “#” at position 1,204. Nothing was written.</div><p class="note">Strict decoding names the exact offset. A cancel or failure removes only the file this run created.</p></div>
+</div>
+</div>
+<div class="notes">
+<div class="n"><b>Names</b>Encode keeps the full name: <code>report.pdf.base64.txt</code>. A clash numbers the stem, so the extension survives the round trip: <code>report (1).pdf.base64.txt</code>, <code>report (1).pdf</code>. Nothing is ever overwritten.</div>
+<div class="n"><b>Restoring the extension</b>From the name pattern first, then a <code>data:</code> type, then the file's first bytes (PNG, JPEG, PDF, ZIP, MP4 and more), with <code>.bin</code> only as the last resort. The result says which one was used.</div>
+<div class="n"><b>Motion and access</b>Ring and fill change with emphasized easing; reduced motion swaps them instantly. Targets are buttons with names, progress is announced politely, and results are a list a screen reader can walk.</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+renderVals() {
+const s = this.state || {};
+const phase = s.phase || 'idle';
+return {
+  working: phase === 'working',
+  idle: phase !== 'working',
+  start: () => this.setState({ phase: 'working' }),
+  finish: () => this.setState({ phase: 'idle' })
+};
+}
+}
+</script>
+</body>
+</html>

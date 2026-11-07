@@ -37,6 +37,8 @@ const APP_SURFACES = [
   ['sessions-chart', 'state=ready&view=sessions&act=chart'],
   ['sessions-export', 'state=ready&view=sessions&act=export'],
   ['tools-base64', 'state=ready&view=tools&act=b64'],
+  ['tools-base64-files', 'state=ready&view=tools&act=b64drop'],
+  ['tools-base64-working', 'state=ready&view=tools&act=b64work&b64=working'],
   ['tools-convert', 'state=ready&view=tools&act=conv'],
   ['tools-auth', 'state=ready&view=tools&act=auth'],
   ['tools-auth-add', 'state=ready&view=tools&act=authadd'],

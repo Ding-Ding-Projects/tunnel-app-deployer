@@ -85,3 +85,11 @@ Review the checked-in API and tests before renderer changes. Terminal backend fa
 - On Windows the window has no system frame: the renderer draws a 40 px title bar and Windows keeps its caption buttons in the overlay (`titleBarOverlay`). The overlay colours follow the theme through the validated `app:titlebar` IPC. This is not yet seen on a real Windows machine; check dragging, Snap layouts and the caption button colours on the next installed update.
 - Fixed: text size above 100 percent cut off the bottom of the window (zoom multiplied `100vh`).
 - Menus are a filter combobox driving a listbox of options; tabs are sibling tab and close buttons with arrow, Home, End and Delete keys; navigation uses `aria-current`; all icon glyph names are hidden from assistive technology.
+
+## Base64 beside the original
+
+- Tools › Base64 has a third card, **Files beside their originals**, with two drop targets: one writes `name.ext.base64.txt` next to each dropped or chosen file, the other turns such a text back into the original file next to it. The name comes from the text's name pattern, then a `data:` type, then the first bytes, with `.bin` last. A clash gets a number before the extension; nothing is overwritten and sources are never changed.
+- The work happens in the main process (`src/base64-files.js`): files stream in 700 KB pieces with pause, resume and cancel, a free-space check comes first, and every written file is checked by SHA-256 before it is reported. A cancel or a refusal removes only the file that run created.
+- The preload resolves paths from real `File` objects with `webUtils.getPathForFile`, so the page cannot ask for arbitrary paths; `main.js` validates every request again, and **Show in folder** only opens files this session wrote.
+- `npm test` covers naming, every alphabet against the panel's own encoder, exact error offsets, overwrite refusal, extension restoration, cancel clean-up and pausing; deliberately breaking overwrite refusal or character checks turns those tests red. `npm run audit:ui` now audits 51 surfaces in 714 combinations, including the results list and the working state, with no findings.
+- Not yet verified on a real Windows install: dragging from File Explorer, very large files on a slow disk, and **Show in folder**.

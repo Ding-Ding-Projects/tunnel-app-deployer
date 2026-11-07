@@ -405,7 +405,7 @@
    "id": "base64-tools",
    "title": "Base64 tools",
    "status": "partial",
-   "note": "Text and file encoding, standard, URL-safe and MIME alphabets, padding, three text encodings, strict decoding with exact positions, data: URLs, SHA-256 round-trip checks and session history. Streaming, pause and ZIP export are not built.",
+   "note": "Text and file encoding, standard, URL-safe and MIME alphabets, padding, three text encodings, strict decoding with exact positions, data: URLs and SHA-256 round-trip checks. Files dropped on the Base64 screen are encoded or decoded beside their originals, restoring the original name and extension, streamed with pause and cancel and never overwriting. History with undo across restarts and ZIP export are not built.",
    "group": "tools",
    "article": "tools"
   },

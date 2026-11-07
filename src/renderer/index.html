@@ -132,6 +132,35 @@
         <p class="small" id="b64-out-stat" role="status"></p>
         <details class="fold"><summary><span class="ms" aria-hidden="true">history</span><span data-i18n="tools.history">Recent conversions</span></summary><div class="hist" id="b64-hist"></div></details>
       </section>
+      <section class="card span-all" id="b64-beside" aria-labelledby="b64-beside-h">
+        <div class="card-head"><h2 class="h3" id="b64-beside-h" data-i18n="tools.beside">Files beside their originals</h2><span class="muted small" data-i18n="tools.besideHint">Uses the alphabet, padding and strict setting above.</span></div>
+        <div class="zones">
+          <div class="zone" id="b64-zone-encode" data-mode="encode">
+            <span class="zone-ico"><span class="ms f" aria-hidden="true">upload_file</span></span>
+            <span class="zone-title" id="b64-zone-encode-t" data-i18n="tools.zoneEnc">Encode to a .txt beside the file</span>
+            <span class="zone-sub" id="b64-zone-encode-d" data-i18n="tools.zoneEncSub">Drop files here or choose them.</span>
+            <div class="zone-acts"><button class="btn tonal" id="b64-pick-encode" aria-describedby="b64-zone-encode-t b64-zone-encode-d"><span class="ms" aria-hidden="true">folder_open</span><span data-i18n="tools.chooseFiles">Choose files</span></button></div>
+            <div class="zone-job" id="b64-job-encode" hidden>
+              <div class="zprog" id="b64-bar-encode" role="progressbar" aria-labelledby="b64-zone-encode-t" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="zprog-bar"></div></div>
+              <span class="zmeta" id="b64-meta-encode" aria-live="polite"></span>
+              <div class="zone-acts"><button class="btn tonal" id="b64-pause-encode"><span class="ms" aria-hidden="true">pause</span><span class="lbl" data-i18n="tools.pause">Pause</span></button><button class="btn text" id="b64-cancel-encode" data-i18n="tools.cancel">Cancel</button></div>
+            </div>
+          </div>
+          <div class="zone" id="b64-zone-decode" data-mode="decode">
+            <span class="zone-ico"><span class="ms f" aria-hidden="true">restore_page</span></span>
+            <span class="zone-title" id="b64-zone-decode-t" data-i18n="tools.zoneDec">Decode a .txt back to its file</span>
+            <span class="zone-sub" id="b64-zone-decode-d" data-i18n="tools.zoneDecSub">Drop .base64.txt or .b64 files.</span>
+            <div class="zone-acts"><button class="btn tonal" id="b64-pick-decode" aria-describedby="b64-zone-decode-t b64-zone-decode-d"><span class="ms" aria-hidden="true">folder_open</span><span data-i18n="tools.chooseFiles">Choose files</span></button></div>
+            <div class="zone-job" id="b64-job-decode" hidden>
+              <div class="zprog" id="b64-bar-decode" role="progressbar" aria-labelledby="b64-zone-decode-t" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="zprog-bar"></div></div>
+              <span class="zmeta" id="b64-meta-decode" aria-live="polite"></span>
+              <div class="zone-acts"><button class="btn tonal" id="b64-pause-decode"><span class="ms" aria-hidden="true">pause</span><span class="lbl" data-i18n="tools.pause">Pause</span></button><button class="btn text" id="b64-cancel-decode" data-i18n="tools.cancel">Cancel</button></div>
+            </div>
+          </div>
+        </div>
+        <p class="muted small" id="b64-beside-note" hidden></p>
+        <div class="bresults" id="b64-results" role="list" data-i18n-aria="tools.results" aria-label="Written files"></div>
+      </section>
     </div>
 
     <div id="panel-auth" role="tabpanel" aria-labelledby="tab-auth" hidden class="auth-panel">
@@ -220,6 +249,8 @@
 </div>
 <input type="file" id="file-vocab" accept=".json,application/json" hidden>
 <input type="file" id="file-b64" hidden>
+<input type="file" id="file-b64-encode" multiple hidden>
+<input type="file" id="file-b64-decode" accept=".txt,.b64,.base64,text/plain" multiple hidden>
 <div class="dialog onboarding" id="onboarding" role="dialog" aria-modal="true" aria-labelledby="onb-title" hidden></div>
 <div class="ctx" id="ctx" role="dialog" aria-label="Menu" hidden></div>
 <div class="sr-only" id="announce" role="status" aria-live="polite"></div>
