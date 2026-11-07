@@ -25,39 +25,35 @@
   <nav class="links" aria-label="Site">
     <a href="#how" data-i18n="nav.how">How it works</a><a href="#features" data-i18n="nav.features">Features</a><a href="#guide" data-route="guide" data-i18n="nav.guide">Guide</a><a href="#limits" data-i18n="nav.limits">Limits</a><a href="#changelog" data-route="changelog" data-i18n="nav.changelog">Changelog</a>
   </nav>
-  <button class="icon-btn" id="open-palette" data-tip="nav.search" aria-keyshortcuts="Control+Shift+F"><span class="ms">search</span></button>
-  <button class="icon-btn" id="open-settings" data-tip="nav.settings"><span class="ms">tune</span></button>
-  <a class="btn fill sm" href="#download"><span class="ms">download</span><span data-i18n="nav.download">Download</span></a>
+  <button class="icon-btn" id="open-palette" data-tip="nav.search" aria-keyshortcuts="Control+Shift+F"><span class="ms" aria-hidden="true">search</span></button>
+  <button class="icon-btn" id="open-settings" data-tip="nav.settings"><span class="ms" aria-hidden="true">tune</span></button>
+  <a class="btn fill sm" href="#download"><span class="ms" aria-hidden="true">download</span><span data-i18n="nav.download">Download</span></a>
 </div></header>
 <main id="content" tabindex="-1">
   <div id="home">
     <section class="wrap hero">
       <div class="hero-copy">
-        <p class="eyebrow" data-i18n="hero.eyebrow">Local Docker app · public HTTPS link</p>
         <h1 class="display" data-i18n="hero.title">Share what's running on your desk.</h1>
         <p class="lead" data-i18n="hero.lead"></p>
-        <div class="row"><a class="btn fill" href="#download"><span class="ms">download</span><span data-i18n="hero.download">Download for Windows</span></a><a class="btn outline" href="#how" data-i18n="hero.how">See how it works</a></div>
+        <div class="row"><a class="btn fill" href="#download"><span class="ms" aria-hidden="true">download</span><span data-i18n="hero.download">Download for Windows</span></a><a class="btn outline" href="#how" data-i18n="hero.how">See how it works</a></div>
         <p class="small muted" id="provenance"></p>
       </div>
       <figure class="shot"><img src="assets/screens/host-live.png" alt="The Host screen showing a verified public link with Copy and Open buttons" width="1280" height="800"></figure>
     </section>
-    <section id="how" class="sec reveal"><div class="wrap">
-      <p class="eyebrow" data-i18n="how.eyebrow"></p><h2 class="h2" data-i18n="how.title"></h2><p class="muted max" data-i18n="how.lead"></p>
+    <section id="how" class="sec reveal"><div class="wrap"><h2 class="h2" data-i18n="how.title"></h2><p class="muted max" data-i18n="how.lead"></p>
       <div class="steps">
-        <article class="step"><span class="n">01</span><span class="ms f">folder_open</span><h3 data-i18n="how.s1"></h3><p data-i18n="how.s1d"></p></article>
-        <article class="step"><span class="n">02</span><span class="ms f">deployed_code</span><h3 data-i18n="how.s2"></h3><p data-i18n="how.s2d"></p></article>
-        <article class="step"><span class="n">03</span><span class="ms f">verified</span><h3 data-i18n="how.s3"></h3><p data-i18n="how.s3d"></p></article>
-        <article class="step"><span class="n">04</span><span class="ms f">share</span><h3 data-i18n="how.s4"></h3><p data-i18n="how.s4d"></p></article>
+        <article class="step"><span class="n">01</span><span class="ms f" aria-hidden="true">folder_open</span><h3 data-i18n="how.s1"></h3><p data-i18n="how.s1d"></p></article>
+        <article class="step"><span class="n">02</span><span class="ms f" aria-hidden="true">deployed_code</span><h3 data-i18n="how.s2"></h3><p data-i18n="how.s2d"></p></article>
+        <article class="step"><span class="n">03</span><span class="ms f" aria-hidden="true">verified</span><h3 data-i18n="how.s3"></h3><p data-i18n="how.s3d"></p></article>
+        <article class="step"><span class="n">04</span><span class="ms f" aria-hidden="true">share</span><h3 data-i18n="how.s4"></h3><p data-i18n="how.s4d"></p></article>
       </div>
     </div></section>
-    <section id="features" class="sec reveal"><div class="wrap">
-      <p class="eyebrow" data-i18n="feat.eyebrow"></p><h2 class="h2" data-i18n="feat.title"></h2><p class="muted max" data-i18n="feat.lead"></p>
+    <section id="features" class="sec reveal"><div class="wrap"><h2 class="h2" data-i18n="feat.title"></h2><p class="muted max" data-i18n="feat.lead"></p>
       <div class="meter"><div><b id="feat-count"></b><span class="small muted" data-i18n="feat.count"></span></div><div class="track" id="feat-track" aria-hidden="true"><i class="b"></i><i class="pa"></i></div></div>
       <div class="filters"><div class="search-slot" id="feat-search"></div><div class="tools" id="feat-filters"></div></div>
       <div id="feat-groups"></div>
     </div></section>
-    <section id="gallery" class="sec reveal secondary"><div class="wrap">
-      <p class="eyebrow" data-i18n="gallery.eyebrow"></p><h2 class="h2" data-i18n="gallery.title"></h2><p class="muted max" data-i18n="gallery.lead"></p>
+    <section id="gallery" class="sec reveal secondary"><div class="wrap"><h2 class="h2" data-i18n="gallery.title"></h2><p class="muted max" data-i18n="gallery.lead"></p>
       <div class="gallery">
         <figure><img loading="lazy" src="assets/screens/host-building.png" alt="Hosting in progress with each step and its timing" width="1280" height="800"><figcaption>Hosting in progress</figcaption></figure>
         <figure><img loading="lazy" src="assets/screens/host-failed.png" alt="A failed health check with the cause and recovery buttons" width="1280" height="800"><figcaption>Recovery where it broke</figcaption></figure>
@@ -73,14 +69,13 @@
         <figure><img loading="lazy" src="assets/screens/bilingual.png" alt="Bilingual interface with focus modes turned on" width="1280" height="800"><figcaption>Bilingual, with focus modes</figcaption></figure>
       </div>
     </div></section>
-    <section id="limits" class="sec reveal"><div class="wrap">
-      <p class="eyebrow" data-i18n="lim.eyebrow"></p><h2 class="h2" data-i18n="lim.title"></h2>
+    <section id="limits" class="sec reveal"><div class="wrap"><h2 class="h2" data-i18n="lim.title"></h2>
       <div class="limits"><div class="lim"><b>200</b><span data-i18n="lim.1"></span></div><div class="lim"><b>No SSE</b><span data-i18n="lim.2"></span></div><div class="lim"><b>Temporary</b><span data-i18n="lim.3"></span></div></div>
       <p><a href="https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/" rel="noopener" data-i18n="lim.source"></a></p>
     </div></section>
     <section id="download" class="sec reveal"><div class="wrap"><div class="cta">
       <div><h2 class="h2" data-i18n="cta.title"></h2><p data-i18n="cta.lead"></p><p class="small" id="release-info" data-i18n="hero.checking"></p></div>
-      <a class="btn on-pc" id="download-btn" href="https://github.com/Ding-Ding-Projects/tunnel-app-deployer/releases" rel="noopener"><span class="ms">download</span><span id="download-label" data-i18n="nav.download">Download</span></a>
+      <a class="btn on-pc" id="download-btn" href="https://github.com/Ding-Ding-Projects/tunnel-app-deployer/releases" rel="noopener"><span class="ms" aria-hidden="true">download</span><span id="download-label" data-i18n="nav.download">Download</span></a>
     </div></div></section>
   </div>
   <div id="page" class="wrap page" hidden></div>
@@ -90,16 +85,16 @@
 <div class="scrim" id="scrim" hidden></div>
 <div class="dialog palette" id="palette" role="dialog" aria-modal="true" aria-labelledby="pal-label" hidden>
   <span class="sr-only" id="pal-label" data-i18n="pal.label"></span>
-  <div class="palette-q"><span class="ms">search</span><input id="pal-input" role="combobox" aria-expanded="true" aria-controls="pal-list" autocomplete="off" spellcheck="false"><button class="chip rx-toggle" id="pal-rx" aria-pressed="false">.*</button><kbd>Esc</kbd></div>
+  <div class="palette-q"><span class="ms" aria-hidden="true">search</span><input id="pal-input" aria-labelledby="pal-label" role="combobox" aria-expanded="true" aria-controls="pal-list" autocomplete="off" spellcheck="false"><button class="chip rx-toggle" id="pal-rx" aria-pressed="false">.*</button><kbd>Esc</kbd></div>
   <div id="pal-rx-host"></div>
   <div class="palette-list" id="pal-list" role="listbox"></div>
 </div>
 <div class="dialog settings" id="settings" role="dialog" aria-modal="true" aria-labelledby="set-title" hidden>
-  <div class="row spread"><h2 class="h3" id="set-title" data-i18n="set.title"></h2><button class="icon-btn" id="close-settings" data-tip="set.close"><span class="ms">close</span></button></div>
+  <div class="row spread"><h2 class="h3" id="set-title" data-i18n="set.title"></h2><button class="icon-btn" id="close-settings" data-tip="set.close"><span class="ms" aria-hidden="true">close</span></button></div>
   <p class="small muted" data-i18n="set.lead"></p>
   <div class="search-slot" id="set-search"></div>
   <div id="set-list"></div>
-  <button class="chip" id="reset-settings"><span class="ms">restart_alt</span><span data-i18n="set.reset"></span></button>
+  <button class="chip" id="reset-settings"><span class="ms" aria-hidden="true">restart_alt</span><span data-i18n="set.reset"></span></button>
 </div>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 </body>

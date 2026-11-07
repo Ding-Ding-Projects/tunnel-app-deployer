@@ -12,6 +12,7 @@ Ordinary navigation never opens tabs. The **Workspace** tab follows the rail as 
 
 - **Ctrl+Tab** and **Ctrl+Shift+Tab** move between tabs.
 - **Ctrl+W** closes the current tab. The Workspace tab cannot be closed.
+- With a tab focused, the **arrow keys**, **Home** and **End** move between tabs, and **Delete** closes it.
 - **Enter** or **Space** opens a focused tab.
 
 Open tabs are remembered between sessions. The strip is hidden while only the Workspace tab is open.

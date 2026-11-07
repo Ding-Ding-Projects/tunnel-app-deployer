@@ -193,3 +193,37 @@ test('base32 round-trips and otpauth links are validated', () => {
   const back = Tools.parseOtpauth(Tools.otpauthUri(ok.entry));
   assert.equal(back.entry.secret, ok.entry.secret);
 });
+
+test('Windows draws its caption buttons over the app title bar; other systems keep their frame', () => {
+  const { windowChromeOptions, validateTitlebarColors } = require('../../src/main');
+  const win = windowChromeOptions('win32');
+  assert.equal(win.titleBarStyle, 'hidden');
+  assert.equal(win.titleBarOverlay.height, 40);
+  assert.deepEqual(windowChromeOptions('linux'), {});
+  assert.deepEqual(windowChromeOptions('darwin'), {});
+  assert.deepEqual(validateTitlebarColors({ color: '#0E1513', symbolColor: '#dde4e1' }), { color: '#0e1513', symbolColor: '#dde4e1', height: 40 });
+  for (const bad of [null, {}, { color: 'oklch(.2 .01 175)', symbolColor: '#ffffff' }, { color: '#fff', symbolColor: '#ffffff' }, { color: '#000000' }]) assert.throws(() => validateTitlebarColors(bad));
+});
+
+test('icon glyph names are hidden from assistive technology on the app and the website', () => {
+  for (const file of ['src/renderer/index.html', 'src/renderer/app.js', 'docs/index.html', 'docs/app.js']) {
+    const text = fs.readFileSync(path.join(root, file), 'utf8');
+    const exposed = text.match(/<span class="ms\b[^"]*"(?! aria-hidden="true")/g) || [];
+    assert.deepEqual(exposed, [], `${file} has icons without aria-hidden`);
+  }
+});
+
+test('app landmarks and navigation semantics', () => {
+  const html = fs.readFileSync(path.join(root, 'src/renderer/index.html'), 'utf8');
+  assert.match(html, /<main class="main" id="main"/);
+  assert.doesNotMatch(html, /class="dest" role="tab"/);
+  assert.doesNotMatch(html, /<aside[^>]*role="dialog"/);
+  assert.match(html, /<div class="tabbar"[^>]*>\s*<div class="tabstrip"[^>]*role="tablist"[^>]*><\/div>\s*<button class="newtab"/);
+  assert.match(html, /<input id="palette-input" aria-labelledby="palette-label"/);
+});
+
+test('article headings start at level 2 under the page title', () => {
+  const html = Markdown.render('Intro\n\n## Section\n\n### Detail');
+  assert.match(html, /<h2 id="h-section">Section<\/h2>/);
+  assert.match(html, /<h3 id="h-detail">Detail<\/h3>/);
+});

@@ -9,6 +9,9 @@ contextBridge.exposeInMainWorld('tunnel', Object.freeze({
   copy: () => ipcRenderer.invoke('host:copy'),
   open: () => ipcRenderer.invoke('host:open'),
   info: () => ipcRenderer.invoke('app:info'),
+  // Matches windowChromeOptions in main.js: Windows draws its caption buttons over our own title bar.
+  windowChrome: process.platform === 'win32' ? 'overlay' : 'native',
+  setTitlebar: colors => ipcRenderer.invoke('app:titlebar', { color: String(colors?.color), symbolColor: String(colors?.symbolColor) }),
   copyText: text => ipcRenderer.invoke('app:copy-text', String(text)),
   setTitle: title => ipcRenderer.invoke('app:set-title', String(title)),
   openLink: url => ipcRenderer.invoke('app:open-link', String(url)),

@@ -192,6 +192,14 @@
    "w": 1280,
    "h": 800,
    "title": "Utility tabs and New tab catalogue"
+  },
+  "Sweep.dc.html": {
+   "x": 0,
+   "y": 10920,
+   "w": 1440,
+   "h": 2520,
+   "title": "Final sweep · every app and website surface",
+   "expand": "fill"
   }
  },
  "order": [
@@ -218,7 +226,8 @@
   "Icon.dc.html",
   "Updates.dc.html",
   "Auth.dc.html",
-  "Tabs.dc.html"
+  "Tabs.dc.html",
+  "Sweep.dc.html"
  ],
  "notes": {
   "appTitle": {
@@ -262,6 +271,13 @@
    "text": "Required features · wave 3",
    "kind": "title1",
    "maxW": 4000
+  },
+  "sweep": {
+   "x": 0,
+   "y": 10800,
+   "text": "Final sweep · findings and polish direction",
+   "kind": "title1",
+   "maxW": 1440
   }
  },
  "designSystems": []

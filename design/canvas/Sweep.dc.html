@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Final sweep: findings and direction</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,300..800&amp;family=Roboto+Mono:wght@400;500&amp;family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..500,0..1,0&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.b{--bg:#0e1513;--s1:#161d1b;--s2:#1a2220;--s3:#242c2a;--s4:#2f3735;--ol:#3f4946;--olv:#2a3431;--on:#dde4e1;--onv:#bec9c4;--p:#82d5c0;--onp:#00382d;--pc:#005143;--onpc:#9ef2db;--sc:#334b45;--onsc:#cce8e0;--err:#ffb4ab;--errc:#93000a;--onerrc:#ffdad6;--warn:#f3bf6e;--warnc:#5c4200;--onwarnc:#ffdea8;
+  width:1440px;min-height:2520px;background:var(--bg);color:var(--on);font:14px/20px "Roboto Flex",system-ui,sans-serif;padding:48px;box-sizing:border-box;display:flex;flex-direction:column;gap:32px}
+.ms{font-family:"Material Symbols Rounded";font-size:20px;line-height:1;display:inline-block;font-variation-settings:"FILL" 0;vertical-align:-4px}
+.mono{font-family:"Roboto Mono",monospace}
+h1{font-size:32px;line-height:40px;font-weight:500;margin:0}
+h2{font-size:22px;line-height:28px;font-weight:500;margin:0 0 12px}
+h3{font-size:16px;line-height:24px;font-weight:600;margin:0}
+p{margin:0}
+.muted{color:var(--onv)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+.scores{display:flex;gap:12px}
+.score{background:var(--s1);border-radius:20px;padding:14px 20px;min-width:150px}
+.score b{display:block;font-size:28px;line-height:36px;font-weight:500}
+.score.after b{color:var(--p)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 560px;gap:32px;align-items:start}
+table{width:100%;border-collapse:collapse;background:var(--s1);border-radius:28px;overflow:hidden}
+th,td{text-align:left;padding:10px 12px;vertical-align:top;border-bottom:1px solid var(--s3)}
+th{font-size:12px;color:var(--onv);font-weight:600;background:var(--s2)}
+td{font-size:13px;line-height:18px}
+td.w{color:var(--onv);white-space:nowrap}
+.sev{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:2px 8px;white-space:nowrap}
+.p1{background:var(--errc);color:var(--onerrc)}.ok{background:var(--pc);color:var(--onpc)}.p2{background:var(--warnc);color:var(--onwarnc)}.p3{background:var(--s4);color:var(--onv)}
+.dir{display:flex;flex-direction:column;gap:20px}
+.card{background:var(--s1);border-radius:28px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.card .lab{font-size:12px;font-weight:600;color:var(--p)}
+/* title bar + header */
+.win{border-radius:16px;overflow:hidden;border:1px solid var(--olv);background:var(--bg)}
+.tbar{height:40px;display:flex;align-items:center;gap:10px;padding:0 0 0 14px;background:var(--bg);font-size:12px;color:var(--onv);white-space:nowrap;overflow:hidden}
+.tbar .ic{width:18px;height:18px;border-radius:6px;background:var(--pc);display:grid;place-items:center;color:var(--onpc)}
+.tbar .ic .ms{font-size:14px;vertical-align:0}
+.tbar strong{color:var(--on);font-weight:500}
+.tbar .chip{border:1px solid var(--ol);border-radius:8px;padding:1px 8px;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.tbar .sp{flex:1}
+.caps{display:flex;height:40px}
+.caps span{width:46px;display:grid;place-items:center;color:var(--onv)}
+.hdr{display:flex;align-items:center;gap:10px;padding:8px 14px 12px}
+.search{flex:1;height:44px;border-radius:22px;background:var(--s3);display:flex;align-items:center;gap:10px;padding:0 14px;color:var(--onv)}
+.search kbd{margin-left:auto;font:11px "Roboto Mono";background:var(--s4);border-radius:6px;padding:2px 6px}
+.search.focus{box-shadow:0 0 0 3px var(--p)}
+.ib{width:40px;height:40px;border-radius:20px;display:grid;place-items:center;color:var(--onv)}
+/* narrow settings row */
+.phone{width:360px;background:var(--s1);border-radius:24px;padding:8px;align-self:flex-start}
+.item{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.item+.item{border-top:1px solid var(--s3)}
+.item strong{font-weight:500}
+.item .d{font-size:12px;line-height:16px;color:var(--onv)}
+.sw{display:flex;gap:8px}.sw i{width:28px;height:28px;border-radius:14px;display:block}
+.hue{height:12px;border-radius:6px;background:linear-gradient(90deg,oklch(.72 .12 0),oklch(.72 .12 45),oklch(.72 .12 90),oklch(.72 .12 135),oklch(.72 .12 180),oklch(.72 .12 225),oklch(.72 .12 270),oklch(.72 .12 315),oklch(.72 .12 360));position:relative}
+.hue b{position:absolute;left:48%;top:-4px;width:20px;height:20px;border-radius:10px;background:var(--on);border:3px solid var(--bg);box-sizing:border-box}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.hex{height:36px;border:1px solid var(--ol);border-radius:8px;padding:0 10px;display:flex;align-items:center;font-family:"Roboto Mono"}
+/* link */
+.url{background:var(--pc);color:var(--onpc);border-radius:20px;padding:18px;width:324px}
+.url .t{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.url .a{font:500 20px/28px "Roboto Mono";margin-top:6px}
+/* slide */
+.slide{position:relative;height:56px;border-radius:28px;background:var(--bg);width:324px}
+.slide .th{position:absolute;left:4px;top:4px;width:48px;height:48px;border-radius:24px;background:var(--onerrc);color:var(--errc);display:grid;place-items:center}
+.slide .tx{position:absolute;left:60px;right:16px;top:0;bottom:0;display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--onv);text-align:center;font-size:13px;line-height:16px}
+/* chart */
+.chart{background:var(--s2);border-radius:16px;padding:14px 16px}
+.bars{display:flex;align-items:flex-end;gap:6px;height:90px;border-bottom:1px solid var(--s4)}
+.bars i{flex:1;display:flex;flex-direction:column-reverse;gap:2px}
+.bars i u{display:block;border-radius:4px;background:var(--p)}
+.bars i u.f{background:var(--err)}.bars i u.c{background:var(--onv)}
+.ticks{display:flex;justify-content:space-between;font-size:11px;color:var(--onv);margin-top:6px}
+.menu{background:var(--s3);border-radius:12px;padding:8px 0;width:300px}
+.mi{display:flex;gap:12px;align-items:center;padding:8px 16px;min-height:40px;box-sizing:border-box}
+.mi.on{box-shadow:inset 0 0 0 2px var(--p);border-radius:8px;margin:0 6px;padding:8px 10px;background:var(--s4)}
+.note{font-size:12px;line-height:16px;color:var(--onv)}
+</style>
+</helmet>
+<div class="b">
+  <div class="head">
+    <div>
+      <h1>Final sweep: every screen, both themes, three languages, four sizes</h1>
+      <p class="muted">49 surfaces, 686 combinations: axe-core WCAG 2.2 AA, a keyboard walk, clipped and overlapping text, and console errors, then a visual review of every screen. Before: 12 accessibility rules failing, 100 clipping hits, overlaps and invisible focus. After: no findings. 30 fixes, all at the root.</p>
+    </div>
+    <div class="scores"><div class="score"><span class="muted">Before</span><b>27 / 40</b></div><div class="score after"><span class="muted">After</span><b>33 / 40</b></div></div>
+  </div>
+  <div class="grid">
+    <table>
+      <thead><tr><th>Severity</th><th>Where</th><th>What</th><th>Fix at the root</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sev p1">P1</span></td><td class="w">Every screen</td><td>Icon names are read aloud: a screen reader hears "content_copy Copy link".</td><td>Hide every icon glyph from assistive technology.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p1">P1</span></td><td class="w">Narrow windows</td><td>Bottom navigation uses tab roles with no tab list; 1,505 nodes.</td><td>Navigation buttons with aria-current, rail and bottom bar alike.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p1">P1</span></td><td class="w">Menus</td><td>Menu holds a text field and buttons, items carry a selected state menus cannot have.</td><td>Filter field as a combobox driving a listbox of options.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p1">P1</span></td><td class="w">Tabs</td><td>Close buttons nested inside tabs, New tab button inside the tab list.</td><td>Tab and close as siblings, Delete closes, arrows move.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p1">P1</span></td><td class="w">Settings, phone</td><td>Rows with wide controls squeeze labels to one word per line; the hue slider covers the label; a schedule rule runs off screen.</td><td>Rows stack the control under the label below 600 px; schedule rules reflow.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p1">P1</span></td><td class="w">Bilingual buttons</td><td>Cantonese text inside filled buttons drops to 1.07:1 contrast.</td><td>Secondary text inherits the control's own text colour.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p1">P1</span></td><td class="w">Search fields</td><td>Focus only changes the field's tone; the keyboard walk cannot see it.</td><td>A 3 px focus ring around the whole search box.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p1">P1</span></td><td class="w">Website dialogs</td><td>Tab leaves the open settings dialog for the page behind it.</td><td>Trap focus in open dialogs, return it on close.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Header, 960 px</td><td>Search shrinks to "Sear…" while a long build line takes the space.</td><td>Build line moves to the new title bar; the search keeps its width.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Host, live</td><td>A toast repeats what the screen already says and covers Copy link.</td><td>Stay quiet on the screen you are looking at; the bell still records it.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Host, phone</td><td>The public link breaks mid-word ("trycloudflar / e.com").</td><td>Break only after dots, dashes and slashes; size steps down on phones.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Confirm, phone</td><td>The slider thumb covers the start of its instruction.</td><td>Instruction starts after the thumb.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Sessions chart</td><td>Date labels scale down to about 4 px on phones.</td><td>Labels in the page, bars in the chart.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Schedules</td><td>Switch values show raw "on" and "off", in Cantonese too; Motion's "Off" shows as "off".</td><td>Translated on and off labels.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Light theme</td><td>"Starting" status reads 4.16:1.</td><td>Busy status uses the on-surface colour.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Bell, authenticator</td><td>Visible text missing from the spoken name (badge count, grouped code).</td><td>Names include what is shown.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Guide, changelog</td><td>Headings skip a level.</td><td>Article headings start at level 2.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Website</td><td>"Show all features" gets the browser's grey button fill (4.12:1).</td><td>Buttons start transparent.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Menus</td><td>The highlighted item is a faint tone change.</td><td>Focused item gets the focus ring.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p3">P3</span></td><td class="w">Reduced motion</td><td>The tunnel line freezes as dashes.</td><td>A solid line when motion is off.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p3">P3</span></td><td class="w">Accent colour</td><td>The hue track's colours do not match the hue it picks.</td><td>Track drawn in OKLCH, the same space as the scheme.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p3">P3</span></td><td class="w">Tools, phone</td><td>"Authenticator" tab cut at the edge.</td><td>Tighter tab padding on phones.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p3">P3</span></td><td class="w">Notifications, tour</td><td>Dialog role on an aside; step dots labelled with no role.</td><td>Valid roles.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p3">P3</span></td><td class="w">Skip link</td><td>Reads "Host".</td><td>"Skip to content".</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p3">P3</span></td><td class="w">Type</td><td>Thirteen font sizes, with 13, 15 and 18 px between steps.</td><td>Eight Material 3 sizes as tokens (DESIGN.md).</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p3">P3</span></td><td class="w">Website, phone</td><td>Navigation links cut at the edge; hover lift on cards that do nothing.</td><td>Tighter links; lift only on links.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p1">P1</span></td><td class="w">Text size 150%</td><td>Found during the sweep: the zoomed app grew to 1,200 px in an 800 px window, hiding its bottom third.</td><td>App height divided by the zoom; the window always fits.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Settings, 960 px</td><td>Found during the sweep: bilingual "Export" label covered by its own buttons.</td><td>Labels keep a minimum width; controls wrap in their column.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p2">P2</span></td><td class="w">Tour, resumed</td><td>Found during the sweep: reopening the tour on the check step spun forever.</td><td>Resuming runs the check again.</td><td><span class="sev ok">Fixed</span></td></tr>
+        <tr><td><span class="sev p3">P3</span></td><td class="w">Changelog</td><td>Found during the sweep: its search said "Search settings".</td><td>Its own label in both languages.</td><td><span class="sev ok">Fixed</span></td></tr>
+      </tbody>
+    </table>
+    <div class="dir">
+      <section class="card"><span class="lab">Modernise · Windows title bar</span>
+        <div class="win">
+          <div class="tbar"><span class="ic"><span class="ms">add_link</span></span><strong>Tunnel App Deployer</strong><span>v0.2.10</span><span class="chip">Crab Roe Har Gow · 蟹籽蝦餃</span><span class="sp"></span><span class="caps"><span class="ms">remove</span><span class="ms">crop_square</span><span class="ms">close</span></span></div>
+          <div class="hdr"><div class="search focus"><span class="ms">search</span>Search screens, actions, settings<kbd>Ctrl Shift F</kbd></div><span class="ib"><span class="ms">notifications</span></span><span class="ib"><span class="ms">light_mode</span></span></div>
+        </div>
+        <p class="note">No system frame. Windows keeps its own caption buttons and Snap layouts in the overlay; the bar is the drag area. The build line moves up here, so the search keeps its width. Search boxes show a full focus ring.</p>
+      </section>
+      <section class="card"><span class="lab">Narrow settings row · stacked</span>
+        <div class="phone">
+          <div class="item"><div><strong>Accent colour</strong><p class="d">Every colour in the app is generated from this one. Type a hex value or drag the hue.</p></div><div class="sw"><i style="background:#82d5c0"></i><i style="background:#9ab7ff"></i><i style="background:#d8a2f0"></i><i style="background:#f0a080"></i><i style="background:#e6c770"></i></div><div class="hue"><b></b></div><div class="row"><span class="hex">#4fbfa5</span></div></div>
+          <div class="item"><div><strong>English playfulness</strong><p class="d">From 1 (serious) to 5 (playful). Changes voice, never facts.</p></div><div class="row"><div class="hue" style="flex:1;background:var(--s4)"></div><span class="mono">5</span></div></div>
+        </div>
+      </section>
+      <section class="card"><span class="lab">Phone details</span>
+        <div class="url"><div class="t">Verified over HTTPS</div><div class="a">https://quiet-river-<br>maple.trycloudflare.com</div></div>
+        <div class="slide"><span class="th"><span class="ms">arrow_forward</span></span><span class="tx">Turn both keys, then slide to confirm.</span></div>
+        <div class="chart"><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i><u class="c" style="height:22px"></u></i><i></i><i><u style="height:22px"></u></i><i><u style="height:22px"></u><u class="f" style="height:22px"></u></i></div><div class="ticks"><span>24 Oct</span><span>6 Nov</span></div></div>
+        <div class="menu"><div class="mi"><span class="ms">palette</span>Appearance</div><div class="mi on"><span class="ms">password</span>Authenticator</div><div class="mi"><span class="ms">article</span>Safety</div></div>
+      </section>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":2520}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

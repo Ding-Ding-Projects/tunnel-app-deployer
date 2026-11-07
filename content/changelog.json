@@ -20,7 +20,20 @@
           "Version and build time on the first screen, and a release on every build of main"
         ],
         "Changed": [
-          "The website was rebuilt with the feature inventory, articles, language modes and a command palette"
+          "The website was rebuilt with the feature inventory, articles, language modes and a command palette",
+          "Windows title bar drawn by the app, with the version, dim sum code name and build time, and Windows' own caption buttons and Snap layouts",
+          "One Material 3 type scale, focus rings around search boxes, menu items and date fields, and buttons whose corners square up when pressed",
+          "Settings rows stack their controls under the label on narrow windows; schedule rules reflow to fit",
+          "The public link wraps only after dots, dashes and slashes, and steps down in size on narrow windows",
+          "No toast for news the Host screen already shows; the bell still records it"
+        ],
+        "Fixed": [
+          "Text size above 100 percent cut off the bottom of the window",
+          "Screen readers read icon names such as \"content_copy\"; menus, tabs and the bottom navigation used invalid roles",
+          "Cantonese text inside filled buttons had too little contrast; Starting status was below 4.5 to 1 in the light theme",
+          "Schedule switches showed untranslated on and off, and the confirm slider covered its own instruction",
+          "Sessions chart date labels shrank to unreadable sizes on narrow windows",
+          "Website dialogs let the keyboard leave them; the Show all features button had a grey browser fill"
         ]
       }
     },

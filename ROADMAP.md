@@ -20,7 +20,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 
 ## Appearance and layout
 
-- [x] **Material Design 3**: Material 3 colour roles, shapes, type scale, navigation rail and bottom bar, generated from one seed colour.
+- [x] **Material Design 3**: Material 3 colour roles, shapes and one type scale, navigation rail and bottom bar, generated from one seed colour; on Windows the app draws its own title bar beside the system caption buttons.
 - [x] **Workflow navigation**: Five destinations in a navigation rail, a bottom bar in narrow windows, and the current step always visible on Host.
 - [x] **Motion with a reduced-motion path**: Full, gentle or off, following the system reduced-motion setting. No state is carried by motion alone.
 - [~] **Live charts**: Sessions shows a 14-day chart of outcomes that redraws as sessions finish, with a screen-reader table. Not a streaming chart of a running session.
@@ -29,7 +29,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 - [ ] **Logo customization**: Not built yet.
 - [x] **Overlays and panels**: Notification centre, command palette and confirmations open as layered panels with focus return and Escape.
 - [x] **Collapsible filters and statistics**: Session filters and statistics fold away and remember their state.
-- [x] **Accessibility and sizing**: Text size from 90 to 150 percent, comfortable or compact density, visible focus, and layouts tested from 420 px wide.
+- [x] **Accessibility and sizing**: Text size from 90 to 150 percent with the whole window always reachable, comfortable or compact density, visible focus everywhere, and every screen audited automatically (WCAG 2.2 AA, keyboard walk, clipping) at four window sizes, both themes and all language modes.
 - [x] **Truthful empty states**: No link, count or status is shown unless the backend reported it.
 
 ## Navigation, search and commands
@@ -38,6 +38,7 @@ Generated from `content/features.json` by `scripts/build-content.mjs`. `[x]` bui
 - [x] **Tabbed navigation**: A Workspace tab plus utility tabs opened from a searchable New tab catalogue, with Ctrl+T, Ctrl+W and Ctrl+Tab. Tabs persist.
 - [~] **Regex builder on every search**: Every search box has an adjacent regex builder with flags, live token explanation, match count, validation and a time limit. Full RegexBuddy parity is not built.
 - [x] **Command palette**: Ctrl+Shift+F opens every destination, action and setting; picking one jumps to it and highlights it. Card or full-window size is remembered.
+- [ ] **Extension support**: Not built yet. Planned: extensions tailored to sharing apps, each with a versioned manifest, an out-of-process protocol and declared permissions you allow before it runs, with a searchable manager, useful built-in extensions and an author guide.
 - [~] **Context menus**: Right-click or Shift+F10 opens a filterable menu; settings show live switches and choices beside their labels that work without closing the menu. Appearance and lock entries are not built.
 - [x] **Shortcuts shown in menus**: Menus and the palette show each working shortcut.
 - [~] **Rich controls**: Links and addresses carry copy and open controls, and settings in menus and the command palette show live switches. Not every value does yet.

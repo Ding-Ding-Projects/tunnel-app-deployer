@@ -77,3 +77,11 @@ Review the checked-in API and tests before renderer changes. Terminal backend fa
 - Sessions chart: 14-day outcome chart (partly built; no streaming chart of a running session).
 - Clipping matrix: `npm run clip` (Playwright with Chromium) checks 6 screens x 3 widths x 3 languages; first run found and fixed the Guide overflowing a 360 px phone. Not in CI yet.
 - GitHub cancels a queued Release run when a newer push queues behind it, so a quick series of pushes tags only the newest commit; that release contains every earlier change.
+
+## Final sweep (polish and accessibility)
+
+- `DESIGN.md` is now the design system's source of truth: colour roles, one type scale as tokens (`--fs-*`), spacing, shape, states, motion, window and layout rules.
+- `npm run audit:ui` audits 49 surfaces in 686 combinations (themes, languages, sizes). The first run found 12 accessibility rules failing, clipping in schedule rules, overlaps in bilingual settings and invisible focus in search boxes; all are fixed and the audit reports no problems.
+- On Windows the window has no system frame: the renderer draws a 40 px title bar and Windows keeps its caption buttons in the overlay (`titleBarOverlay`). The overlay colours follow the theme through the validated `app:titlebar` IPC. This is not yet seen on a real Windows machine; check dragging, Snap layouts and the caption button colours on the next installed update.
+- Fixed: text size above 100 percent cut off the bottom of the window (zoom multiplied `100vh`).
+- Menus are a filter combobox driving a listbox of options; tabs are sibling tab and close buttons with arrow, Home, End and Delete keys; navigation uses `aria-current`; all icon glyph names are hidden from assistive technology.

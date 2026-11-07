@@ -57,6 +57,8 @@ Requires Node.js 24 and a running Docker installation with Compose v2.
 | `python3 scripts/subset-site-icons.py` | Rebuild the website's icon font subset |
 | `python3 scripts/build-icon.py` | Rebuild the app icon files from `build/icon.svg` |
 | `scripts/screens/shoot.sh <folder>` | Render interface screenshots with a scripted backend |
+| `npm run audit:ui` | Audit every app and website screen: accessibility (WCAG 2.2 AA), keyboard focus, clipped or overlapping text and console errors, in both themes, three languages and four sizes |
+| `npm run clip` | The clipping part of the audit only |
 | `node scripts/count-lines.mjs` | Count hand-written lines |
 | `build.bat` or `npm run package:win` | Build the Windows portable executable |
 

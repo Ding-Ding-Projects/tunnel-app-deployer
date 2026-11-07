@@ -20,7 +20,7 @@
       if (!line.trim()) { i++; continue; }
       if (/^```/.test(line)) { const code = []; i++; while (i < lines.length && !/^```/.test(lines[i])) { code.push(lines[i]); i++; } i++; html.push(`<pre><code>${esc(code.join('\n'))}</code></pre>`); continue; }
       const h = line.match(/^(#{1,3})\s+(.*)$/);
-      if (h) { const level = h[1].length + 1; const id = h[2].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); html.push(`<h${level} id="h-${id}">${inline(h[2])}</h${level}>`); i++; continue; }
+      if (h) { const level = Math.max(2, h[1].length); /* the article title is the only h1 */ const id = h[2].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); html.push(`<h${level} id="h-${id}">${inline(h[2])}</h${level}>`); i++; continue; }
       if (/^\|/.test(line)) {
         const rows = [];
         while (i < lines.length && /^\|/.test(lines[i])) { rows.push(lines[i]); i++; }

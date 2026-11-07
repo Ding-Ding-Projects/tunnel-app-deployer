@@ -85,7 +85,9 @@ const isDark = () => settings.theme === 'dark' || (settings.theme === 'system' &
 function applySettings() {
   const root = document.documentElement;
   const dark = isDark();
-  for (const [k, v] of Object.entries(scheme(dark))) root.style.setProperty(`--${k}`, v);
+  const sc = scheme(dark);
+  for (const [k, v] of Object.entries(sc)) root.style.setProperty(`--${k}`, v);
+  if (root.dataset.chrome === 'overlay') api?.setTitlebar?.({ color: cssHex(sc.bg), symbolColor: cssHex(sc.on) }).catch?.(() => {});
   root.dataset.scheme = dark ? 'dark' : 'light';
   root.dataset.motion = settings.motion;
   root.dataset.density = settings.density;
@@ -107,6 +109,7 @@ function applyI18n() {
   for (const el of document.querySelectorAll('[data-i18n]')) el.innerHTML = label(el.dataset.i18n);
   for (const el of document.querySelectorAll('[data-i18n-aria]')) el.setAttribute('aria-label', t(el.dataset.i18nAria));
   for (const el of document.querySelectorAll('[data-tip]')) { el.setAttribute('aria-label', t(el.dataset.tip)); el.title = plainBoth(el.dataset.tip); }
+  renderBadge();
 }
 
 // ---------- sound ----------
@@ -152,13 +155,15 @@ function narrate(text) {
 synth?.addEventListener?.('voiceschanged', () => { if (view === 'settings') renderSettings(); });
 let notifications = store.get('notifications', []);
 const EMOJI = { ok: '✅', info: '💡', error: '🛠️', warn: '⚠️', dimsum: '🥟' };
-function notify(textOrKey, kind = 'info', { action } = {}) {
+function notify(textOrKey, kind = 'info', { action, quietOn } = {}) {
   const text = textOrKey in window.I18n.en ? plainBoth(textOrKey) : String(textOrKey);
   notifications.unshift({ id: crypto.randomUUID(), at: new Date().toISOString(), kind, text, read: false });
   notifications = notifications.slice(0, 300); store.set('notifications', notifications);
+  // The bell still records it; a toast would only repeat what the visible screen already says.
+  if (quietOn && quietOn === view && document.hasFocus() && !document.hidden) { announce(text); renderBadge(); if (!$('notif-panel').hidden) renderNotifications(); return; }
   const el = document.createElement('div');
   el.className = `toast ${kind === 'error' ? 'error' : kind === 'warn' ? 'warn' : ''}`;
-  el.innerHTML = `${settings.emoji ? `<span aria-hidden="true">${EMOJI[kind] || EMOJI.info}</span>` : `<span class="ms">${kind === 'error' ? 'error' : kind === 'ok' ? 'check_circle' : kind === 'warn' ? 'warning' : 'info'}</span>`}<span class="msg">${esc(text)}</span>${action ? `<button class="chip" data-act>${esc(action.label)}</button>` : ''}<button aria-label="${esc(t('notif.dismiss'))}"><span class="ms">close</span></button>`;
+  el.innerHTML = `${settings.emoji ? `<span aria-hidden="true">${EMOJI[kind] || EMOJI.info}</span>` : `<span class="ms" aria-hidden="true">${kind === 'error' ? 'error' : kind === 'ok' ? 'check_circle' : kind === 'warn' ? 'warning' : 'info'}</span>`}<span class="msg">${esc(text)}</span>${action ? `<button class="chip" data-act>${esc(action.label)}</button>` : ''}<button aria-label="${esc(t('notif.dismiss'))}"><span class="ms" aria-hidden="true">close</span></button>`;
   const remove = () => { el.classList.add('out'); setTimeout(() => el.remove(), 220); };
   el.querySelector('button[aria-label]').onclick = remove;
   if (action) el.querySelector('[data-act]').onclick = () => { action.run(); remove(); };
@@ -168,7 +173,11 @@ function notify(textOrKey, kind = 'info', { action } = {}) {
   announce(text);
   renderBadge(); if (!$('notif-panel').hidden) renderNotifications();
 }
-function renderBadge() { const n = notifications.filter(x => !x.read).length; $('badge').hidden = !n; $('badge').textContent = n > 99 ? '99+' : n; }
+function renderBadge() {
+  const n = notifications.filter(x => !x.read).length, shown = n > 99 ? '99+' : String(n);
+  $('badge').hidden = !n; $('badge').textContent = shown;
+  $('bell').setAttribute('aria-label', n ? `${t('top.notifications')}, ${shown} ${t('notif.unread')}` : t('top.notifications'));
+}
 
 // ---------- search with regex builder ----------
 const searches = {};
@@ -176,7 +185,7 @@ function makeSearch(slotId, placeholderKey, onChange) {
   const slot = $(slotId); if (!slot) return null;
   const state = searches[slotId] = { query: '', regex: false, flags: 'i', onChange };
   const wrap = document.createElement('div'); wrap.className = 'search';
-  wrap.innerHTML = `<label class="search-box"><span class="ms">search</span><input type="search" spellcheck="false" autocomplete="off"><button class="chip rx-toggle" aria-pressed="false">.*</button></label><div class="rx" hidden></div>`;
+  wrap.innerHTML = `<label class="search-box"><span class="ms" aria-hidden="true">search</span><input type="search" spellcheck="false" autocomplete="off"><button class="chip rx-toggle" aria-pressed="false">.*</button></label><div class="rx" hidden></div>`;
   slot.replaceChildren(wrap);
   const input = wrap.querySelector('input'), toggle = wrap.querySelector('.rx-toggle'), panel = wrap.querySelector('.rx');
   state.input = input; state.panel = panel; state.toggle = toggle; state.placeholderKey = placeholderKey;
@@ -208,7 +217,7 @@ function go(next, { focus = true, fromTab = false } = {}) {
   view = next;
   if (!fromTab && typeof activeTab !== 'undefined') { activeTab = 'workspace'; workspaceView = next; renderTabs(); }
   for (const v of VIEWS) $(`view-${v}`).hidden = v !== next;
-  for (const b of document.querySelectorAll('.dest')) b.setAttribute('aria-selected', String(b.dataset.view === next));
+  for (const b of document.querySelectorAll('.dest')) { if (b.dataset.view === next) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }
   renderView();
   if (focus) $('main').focus({ preventScroll: true });
   $('main').scrollTop = 0;
@@ -229,6 +238,16 @@ function fmtTime(iso) {
 function renderProvenance() {
   const built = info.buildTime ? `${t('top.built')} ${fmtTime(info.buildTime)}` : t('top.buildUnknown');
   $('provenance').textContent = `${appName()} ${info.version ? 'v' + info.version : ''}${info.codeName ? ` (${info.codeName.en})` : ''} · ${built}`;
+  $('provenance').title = $('provenance').textContent;
+  $('tb-name').textContent = appName();
+  $('tb-meta').title = ''; $('tb-meta').textContent = [info.version ? `v${info.version}` : '', info.codeName ? `${info.codeName.en} · ${info.codeName.zhHant}` : '', built].filter(Boolean).join(' · ');
+  $('tb-meta').title = $('tb-meta').textContent;
+}
+// Any CSS colour, including oklch(), as #rrggbb for the native caption buttons.
+function cssHex(value) {
+  const c = document.createElement('canvas'); c.width = c.height = 1;
+  const x = c.getContext('2d'); x.fillStyle = value; x.fillRect(0, 0, 1, 1);
+  return '#' + [...x.getImageData(0, 0, 1, 1).data.slice(0, 3)].map(v => v.toString(16).padStart(2, '0')).join('');
 }
 
 // ---------- hosting ----------
@@ -301,7 +320,7 @@ async function host() {
   sessions.unshift(session); saveSessions();
   status = { phase: 'pending' }; stepStart = Date.now(); sound('start'); renderHost();
   try { await api.host({ service: kind === 'compose' ? $('service').value : '', containerPort: $('port').value.trim() }); }
-  catch (e) { if (!stopping && session) { finishSession('failed', e.message); } if (!stopping) { status = { phase: 'error', error: e.message }; sound('fail'); notify('toast.failed', 'error'); } }
+  catch (e) { if (!stopping && session) { finishSession('failed', e.message); } if (!stopping) { status = { phase: 'error', error: e.message }; sound('fail'); notify('toast.failed', 'error', { quietOn: 'host' }); } }
   finally { busy = false; await refreshStatus(); }
 }
 $('host-btn').onclick = host;
@@ -321,7 +340,7 @@ async function copyText(text) {
   try { await api.copyText(String(text)); return true; } catch (e) { notify('error.copy', 'error'); return false; }
 }
 $('copy-btn').onclick = async () => {
-  try { await api.copy(); $('copy-label').innerHTML = label('host.copied'); $('copy-icon').textContent = 'check'; notify('toast.copied', 'ok'); sound('tap');
+  try { await api.copy(); $('copy-label').innerHTML = label('host.copied'); $('copy-icon').textContent = 'check'; notify('toast.copied', 'ok', { quietOn: 'host' }); sound('tap');
     setTimeout(() => { $('copy-label').innerHTML = label('host.copy'); $('copy-icon').textContent = 'content_copy'; }, 1800); }
   catch (e) { notify(e.message, 'error'); await refreshStatus(); }
 };
@@ -351,11 +370,11 @@ function renderHost() {
   $('summary').hidden = !summary; $('choose').hidden = summary; document.querySelector('#card-project .seg').hidden = summary;
   if (summary) {
     const port = $('port').value || inspection?.containerPort || '';
-    $('summary').innerHTML = `<div class="file" data-ctx="path" data-path="${esc(file)}"><span class="ms f">${kind === 'compose' ? 'stacks' : 'description'}</span><div><strong>${esc(t(kind === 'compose' ? 'host.compose' : 'host.dockerfile'))}${kind === 'compose' && $('service').value ? ' · ' + esc($('service').value) : ''}</strong><div class="mono small muted">${esc(file)}</div></div></div>${port ? `<div class="file"><span class="ms">lan</span><div><strong>${esc(t('host.port'))} ${esc(port)}</strong>${status.localUrl ? `<div class="mono small muted" data-ctx="text">${esc(status.localUrl)}</div>` : ''}</div></div>` : ''}`;
+    $('summary').innerHTML = `<div class="file" data-ctx="path" data-path="${esc(file)}"><span class="ms f" aria-hidden="true">${kind === 'compose' ? 'stacks' : 'description'}</span><div><strong>${esc(t(kind === 'compose' ? 'host.compose' : 'host.dockerfile'))}${kind === 'compose' && $('service').value ? ' · ' + esc($('service').value) : ''}</strong><div class="mono small muted">${esc(file)}</div></div></div>${port ? `<div class="file"><span class="ms" aria-hidden="true">lan</span><div><strong>${esc(t('host.port'))} ${esc(port)}</strong>${status.localUrl ? `<div class="mono small muted" data-ctx="text">${esc(status.localUrl)}</div>` : ''}</div></div>` : ''}`;
   }
   $('options').hidden = !selected || summary; $('service-field').hidden = kind !== 'compose';
   $('editor-row').hidden = !selected;
-  if (selected) $('editor-row').innerHTML = `<button class="chip" data-editor="vscode" ${editors.length ? '' : 'disabled'} title="${esc(editors.length ? editors[0].name : t('editor.missing'))}"><span class="ms">code</span>${esc(t('editor.vscode'))}</button><button class="chip" data-editor="default"><span class="ms">edit_document</span>${esc(t('editor.default'))}</button><button class="chip" data-editor="reveal"><span class="ms">folder_open</span>${esc(t('editor.reveal'))}</button>${editors.length ? '' : `<a class="chip" href="https://code.visualstudio.com/" data-external="true"><span class="ms">download</span>${esc(t('editor.download'))}</a>`}`;
+  if (selected) $('editor-row').innerHTML = `<button class="chip" data-editor="vscode" ${editors.length ? '' : 'disabled'} title="${esc(editors.length ? editors[0].name : t('editor.missing'))}"><span class="ms" aria-hidden="true">code</span>${esc(t('editor.vscode'))}</button><button class="chip" data-editor="default"><span class="ms" aria-hidden="true">edit_document</span>${esc(t('editor.default'))}</button><button class="chip" data-editor="reveal"><span class="ms" aria-hidden="true">folder_open</span>${esc(t('editor.reveal'))}</button>${editors.length ? '' : `<a class="chip" href="https://code.visualstudio.com/" data-external="true"><span class="ms" aria-hidden="true">download</span>${esc(t('editor.download'))}</a>`}`;
   const reqOk = requirements?.docker && (requirements?.cloudflared || requirements?.cloudflaredDownloadAvailable) && (kind !== 'compose' || requirements?.compose);
   $('host-btn').disabled = lockedNow || !selected || !reqOk;
   $('host-btn').hidden = isActive && !isLive ? true : isLive;
@@ -379,7 +398,7 @@ function renderHost() {
   $('stage-text').hidden = isActive || isLive || isError;
   $('stage-text').innerHTML = label('host.readyText');
   $('url-card').hidden = !isLive;
-  $('public-url').textContent = isLive ? status.publicUrl : '';
+  $('public-url').innerHTML = isLive ? esc(status.publicUrl).replace(/([./-])(?=.)/g, '$1<wbr>').replace(':/<wbr>/<wbr>', '://') : '';
   $('stats').hidden = !isLive;
   $('local-url').textContent = status.localUrl || '';
   $('live-actions').hidden = !isLive;
@@ -397,7 +416,7 @@ function renderHost() {
       const startT = at >= 0 ? Date.parse(src.steps[at].at) : null, nextT = at >= 0 && src.steps[at + 1] ? Date.parse(src.steps[at + 1].at) : null;
       const state = isError ? (i < failAt ? 'done' : i === failAt ? 'fail' : 'wait') : i < idx ? 'done' : i === idx ? 'now' : 'wait';
       const time = state === 'done' && startT && nextT ? `${((nextT - startT) / 1000).toFixed(1)} s` : state === 'now' && settings.time ? clockDiff(Date.now() - stepStart) : '';
-      const icon = state === 'now' ? '<span class="spin" aria-hidden="true"></span>' : `<span class="ms">${state === 'done' ? 'check_circle' : state === 'fail' ? 'cancel' : 'radio_button_unchecked'}</span>`;
+      const icon = state === 'now' ? '<span class="spin" aria-hidden="true"></span>' : `<span class="ms" aria-hidden="true">${state === 'done' ? 'check_circle' : state === 'fail' ? 'cancel' : 'radio_button_unchecked'}</span>`;
       const msg = (state === 'now' || state === 'fail') && src?.messages?.[s] ? `<span class="msg">${esc(src.messages[s])}</span>` : '';
       return `<li class="${state}" ${state === 'now' ? 'aria-current="step"' : ''}>${icon}<span>${label('step.' + s)}${msg}</span><span class="time">${time}</span></li>`;
     }).join('');
@@ -415,7 +434,7 @@ function renderHost() {
 }
 function clockDiff(ms) { const s = Math.max(0, Math.floor(ms / 1000)); return `${String(Math.floor(s / 3600)).padStart(2, '0')}:${String(Math.floor(s / 60) % 60).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; }
 function renderRequirements() {
-  const set = (id, key, state) => { const el = $(id); el.className = `chip static ${state === 'ok' ? 'ok' : state === 'bad' ? 'bad' : ''}`; el.innerHTML = `<span class="ms ${state === 'ok' ? 'f' : ''}">${state === 'ok' ? 'check_circle' : state === 'bad' ? 'cancel' : state === 'dl' ? 'download' : 'pending'}</span><span>${esc(t(key))} · ${esc(t(state === 'ok' ? 'req.ready' : state === 'bad' ? 'req.missing' : state === 'dl' ? 'req.download' : 'req.checking'))}</span>`; };
+  const set = (id, key, state) => { const el = $(id); el.className = `chip static ${state === 'ok' ? 'ok' : state === 'bad' ? 'bad' : ''}`; el.innerHTML = `<span class="ms ${state === 'ok' ? 'f' : ''}" aria-hidden="true">${state === 'ok' ? 'check_circle' : state === 'bad' ? 'cancel' : state === 'dl' ? 'download' : 'pending'}</span><span>${esc(t(key))} · ${esc(t(state === 'ok' ? 'req.ready' : state === 'bad' ? 'req.missing' : state === 'dl' ? 'req.download' : 'req.checking'))}</span>`; };
   const r = requirements;
   set('req-docker', 'req.docker', !r ? 'wait' : r.docker ? 'ok' : 'bad');
   set('req-compose', 'req.compose', !r ? 'wait' : r.compose ? 'ok' : 'bad');
@@ -436,7 +455,7 @@ async function refreshStatus() {
   try { status = await api.status(); } catch { status = { phase: 'error', error: t('error.generic') }; }
   finally { polling = false; }
   const isLive = live();
-  if (isLive && !wasLive) { liveSince = Date.now(); sound('live'); notify('toast.live', 'ok'); }
+  if (isLive && !wasLive) { liveSince = Date.now(); sound('live'); notify('toast.live', 'ok', { quietOn: 'host' }); }
   if (!isLive) liveSince = null;
   wasLive = isLive;
   if (session && status.phase === 'idle' && !busy) finishSession(session.reachedLive ? 'shared' : 'cancelled');
@@ -448,7 +467,7 @@ api?.onProgress(event => {
   trackProgress(event);
   if (event.phase === 'error' && !stopping) { sound('fail'); }
   const isLive = live();
-  if (isLive && !wasLive) { liveSince = Date.now(); sound('live'); notify('toast.live', 'ok'); }
+  if (isLive && !wasLive) { liveSince = Date.now(); sound('live'); notify('toast.live', 'ok', { quietOn: 'host' }); }
   wasLive = isLive;
   renderHost();
 });
@@ -480,19 +499,20 @@ function renderSessionChart() {
     const d = new Date(s.startedAt); d.setHours(0, 0, 0, 0);
     const i = Math.round((d - buckets[0].d) / 864e5); if (i >= 0 && i < days) buckets[i][s.outcome]++;
   }
-  const max = Math.max(1, ...buckets.map(b => b.shared + b.failed + b.cancelled)), W = 1000, H = 140, gap = 8, bw = (W - gap * (days - 1)) / days;
+  const max = Math.max(1, ...buckets.map(b => b.shared + b.failed + b.cancelled));
   const fmt = d => d.toLocaleDateString(settings.language === 'yue' ? 'zh-HK' : undefined, { day: 'numeric', month: 'short' });
-  let bars = '';
-  buckets.forEach((b, i) => { let y = H; for (const k of kinds) { if (!b[k]) continue; const h = Math.max(3, (b[k] / max) * (H - 8)); y -= h; bars += `<rect class="bar ${k}" x="${(i * (bw + gap)).toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="4"><title>${esc(fmt(b.d))}: ${b[k]} ${esc(t('sessions.' + k))}</title></rect>`; } });
   const tot = k => buckets.reduce((a, b) => a + b[k], 0), n = tot('shared') + tot('failed') + tot('cancelled');
   const summary = t('sessions.chartSummary').replace('{n}', n).replace('{shared}', tot('shared')).replace('{failed}', tot('failed')).replace('{cancelled}', tot('cancelled'));
-  $('sessions-chart').innerHTML = `<figcaption><b>${esc(t('sessions.chart'))}</b><span class="legend">${kinds.map(k => `<span class="lg ${k}">${esc(t('sessions.' + k))}</span>`).join('')}</span></figcaption><svg viewBox="0 0 ${W} ${H + 18}" role="img" aria-label="${esc(summary)}"><line class="base" x1="0" x2="${W}" y1="${H}" y2="${H}"/>${bars}<text class="tick" x="0" y="${H + 14}">${esc(fmt(buckets[0].d))}</text><text class="tick" x="${W}" y="${H + 14}" text-anchor="end">${esc(fmt(buckets[days - 1].d))}</text></svg><table class="sr-only"><caption>${esc(summary)}</caption><tr><th>${esc(t('sessions.day'))}</th>${kinds.map(k => `<th>${esc(t('sessions.' + k))}</th>`).join('')}</tr>${buckets.map(b => `<tr><td>${esc(fmt(b.d))}</td>${kinds.map(k => `<td>${b[k]}</td>`).join('')}</tr>`).join('')}</table>`;
+  // Bars and labels are page content, so they stay readable at any window width.
+  const bars = buckets.map(b => `<span class="day">${kinds.filter(k => b[k]).map(k => `<i class="seg ${k}" data-h="${((b[k] / max) * 96).toFixed(1)}" title="${esc(fmt(b.d))}: ${b[k]} ${esc(t('sessions.' + k))}"></i>`).join('')}</span>`).join('');
+  $('sessions-chart').innerHTML = `<figcaption><b>${esc(t('sessions.chart'))}</b><span class="legend">${kinds.map(k => `<span class="lg ${k}">${esc(t('sessions.' + k))}</span>`).join('')}</span></figcaption><div class="bars" role="img" aria-label="${esc(summary)}">${bars}</div><div class="ticks" aria-hidden="true"><span>${esc(fmt(buckets[0].d))}</span><span>${esc(fmt(buckets[days - 1].d))}</span></div><table class="sr-only"><caption>${esc(summary)}</caption><tr><th>${esc(t('sessions.day'))}</th>${kinds.map(k => `<th>${esc(t('sessions.' + k))}</th>`).join('')}</tr>${buckets.map(b => `<tr><td>${esc(fmt(b.d))}</td>${kinds.map(k => `<td>${b[k]}</td>`).join('')}</tr>`).join('')}</table>`;
+  for (const seg of $('sessions-chart').querySelectorAll('.seg')) seg.style.height = `${seg.dataset.h}%`;
 }
 function renderSessions() {
   const m = matcherFor(sessionsSearch());
   const counts = { all: sessions.length };
   for (const s of sessions) counts[s.outcome] = (counts[s.outcome] || 0) + 1;
-  $('sessions-filters').innerHTML = ['all', 'shared', 'failed', 'cancelled', 'running'].filter(k => k === 'all' || counts[k]).map(k => `<button class="chip" data-f="${k}" aria-pressed="${sessionFilter === k}">${sessionFilter === k ? '<span class="ms">check</span>' : ''}${esc(t('sessions.' + k))} · ${counts[k] || 0}</button>`).join('');
+  $('sessions-filters').innerHTML = ['all', 'shared', 'failed', 'cancelled', 'running'].filter(k => k === 'all' || counts[k]).map(k => `<button class="chip" data-f="${k}" aria-pressed="${sessionFilter === k}">${sessionFilter === k ? '<span class="ms" aria-hidden="true">check</span>' : ''}${esc(t('sessions.' + k))} · ${counts[k] || 0}</button>`).join('');
   for (const b of $('sessions-filters').querySelectorAll('[data-f]')) b.onclick = () => { sessionFilter = b.dataset.f; renderSessions(); };
   const shown = sessions.filter(s => (sessionFilter === 'all' || s.outcome === sessionFilter) && m.test(sessionText(s)));
   setCount(sessionsSearch(), shown.length);
@@ -503,7 +523,7 @@ function renderSessions() {
   $('sessions-empty').hidden = !!shown.length;
   $('sessions-empty-title').innerHTML = label('sessions.empty');
   $('sessions-list').hidden = !shown.length;
-  $('sessions-list').innerHTML = shown.map((s, i) => `<div class="srow" role="listitem" data-ctx="session" data-id="${esc(s.id)}" data-url="${esc(s.publicUrl || '')}"><input type="checkbox" aria-label="${esc(s.name)}" data-sel="${esc(s.id)}" ${selectedSessions.has(s.id) ? 'checked' : ''}><span class="av"><span class="ms f">${s.kind === 'compose' ? 'stacks' : 'description'}</span></span><div class="name"><strong>${esc(s.name)}</strong><div class="muted small">${esc(s.kind === 'compose' ? `Compose${s.service ? ' · ' + s.service : ''}` : 'Dockerfile')}${s.port ? ' · port ' + esc(s.port) : ''}</div></div><span class="addr">${esc(s.publicUrl ? s.publicUrl.replace('https://', '') : t('sessions.noLink'))}</span><span class="state ${esc(s.outcome)}">${esc(t('sessions.' + s.outcome))}</span><span class="muted small when">${esc(fmtTime(s.startedAt) || '')}</span></div>`).join('');
+  $('sessions-list').innerHTML = shown.map((s, i) => `<div class="srow" role="listitem" data-ctx="session" data-id="${esc(s.id)}" data-url="${esc(s.publicUrl || '')}"><input type="checkbox" aria-label="${esc(s.name)}" data-sel="${esc(s.id)}" ${selectedSessions.has(s.id) ? 'checked' : ''}><span class="av"><span class="ms f" aria-hidden="true">${s.kind === 'compose' ? 'stacks' : 'description'}</span></span><div class="name"><strong>${esc(s.name)}</strong><div class="muted small">${esc(s.kind === 'compose' ? `Compose${s.service ? ' · ' + s.service : ''}` : 'Dockerfile')}${s.port ? ' · port ' + esc(s.port) : ''}</div></div><span class="addr">${esc(s.publicUrl ? s.publicUrl.replace('https://', '') : t('sessions.noLink'))}</span><span class="state ${esc(s.outcome)}">${esc(t('sessions.' + s.outcome))}</span><span class="muted small when">${esc(fmtTime(s.startedAt) || '')}</span></div>`).join('');
   for (const [i, row] of [...$('sessions-list').children].entries()) row.style.animationDelay = `${Math.min(i, 12) * 30}ms`;
   for (const c of $('sessions-list').querySelectorAll('[data-sel]')) c.onchange = () => { c.checked ? selectedSessions.add(c.dataset.sel) : selectedSessions.delete(c.dataset.sel); renderBulk(); };
   renderBulk();
@@ -556,7 +576,7 @@ function renderGuide() {
   setCount(s, list.length);
   $('guide-nav').innerHTML = list.map(a => `<button class="alink" data-article="${esc(a.id)}" aria-current="${a.id === articleId}"><strong>${esc(a.title)}</strong><span>${esc(a.summary.slice(0, 90))}</span></button>`).join('') || `<p class="muted">${esc(t('guide.none'))}</p>`;
   const a = C.articles.find(x => x.id === articleId) || C.articles[0];
-  $('guide-article').innerHTML = `<h1 class="h1">${esc(a.title)}</h1>${MD.render(a.body)}<h2>${esc(t('guide.related'))}</h2><div class="related">${a.related.map(r => C.articles.find(x => x.id === r)).filter(Boolean).map(r => `<button data-article="${esc(r.id)}"><span class="ms">article</span>${esc(r.title)}</button>`).join('')}</div>`;
+  $('guide-article').innerHTML = `<h1 class="h1">${esc(a.title)}</h1>${MD.render(a.body)}<h2>${esc(t('guide.related'))}</h2><div class="related">${a.related.map(r => C.articles.find(x => x.id === r)).filter(Boolean).map(r => `<button data-article="${esc(r.id)}"><span class="ms" aria-hidden="true">article</span>${esc(r.title)}</button>`).join('')}</div>`;
   $('guide-article').style.animation = 'none'; void $('guide-article').offsetWidth; $('guide-article').style.animation = '';
 }
 document.addEventListener('click', e => {
@@ -583,14 +603,14 @@ function optionLabel(key, v) { const k = `${lk(key)}.${v}`; return k in window.I
 function settingsMatches() { const m = matcherFor(searches['settings-search']); return ([key]) => m.test(`${plainBoth(lk(key))} ${plainBoth(lk(key) + '.d')}`); }
 function renderSettings() {
   const query = searches['settings-search']?.query;
-  $('settings-groups').innerHTML = GROUPS.map(([g, icon]) => `<button class="g" data-g="${g}" aria-current="${!query && g === settingsGroup}"><span class="ms ${g === settingsGroup ? 'f' : ''}">${icon}</span><span>${label('group.' + g)}</span></button>`).join('');
+  $('settings-groups').innerHTML = GROUPS.map(([g, icon]) => `<button class="g" data-g="${g}" aria-current="${!query && g === settingsGroup}"><span class="ms ${g === settingsGroup ? 'f' : ''}" aria-hidden="true">${icon}</span><span>${label('group.' + g)}</span></button>`).join('');
   for (const b of $('settings-groups').querySelectorAll('[data-g]')) b.onclick = () => { settingsGroup = b.dataset.g; if (searches['settings-search']) { searches['settings-search'].query = ''; searches['settings-search'].input.value = ''; } renderSettings(); };
   const filter = settingsMatches();
   let total = 0;
   const groups = GROUPS.filter(([g]) => query || g === settingsGroup).map(([g, icon, items]) => {
     const shown = (query ? items.filter(filter) : items).filter(([k]) => !schoolHidden(k)); total += shown.length;
     if (!shown.length) return '';
-    return `<section class="sgroup" data-group="${g}"><div class="sgroup-head"><h2>${label('group.' + g)}</h2>${['data', 'about'].includes(g) ? '' : `<button class="chip" data-reset="${g}"><span class="ms">restart_alt</span>${esc(t('settings.reset'))}</button>`}</div>${shown.map(it => settingItem(it)).join('')}</section>`;
+    return `<section class="sgroup" data-group="${g}"><div class="sgroup-head"><h2>${label('group.' + g)}</h2>${['data', 'about'].includes(g) ? '' : `<button class="chip" data-reset="${g}"><span class="ms" aria-hidden="true">restart_alt</span>${esc(t('settings.reset'))}</button>`}</div>${shown.map(it => settingItem(it)).join('')}</section>`;
   }).join('');
   setCount(searches['settings-search'], total);
   $('settings-content').innerHTML = groups || `<div class="empty">${esc(t('settings.noMatch'))}</div>`;
@@ -600,22 +620,22 @@ const SCHOOL_HIDDEN = ['funnyEn', 'funnyYue', 'emoji', 'voiceYue', 'vocab', 'voc
 const schoolHidden = key => settings.school && SCHOOL_HIDDEN.includes(key);
 const unit = key => key === 'textSize' || key === 'volume' ? '%' : key === 'toastTime' ? ' s' : key === 'rate' || key === 'pitch' ? '×' : '';
 function settingItem([key, type, a, b, c]) {
-  const infoBtn = `<button class="info" data-info="${key}" aria-label="${esc(t('settings.info'))}: ${esc(t(lk(key)))}" aria-expanded="${openInfo === key}"><span class="ms">info</span></button>`;
+  const infoBtn = `<button class="info" data-info="${key}" aria-label="${esc(t('settings.info'))}: ${esc(t(lk(key)))}" aria-expanded="${openInfo === key}"><span class="ms" aria-hidden="true">info</span></button>`;
   const lab = `<span class="lab"><strong id="lab-${key}">${label(lk(key))}${infoBtn}</strong><span class="d">${label(lk(key) + '.d')}</span></span>`;
   const explain = openInfo === key ? `<div class="explain" role="note">${esc(plainBoth(lk(key) + '.d'))}</div>` : '';
   let control = '';
   if (type === 'select') control = `<select class="select" data-set="${key}" aria-labelledby="lab-${key}">${a.filter(v => !(settings.school && key === 'language' && v !== 'en')).map(v => `<option value="${v}" ${settings[key] === v ? 'selected' : ''}>${esc(optionLabel(key, v))}</option>`).join('')}</select>`;
   else if (type === 'switch') control = `<input type="checkbox" role="switch" class="switch" data-set="${key}" aria-labelledby="lab-${key}" ${settings[key] ? 'checked' : ''}>`;
   else if (type === 'range') control = `<span class="range"><input type="range" min="${a}" max="${b}" step="${c}" value="${settings[key]}" data-set="${key}" aria-labelledby="lab-${key}"><output>${settings[key]}${unit(key)}</output></span>`;
-  else if (type === 'text') control = `<span class="row"><input class="input" data-set="${key}" aria-labelledby="lab-${key}" maxlength="60" value="${esc(settings.displayName)}" placeholder="${SHIPPED_NAME}"><button class="chip" data-act="restore-name"><span class="ms">restart_alt</span>${esc(t('set.restoreName'))}</button></span>`;
+  else if (type === 'text') control = `<span class="row"><input class="input" data-set="${key}" aria-labelledby="lab-${key}" maxlength="60" value="${esc(settings.displayName)}" placeholder="${SHIPPED_NAME}"><button class="chip" data-act="restore-name"><span class="ms" aria-hidden="true">restart_alt</span>${esc(t('set.restoreName'))}</button></span>`;
   else if (type === 'seed') { const sw = ['#4fbfa5', '#5b8def', '#c26ad9', '#e0805a', '#d4b341', '#62b35f']; control = `<span class="color"><span class="swatches">${sw.map(h => `<button class="sw" data-seed="${h}" aria-label="${h}" aria-pressed="${settings.seed === h}"></button>`).join('')}</span><span class="row"><input type="range" class="hue" min="0" max="359" value="${Math.round(hexToHue(settings.seed) ?? 175)}" aria-label="Hue"><input class="hex" value="${esc(settings.seed)}" aria-label="Hex colour" maxlength="7"></span></span>`; }
-  else if (type === 'voice') { const lang = key === 'voiceYue' ? 'yue' : 'en', list = voicesFor(lang), using = voiceInUse(lang); control = `<span class="color"><select class="select" data-set="${key}" aria-labelledby="lab-${key}"><option value="auto">${esc(t('set.voice.auto'))}</option>${list.map(v => `<option value="${esc(v.voiceURI)}" ${settings[key] === v.voiceURI ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select><span class="small muted">${esc(using ? `${t('set.voice.using')}: ${using.name}` : t('set.voice.none'))}</span>${lang === 'en' ? `<button class="chip" data-act="test-voice"><span class="ms">play_arrow</span>${esc(t('set.testVoice'))}</button>` : ''}</span>`; }
-  else if (type === 'vocab') return `<div class="item" data-key="vocab">${lab}<span class="tools"><button class="chip" data-act="vocab-upload"><span class="ms">upload_file</span>${esc(t(vocab ? 'set.vocab.replace' : 'set.vocab.upload'))}</button>${vocab ? `<button class="chip danger" data-act="vocab-clear"><span class="ms">delete</span>${esc(t('set.vocab.clear'))}</button>` : ''}</span>${explain}<p class="small muted span-all">${vocab ? `${vocab.count} ${esc(t('set.vocab.loaded'))}` : esc(t('set.vocab.none'))}</p>${vocab ? `<table class="vocab-table"><thead><tr><th>${esc(t('set.vocab.word'))}</th><th>${esc(t('set.vocab.shownAs'))}</th></tr></thead><tbody>${Object.entries(vocab.entries).slice(0, 12).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</tbody></table>` : ''}</div>`;
+  else if (type === 'voice') { const lang = key === 'voiceYue' ? 'yue' : 'en', list = voicesFor(lang), using = voiceInUse(lang); control = `<span class="color"><select class="select" data-set="${key}" aria-labelledby="lab-${key}"><option value="auto">${esc(t('set.voice.auto'))}</option>${list.map(v => `<option value="${esc(v.voiceURI)}" ${settings[key] === v.voiceURI ? 'selected' : ''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('')}</select><span class="small muted">${esc(using ? `${t('set.voice.using')}: ${using.name}` : t('set.voice.none'))}</span>${lang === 'en' ? `<button class="chip" data-act="test-voice"><span class="ms" aria-hidden="true">play_arrow</span>${esc(t('set.testVoice'))}</button>` : ''}</span>`; }
+  else if (type === 'vocab') return `<div class="item" data-key="vocab">${lab}<span class="tools"><button class="chip" data-act="vocab-upload"><span class="ms" aria-hidden="true">upload_file</span>${esc(t(vocab ? 'set.vocab.replace' : 'set.vocab.upload'))}</button>${vocab ? `<button class="chip danger" data-act="vocab-clear"><span class="ms" aria-hidden="true">delete</span>${esc(t('set.vocab.clear'))}</button>` : ''}</span>${explain}<p class="small muted span-all">${vocab ? `${vocab.count} ${esc(t('set.vocab.loaded'))}` : esc(t('set.vocab.none'))}</p>${vocab ? `<table class="vocab-table"><thead><tr><th>${esc(t('set.vocab.word'))}</th><th>${esc(t('set.vocab.shownAs'))}</th></tr></thead><tbody>${Object.entries(vocab.entries).slice(0, 12).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}</tbody></table>` : ''}</div>`;
   else if (type === 'school') control = `<input type="checkbox" role="switch" class="switch" data-act="school-toggle" aria-labelledby="lab-${key}" ${settings.school ? 'checked' : ''}>`;
-  else if (type === 'schedules') return `<div class="item" data-key="schedules">${lab}<button class="chip" data-act="sched-add"><span class="ms">add</span>${esc(t('set.schedule.add'))}</button>${explain}<div class="sched">${settings.schedules.map((r, i) => `<div class="srule ${activeSchedule()?.id === r.id ? 'active' : ''}"><input class="input" data-sched="${i}" data-f="name" value="${esc(r.name)}" maxlength="40" aria-label="${esc(t('set.schedule.name'))}"><label class="mini">${esc(t('set.schedule.from'))}<input type="time" data-sched="${i}" data-f="from" value="${esc(r.from)}"></label><label class="mini">${esc(t('set.schedule.to'))}<input type="time" data-sched="${i}" data-f="to" value="${esc(r.to)}"></label><span class="vals">${SCHED_KEYS.map(([k, opts]) => `<label class="mini">${esc(t(lk(k)))}<select class="select" data-sched="${i}" data-v="${k}"><option value="">${esc(t('set.schedule.unchanged'))}</option>${opts.map(o => `<option value="${o}" ${r.values[k] === o ? 'selected' : ''}>${esc(['on', 'off'].includes(o) ? o : optionLabel(k, o))}</option>`).join('')}</select></label>`).join('')}</span><input type="checkbox" role="switch" class="switch" data-sched="${i}" data-f="on" ${r.on ? 'checked' : ''} aria-label="${esc(r.name)}"><button class="icon-btn" data-sched-remove="${i}" aria-label="${esc(t('set.schedule.remove'))}"><span class="ms">delete</span></button>${activeSchedule()?.id === r.id ? `<span class="small ok-text">${esc(t('set.schedule.active'))}</span>` : ''}</div>`).join('')}</div></div>`;
-  else if (type === 'history') return `<div class="item"><span class="lab"><strong>${label('set.history')}</strong><span class="d">${label('set.history.d')}</span></span><span></span><div class="hist">${history.slice().reverse().slice(0, 50).map((h, i) => `<div class="hrow"><span><b>${esc(fmtTime(h.at))}</b> · ${esc(h.label || h.changed.join(', '))}</span>${i ? `<button class="chip" data-restore="${esc(h.at)}"><span class="ms">history</span>${esc(t('set.restore'))}</button>` : ''}</div>`).join('')}</div></div>`;
-  else if (type === 'exports') return `<div class="item"><span class="lab"><strong>${label('sessions.export')}</strong></span><span class="tools"><button class="chip" data-act="exp-settings"><span class="ms">download</span>${esc(t('set.exportSettings'))}</button><button class="chip" data-act="exp-history"><span class="ms">download</span>${esc(t('set.exportHistory'))}</button><button class="chip" data-act="exp-notif"><span class="ms">download</span>${esc(t('set.exportNotifications'))}</button><button class="chip danger" data-act="clear-sessions"><span class="ms">delete_sweep</span>${esc(t('set.clearSessions'))}</button><button class="chip danger" data-act="reset-all"><span class="ms">restart_alt</span>${esc(t('set.resetAll'))}</button></span></div>`;
-  else if (type === 'about') return `<div class="item"><dl class="kv"><dt>${esc(t('set.version'))}</dt><dd>${esc(info.version || '—')}</dd><dt>${esc(t('set.codeName'))}</dt><dd>${info.codeName ? `<a href="${esc(info.codeName.photo)}" data-external="true">${esc(info.codeName.en)} · ${esc(info.codeName.zhHant)}</a>` : esc(t('set.codeName.none'))}</dd><dt>${esc(t('set.build'))}</dt><dd>${esc(info.buildTime ? fmtTime(info.buildTime) : t('top.buildUnknown'))}</dd><dt>${esc(t('set.commit'))}</dt><dd>${info.commit ? `<a href="${esc(C.changelog.repository)}/commit/${esc(info.commit)}" data-external="true">${esc(info.commit.slice(0, 7))}</a>` : '—'}</dd></dl>${updatesCard()}<span class="tools"><button class="chip" data-act="tour"><span class="ms">tour</span>${esc(t('set.onboarding'))}</button></span><p class="muted small">${esc(t('set.free'))}</p></div>`;
+  else if (type === 'schedules') return `<div class="item" data-key="schedules">${lab}<button class="chip" data-act="sched-add"><span class="ms" aria-hidden="true">add</span>${esc(t('set.schedule.add'))}</button>${explain}<div class="sched">${settings.schedules.map((r, i) => `<div class="srule ${activeSchedule()?.id === r.id ? 'active' : ''}"><input class="input" data-sched="${i}" data-f="name" value="${esc(r.name)}" maxlength="40" aria-label="${esc(t('set.schedule.name'))}"><label class="mini">${esc(t('set.schedule.from'))}<input type="time" data-sched="${i}" data-f="from" value="${esc(r.from)}"></label><label class="mini">${esc(t('set.schedule.to'))}<input type="time" data-sched="${i}" data-f="to" value="${esc(r.to)}"></label><span class="vals">${SCHED_KEYS.map(([k, opts]) => `<label class="mini">${esc(t(lk(k)))}<select class="select" data-sched="${i}" data-v="${k}"><option value="">${esc(t('set.schedule.unchanged'))}</option>${opts.map(o => `<option value="${o}" ${r.values[k] === o ? 'selected' : ''}>${esc(opts.length === 2 && opts[0] === 'on' ? t(o === 'on' ? 'state.on' : 'state.off') : optionLabel(k, o))}</option>`).join('')}</select></label>`).join('')}</span><input type="checkbox" role="switch" class="switch" data-sched="${i}" data-f="on" ${r.on ? 'checked' : ''} aria-label="${esc(r.name)}"><button class="icon-btn" data-sched-remove="${i}" aria-label="${esc(t('set.schedule.remove'))}"><span class="ms" aria-hidden="true">delete</span></button>${activeSchedule()?.id === r.id ? `<span class="small ok-text">${esc(t('set.schedule.active'))}</span>` : ''}</div>`).join('')}</div></div>`;
+  else if (type === 'history') return `<div class="item"><span class="lab"><strong>${label('set.history')}</strong><span class="d">${label('set.history.d')}</span></span><span></span><div class="hist">${history.slice().reverse().slice(0, 50).map((h, i) => `<div class="hrow"><span><b>${esc(fmtTime(h.at))}</b> · ${esc(h.label || h.changed.join(', '))}</span>${i ? `<button class="chip" data-restore="${esc(h.at)}"><span class="ms" aria-hidden="true">history</span>${esc(t('set.restore'))}</button>` : ''}</div>`).join('')}</div></div>`;
+  else if (type === 'exports') return `<div class="item"><span class="lab"><strong>${label('sessions.export')}</strong></span><span class="tools"><button class="chip" data-act="exp-settings"><span class="ms" aria-hidden="true">download</span>${esc(t('set.exportSettings'))}</button><button class="chip" data-act="exp-history"><span class="ms" aria-hidden="true">download</span>${esc(t('set.exportHistory'))}</button><button class="chip" data-act="exp-notif"><span class="ms" aria-hidden="true">download</span>${esc(t('set.exportNotifications'))}</button><button class="chip danger" data-act="clear-sessions"><span class="ms" aria-hidden="true">delete_sweep</span>${esc(t('set.clearSessions'))}</button><button class="chip danger" data-act="reset-all"><span class="ms" aria-hidden="true">restart_alt</span>${esc(t('set.resetAll'))}</button></span></div>`;
+  else if (type === 'about') return `<div class="item"><dl class="kv"><dt>${esc(t('set.version'))}</dt><dd>${esc(info.version || '—')}</dd><dt>${esc(t('set.codeName'))}</dt><dd>${info.codeName ? `<a href="${esc(info.codeName.photo)}" data-external="true">${esc(info.codeName.en)} · ${esc(info.codeName.zhHant)}</a>` : esc(t('set.codeName.none'))}</dd><dt>${esc(t('set.build'))}</dt><dd>${esc(info.buildTime ? fmtTime(info.buildTime) : t('top.buildUnknown'))}</dd><dt>${esc(t('set.commit'))}</dt><dd>${info.commit ? `<a href="${esc(C.changelog.repository)}/commit/${esc(info.commit)}" data-external="true">${esc(info.commit.slice(0, 7))}</a>` : '—'}</dd></dl>${updatesCard()}<span class="tools"><button class="chip" data-act="tour"><span class="ms" aria-hidden="true">tour</span>${esc(t('set.onboarding'))}</button></span><p class="muted small">${esc(t('set.free'))}</p></div>`;
   else if (type === 'changelog') return `<div class="item"><span class="lab"><strong>${label('set.changelog')}</strong></span><span class="dates"><label class="small muted">${esc(t('set.from'))} <input type="date" data-cl="from" value="${clFrom}"></label><label class="small muted">${esc(t('set.to'))} <input type="date" data-cl="to" value="${clTo}"></label></span><div class="cl"><div id="changelog-search-slot"></div><div id="cl-list" class="cl"></div></div></div>`;
   return `<div class="item" data-key="${key}">${lab}${control}${explain}</div>`;
 }
@@ -638,7 +658,7 @@ function bindSettings() {
   if (hue) { hue.addEventListener('change', () => setSetting('seed', hueToHex(hue.value))); hex.addEventListener('change', () => { const v = hex.value.trim().replace(/^([^#])/, '#$1'); if (/^#[0-9a-f]{6}$/i.test(v)) setSetting('seed', v.toLowerCase()); else hex.setAttribute('aria-invalid', 'true'); }); }
   for (const b of root.querySelectorAll('[data-restore]')) b.onclick = () => { const h = history.find(x => x.at === b.dataset.restore); if (!h) return; settings = { ...DEFAULTS, ...h.values }; store.set('settings', settings); recordRevision(Object.keys(DEFAULTS), `restored ${fmtTime(h.at)}`); applySettings(); notify('toast.restored', 'ok'); };
   for (const d of root.querySelectorAll('[data-cl]')) d.onchange = () => { d.dataset.cl === 'from' ? clFrom = d.value : clTo = d.value; renderChangelog(); };
-  if ($('changelog-search-slot')) { const prev = searches['changelog-search']; makeSearch('changelog-search-slot', 'settings.search', renderChangelog); if (prev) { Object.assign(searches['changelog-search'], { query: prev.query, regex: prev.regex, flags: prev.flags }); searches['changelog-search'].input.value = prev.query; renderRx(searches['changelog-search']); } renderChangelog(); }
+  if ($('changelog-search-slot')) { const prev = searches['changelog-search']; makeSearch('changelog-search-slot', 'set.changelog.search', renderChangelog); if (prev) { Object.assign(searches['changelog-search'], { query: prev.query, regex: prev.regex, flags: prev.flags }); searches['changelog-search'].input.value = prev.query; renderRx(searches['changelog-search']); } renderChangelog(); }
   const acts = {
     'restore-name': () => setSetting('displayName', ''),
     'exp-settings': () => saveFile('settings.json', JSON.stringify({ schema: 1, settings }, null, 2)),
@@ -667,7 +687,7 @@ function renderChangelog() {
   const s = searches['changelog-search'], m = matcherFor(s);
   const entries = C.changelog.entries.filter(e => (!clFrom || e.date >= clFrom) && (!clTo || e.date <= clTo) && m.test(`${e.version} ${e.note} ${Object.values(e.changes).flat().join(' ')}`));
   setCount(s, entries.length);
-  el.innerHTML = entries.map(e => `<div class="rel"><div class="row spread"><strong>${esc(e.version)} · ${esc(e.date)}</strong>${e.commit ? `<a class="mono" href="${esc(C.changelog.repository)}/commit/${esc(e.commit)}" data-external="true">${esc(e.commit.slice(0, 7))}</a>` : `<span class="mono small">${esc(info.commit ? info.commit.slice(0, 7) : '')}</span>`}</div><p class="muted small">${esc(e.note)}</p>${Object.entries(e.changes).map(([k, v]) => `<h4>${esc(k)}</h4><ul>${v.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</div>`).join('') || `<p class="muted">${esc(t('palette.none'))}</p>`;
+  el.innerHTML = entries.map(e => `<div class="rel"><div class="row spread"><strong>${esc(e.version)} · ${esc(e.date)}</strong>${e.commit ? `<a class="mono" href="${esc(C.changelog.repository)}/commit/${esc(e.commit)}" data-external="true">${esc(e.commit.slice(0, 7))}</a>` : `<span class="mono small">${esc(info.commit ? info.commit.slice(0, 7) : '')}</span>`}</div><p class="muted small">${esc(e.note)}</p>${Object.entries(e.changes).map(([k, v]) => `<h3>${esc(k)}</h3><ul>${v.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</div>`).join('') || `<p class="muted">${esc(t('palette.none'))}</p>`;
 }
 function teleportSetting(key) {
   const g = GROUPS.find(x => x[2].some(i => i[0] === key)); if (!g) return;
@@ -683,7 +703,7 @@ function renderNotifications() {
   const m = matcherFor(searches['notif-search']);
   const list = notifications.filter(n => m.test(n.text));
   setCount(searches['notif-search'], list.length);
-  $('notif-list').innerHTML = list.length ? list.map(n => `<div class="nrow ${n.read ? '' : 'unread'}"><input type="checkbox" data-n="${n.id}" aria-label="${esc(n.text)}" ${notifSelected.has(n.id) ? 'checked' : ''}><span class="ms f ${n.kind === 'error' ? 'bad' : 'ok'}">${n.kind === 'error' ? 'error' : n.kind === 'warn' ? 'warning' : n.kind === 'ok' ? 'check_circle' : 'info'}</span><div>${esc(n.text)}<small>${esc(fmtTime(n.at))}</small></div><button class="icon-btn" data-dismiss="${n.id}" aria-label="${esc(t('notif.dismiss'))}"><span class="ms">close</span></button></div>`).join('') : `<p class="muted center">${esc(t('notif.empty'))}</p>`;
+  $('notif-list').innerHTML = list.length ? list.map(n => `<div class="nrow ${n.read ? '' : 'unread'}"><input type="checkbox" data-n="${n.id}" aria-label="${esc(n.text)}" ${notifSelected.has(n.id) ? 'checked' : ''}><span class="ms f ${n.kind === 'error' ? 'bad' : 'ok'}" aria-hidden="true">${n.kind === 'error' ? 'error' : n.kind === 'warn' ? 'warning' : n.kind === 'ok' ? 'check_circle' : 'info'}</span><div>${esc(n.text)}<small>${esc(fmtTime(n.at))}</small></div><button class="icon-btn" data-dismiss="${n.id}" aria-label="${esc(t('notif.dismiss'))}"><span class="ms" aria-hidden="true">close</span></button></div>`).join('') : `<p class="muted center">${esc(t('notif.empty'))}</p>`;
   for (const c of $('notif-list').querySelectorAll('[data-n]')) c.onchange = () => c.checked ? notifSelected.add(c.dataset.n) : notifSelected.delete(c.dataset.n);
   for (const b of $('notif-list').querySelectorAll('[data-dismiss]')) b.onclick = () => { notifications = notifications.filter(n => n.id !== b.dataset.dismiss); store.set('notifications', notifications); renderNotifications(); renderBadge(); };
 }
@@ -730,13 +750,15 @@ function openMenu(anchor, items, { x, y } = {}) {
   closeMenu();
   const r = anchor?.getBoundingClientRect?.();
   menuState = { items, from: document.activeElement, index: 0 };
-  const el = $('ctx'); el.hidden = false;
-  el.innerHTML = `<div class="filter" id="ctx-filter"></div><div id="ctx-items"></div>`;
+  const el = $('ctx'); el.hidden = false; el.setAttribute('aria-label', t('ctx.menu'));
+  el.innerHTML = `<div class="filter" id="ctx-filter"></div><div id="ctx-items" role="listbox" aria-label="${esc(t('ctx.menu'))}"></div><p class="muted small center" id="ctx-none" hidden>${esc(t('ctx.none'))}</p>`;
   makeSearch('ctx-filter', 'ctx.filter', renderMenuItems);
+  const input = searches['ctx-filter'].input;
+  for (const [k, v] of [['role', 'combobox'], ['aria-controls', 'ctx-items'], ['aria-expanded', 'true'], ['aria-autocomplete', 'list']]) input.setAttribute(k, v);
   renderMenuItems();
   const px = x ?? (r ? r.left : 100), py = y ?? (r ? r.bottom + 4 : 100);
   el.style.left = `${Math.max(8, Math.min(px, innerWidth - el.offsetWidth - 8))}px`; el.style.top = `${Math.max(8, Math.min(py, innerHeight - el.offsetHeight - 8))}px`;
-  searches['ctx-filter'].input.focus();
+  input.focus();
 }
 function renderMenuItems() {
   const m = matcherFor(searches['ctx-filter']);
@@ -749,27 +771,40 @@ function renderMenuItems() {
   });
   menuState.shown = shown.filter(i => !i.sep && !i.head);
   menuState.index = Math.min(menuState.index, Math.max(0, menuState.shown.length - 1));
-  const row = i => {
-    const sel = menuState.shown.indexOf(i) === menuState.index;
-    if (i.control === 'switch') return `<div class="mi ctl" role="menuitemcheckbox" aria-checked="${!!settings[i.setting]}" aria-selected="${sel}"><span class="ms">${i.icon}</span><span>${esc(i.label)}</span><span class="mini-switch ${settings[i.setting] ? 'on' : ''}" aria-hidden="true"></span></div>`;
-    if (i.control === 'choice') return `<div class="mi ctl" role="group" aria-label="${esc(i.label)}" aria-selected="${sel}"><span class="ms">${i.icon}</span><span>${esc(i.label)}</span><span class="mseg">${i.options.map(o => `<button role="menuitemradio" aria-checked="${settings[i.setting] === o}" data-opt="${o}" tabindex="-1">${esc(optionLabel(i.setting, o))}</button>`).join('')}</span></div>`;
-    if (i.head) return `<div class="psec">${esc(i.label)}</div>`;
-    return `<button class="mi ${i.danger ? 'danger' : ''}" role="menuitem" aria-selected="${sel}" ${i.disabled ? 'disabled' : ''}><span class="ms">${i.icon}</span><span>${esc(i.label)}</span><kbd>${esc(i.key || '')}</kbd></button>`;
+  const option = (i, n) => {
+    const head = `id="mi-${n}" role="option" aria-selected="${n === menuState.index}"`;
+    const icon = `<span class="ms" aria-hidden="true">${i.icon}</span>`;
+    if (i.control === 'switch') return `<div class="mi ctl" ${head} aria-checked="${!!settings[i.setting]}">${icon}<span>${esc(i.label)}</span><span class="mini-switch ${settings[i.setting] ? 'on' : ''}" aria-hidden="true"></span></div>`;
+    if (i.control === 'choice') return `<div class="mi ctl" ${head}>${icon}<span>${esc(i.label)}<span class="sr-only">: ${esc(optionLabel(i.setting, settings[i.setting]))}</span></span><span class="mseg" aria-hidden="true">${i.options.map(o => `<span class="mopt" data-opt="${o}" data-on="${settings[i.setting] === o}">${esc(optionLabel(i.setting, o))}</span>`).join('')}</span></div>`;
+    return `<div class="mi ${i.danger ? 'danger' : ''}" ${head} ${i.disabled ? 'aria-disabled="true"' : ''}>${icon}<span>${esc(i.label)}</span>${i.key ? `<kbd>${esc(i.key)}</kbd>` : '<span></span>'}</div>`;
   };
-  $('ctx-items').innerHTML = menuState.shown.length ? shown.map(i => i.sep ? '<div class="sep"></div>' : row(i)).join('') : `<p class="muted small center">${esc(t('ctx.none'))}</p>`;
-  const rows = [...$('ctx-items').querySelectorAll('.mi')];
-  rows.forEach((b, n) => {
-    const it = menuState.shown.filter(x => !x.head)[n];
-    if (it.control === 'switch') b.onclick = () => menuControl(it, 'toggle');
-    else if (it.control === 'choice') for (const o of b.querySelectorAll('[data-opt]')) o.onclick = e => { e.stopPropagation(); menuControl(it, o.dataset.opt); };
-    else b.onclick = () => { closeMenu(false); it.run(); };
+  // Sections become labelled groups so the list stays a valid listbox.
+  let html = '', open = false, n = 0, g = 0;
+  for (const i of shown) {
+    if (i.head) { if (open) html += '</div>'; g++; html += `<div role="group" aria-labelledby="mg-${g}"><div class="psec" id="mg-${g}" role="presentation">${esc(i.label)}</div>`; open = true; }
+    else if (i.sep) html += '<div class="sep" role="none"></div>';
+    else html += option(i, n++);
+  }
+  if (open) html += '</div>';
+  $('ctx-items').innerHTML = html;
+  $('ctx-none').hidden = !!menuState.shown.length;
+  searches['ctx-filter'].input.setAttribute('aria-activedescendant', menuState.shown.length ? `mi-${menuState.index}` : '');
+  $(`mi-${menuState.index}`)?.scrollIntoView({ block: 'nearest' });
+  menuState.shown.forEach((it, k) => {
+    const el = $(`mi-${k}`); if (!el) return;
+    if (it.control === 'switch') el.onclick = () => menuControl(it, 'toggle');
+    else if (it.control === 'choice') { el.onclick = () => menuControl(it, 'next'); for (const o of el.querySelectorAll('[data-opt]')) o.onclick = e => { e.stopPropagation(); menuControl(it, o.dataset.opt); }; }
+    else el.onclick = () => { if (it.disabled) return; closeMenu(false); it.run(); };
   });
 }
+// Clicking an option keeps focus in the filter; leaving the menu with Tab closes it.
+$('ctx').addEventListener('mousedown', e => { if (!e.target.closest('input, .filter button, .rx')) e.preventDefault(); });
+$('ctx').addEventListener('focusout', e => { if (menuState && e.relatedTarget && !$('ctx').contains(e.relatedTarget)) closeMenu(false); });
 function menuControl(it, how) {
   if (it.control === 'switch') setSetting(it.setting, !settings[it.setting]);
   else if (it.control === 'choice') { const o = it.options, cur = o.indexOf(settings[it.setting]); setSetting(it.setting, how === 'next' ? o[(cur + 1) % o.length] : how === 'prev' ? o[(cur - 1 + o.length) % o.length] : how); }
   sound('tap'); renderMenuItems();
-  announce(`${it.label}: ${it.control === 'switch' ? (settings[it.setting] ? 'on' : 'off') : optionLabel(it.setting, settings[it.setting])}`);
+  announce(`${it.label}: ${it.control === 'switch' ? t(settings[it.setting] ? 'state.on' : 'state.off') : optionLabel(it.setting, settings[it.setting])}`);
 }
 // A context-menu row for a setting shows that setting's own live control.
 function controlFor(key) {
@@ -848,7 +883,7 @@ function renderPalette() {
   paletteItems = allCommands().filter(c => m.test(`${c.label} ${c.desc || ''}`)).slice(0, 80);
   paletteIndex = Math.min(paletteIndex, Math.max(0, paletteItems.length - 1));
   let last = '';
-  $('palette-list').innerHTML = paletteItems.length ? paletteItems.map((c, i) => { const head = c.sec !== last ? `<div class="psec">${esc(t(c.sec))}</div>` : ''; last = c.sec; return `${head}<button class="pit" role="option" id="pit-${i}" aria-selected="${i === paletteIndex}" data-i="${i}"><span class="ms">${c.icon}</span><span>${esc(c.label)}${c.desc ? `<span class="d">${esc(c.desc.slice(0, 110))}</span>` : ''}</span>${c.toggle ? `<span class="mini-switch ${settings[c.toggle] ? 'on' : ''}" data-toggle="${c.toggle}" role="switch" aria-checked="${!!settings[c.toggle]}" aria-label="${esc(c.label)}"></span>` : c.key ? `<kbd>${esc(c.key)}</kbd>` : '<span></span>'}</button>`; }).join('') : `<p class="muted center">${esc(t('palette.none'))}</p>`;
+  $('palette-list').innerHTML = paletteItems.length ? paletteItems.map((c, i) => { const head = c.sec !== last ? `<div class="psec">${esc(t(c.sec))}</div>` : ''; last = c.sec; return `${head}<button class="pit" role="option" id="pit-${i}" aria-selected="${i === paletteIndex}" ${c.toggle ? `aria-checked="${!!settings[c.toggle]}"` : ''} data-i="${i}" tabindex="-1"><span class="ms" aria-hidden="true">${c.icon}</span><span>${esc(c.label)}${c.desc ? `<span class="d">${esc(c.desc.slice(0, 110))}</span>` : ''}</span>${c.toggle ? `<span class="mini-switch ${settings[c.toggle] ? 'on' : ''}" data-toggle="${c.toggle}" aria-hidden="true"></span>` : c.key ? `<kbd>${esc(c.key)}</kbd>` : '<span></span>'}</button>`; }).join('') : `<p class="muted center">${esc(t('palette.none'))}</p>`;
   $('palette-input').setAttribute('aria-activedescendant', paletteItems.length ? `pit-${paletteIndex}` : '');
   for (const b of $('palette-list').querySelectorAll('[data-i]')) b.onclick = e => { const tg = e.target.closest('[data-toggle]'); if (tg) { e.stopPropagation(); setSetting(tg.dataset.toggle, !settings[tg.dataset.toggle]); renderPalette(); return; } runPalette(+b.dataset.i); };
   $('palette-list').querySelector('[aria-selected=true]')?.scrollIntoView({ block: 'nearest' });
@@ -874,16 +909,20 @@ $('open-palette').onclick = () => openPalette();
 
 // ---------- onboarding ----------
 let onbStep = 0, onbCheck = null;
-function openOnboarding(step = store.get('onboardingStep', 0)) { onbStep = step; $('onboarding').hidden = false; $('scrim').hidden = false; renderOnboarding(); }
+function openOnboarding(step = store.get('onboardingStep', 0)) {
+  onbStep = step; $('onboarding').hidden = false; $('scrim').hidden = false; renderOnboarding();
+  // Resuming on the check step runs the check again instead of waiting forever.
+  if (onbStep === 1 && !onbCheck) checkRequirements().then(r => { onbCheck = r; if (onbStep === 1 && !$('onboarding').hidden) renderOnboarding(); });
+}
 function closeOnboarding() { $('onboarding').hidden = true; $('scrim').hidden = true; store.set('onboarded', true); store.set('onboardingStep', 0); $('choose').focus(); }
 function renderOnboarding() {
   store.set('onboardingStep', onbStep);
-  const dots = `<div class="dots" aria-label="${esc(t('onb.step'))} ${onbStep + 1} / 3">${[0, 1, 2].map(i => `<i class="${i === onbStep ? 'on' : ''}"></i>`).join('')}</div>`;
+  const dots = `<div class="dots" role="img" aria-label="${esc(t('onb.step'))} ${onbStep + 1} / 3">${[0, 1, 2].map(i => `<i class="${i === onbStep ? 'on' : ''}"></i>`).join('')}</div>`;
   let body = '';
-  if (onbStep === 0) body = `<h1 class="h1" id="onb-title">${label('onb.title')}</h1><p class="muted">${label('onb.lead')}</p><div class="osteps">${[['folder_open', 'onb.s1'], ['rocket_launch', 'onb.s2'], ['link', 'onb.s3']].map(([ic, k]) => `<div class="ost"><span class="ic"><span class="ms f">${ic}</span></span><strong>${label(k)}</strong><span class="muted">${label(k + 'd')}</span></div>`).join('')}</div><h2 class="h2">${label('onb.langTitle')}</h2><div class="seg" role="group">${['en', 'yue', 'both'].map(v => `<button data-lang="${v}" aria-pressed="${settings.language === v}"><span class="ms check">check</span>${esc(t('set.language.' + v))}</button>`).join('')}</div><div class="item flat"><span class="lab"><strong>${label(settings.language === 'yue' ? 'set.funnyYue' : 'set.funnyEn')}</strong><span class="d">${label('set.funnyEn.d')}</span></span><span class="range"><input type="range" min="1" max="5" value="${settings.language === 'yue' ? settings.funnyYue : settings.funnyEn}" id="onb-funny" aria-label="${esc(t('set.funnyEn'))}"><output>${settings.language === 'yue' ? settings.funnyYue : settings.funnyEn}</output></span></div>`;
-  if (onbStep === 1) body = `<h1 class="h1" id="onb-title">${label('onb.checkTitle')}</h1><p class="muted">${label('onb.checkLead')}</p><div class="req">${onbCheck ? [['req.docker', onbCheck.docker], ['req.compose', onbCheck.compose], ['req.tunnel', onbCheck.cloudflared || onbCheck.cloudflaredDownloadAvailable]].map(([k, ok]) => `<span class="chip static ${ok ? 'ok' : 'bad'}"><span class="ms f">${ok ? 'check_circle' : 'cancel'}</span>${esc(t(k))} · ${esc(t(ok ? 'req.ready' : 'req.missing'))}</span>`).join('') : `<span class="chip static"><span class="spin"></span>${esc(t('req.checking'))}</span>`}</div>${onbCheck?.missing?.length ? `<p class="muted small">${esc(onbCheck.missing.join(' · '))}</p>` : ''}`;
+  if (onbStep === 0) body = `<h1 class="h1" id="onb-title">${label('onb.title')}</h1><p class="muted">${label('onb.lead')}</p><div class="osteps">${[['folder_open', 'onb.s1'], ['rocket_launch', 'onb.s2'], ['link', 'onb.s3']].map(([ic, k]) => `<div class="ost"><span class="ic"><span class="ms f" aria-hidden="true">${ic}</span></span><strong>${label(k)}</strong><span class="muted">${label(k + 'd')}</span></div>`).join('')}</div><h2 class="h2">${label('onb.langTitle')}</h2><div class="seg" role="group">${['en', 'yue', 'both'].map(v => `<button data-lang="${v}" aria-pressed="${settings.language === v}"><span class="ms check" aria-hidden="true">check</span>${esc(t('set.language.' + v))}</button>`).join('')}</div><div class="item flat"><span class="lab"><strong>${label(settings.language === 'yue' ? 'set.funnyYue' : 'set.funnyEn')}</strong><span class="d">${label('set.funnyEn.d')}</span></span><span class="range"><input type="range" min="1" max="5" value="${settings.language === 'yue' ? settings.funnyYue : settings.funnyEn}" id="onb-funny" aria-label="${esc(t('set.funnyEn'))}"><output>${settings.language === 'yue' ? settings.funnyYue : settings.funnyEn}</output></span></div>`;
+  if (onbStep === 1) body = `<h1 class="h1" id="onb-title">${label('onb.checkTitle')}</h1><p class="muted">${label('onb.checkLead')}</p><div class="req">${onbCheck ? [['req.docker', onbCheck.docker], ['req.compose', onbCheck.compose], ['req.tunnel', onbCheck.cloudflared || onbCheck.cloudflaredDownloadAvailable]].map(([k, ok]) => `<span class="chip static ${ok ? 'ok' : 'bad'}"><span class="ms f" aria-hidden="true">${ok ? 'check_circle' : 'cancel'}</span>${esc(t(k))} · ${esc(t(ok ? 'req.ready' : 'req.missing'))}</span>`).join('') : `<span class="chip static"><span class="spin"></span>${esc(t('req.checking'))}</span>`}</div>${onbCheck?.missing?.length ? `<p class="muted small">${esc(onbCheck.missing.join(' · '))}</p>` : ''}`;
   if (onbStep === 2) body = `<h1 class="h1" id="onb-title">${label('onb.doneTitle')}</h1><p class="muted">${label('onb.doneLead')}</p>`;
-  $('onboarding').innerHTML = `${dots}${body}<div class="row spread"><button class="btn text" id="onb-skip">${esc(t('onb.skip'))}</button><span class="row">${onbStep ? `<button class="btn outline" id="onb-back">${esc(t('onb.back'))}</button>` : ''}<button class="btn fill" id="onb-next">${esc(t(onbStep === 2 ? 'onb.finish' : 'onb.next'))}<span class="ms">arrow_forward</span></button></span></div>`;
+  $('onboarding').innerHTML = `${dots}${body}<div class="row spread"><button class="btn text" id="onb-skip">${esc(t('onb.skip'))}</button><span class="row">${onbStep ? `<button class="btn outline" id="onb-back">${esc(t('onb.back'))}</button>` : ''}<button class="btn fill" id="onb-next">${esc(t(onbStep === 2 ? 'onb.finish' : 'onb.next'))}<span class="ms" aria-hidden="true">arrow_forward</span></button></span></div>`;
   for (const b of $('onboarding').querySelectorAll('[data-lang]')) b.onclick = () => { setSetting('language', b.dataset.lang); renderOnboarding(); };
   $('onb-funny')?.addEventListener('change', e => { setSetting(settings.language === 'yue' ? 'funnyYue' : 'funnyEn', +e.target.value); renderOnboarding(); });
   $('onb-skip').onclick = closeOnboarding;
@@ -1000,7 +1039,7 @@ async function runB64(record = true) {
   } catch (e) { stat.textContent = e.message; stat.classList.add('bad-text'); }
 }
 function renderToolHistory() {
-  $('b64-hist').innerHTML = toolState.history.map((h, i) => `<div class="hrow"><span><b>${esc(h.at.toLocaleTimeString('en-GB'))}</b> · ${esc(t(h.mode === 'encode' ? 'tools.encode' : 'tools.decode'))} · ${esc(h.file ? h.file.name : h.input.slice(0, 60))}</span><button class="chip" data-hist="${i}"><span class="ms">undo</span>${esc(t('tools.undo'))}</button></div>`).join('');
+  $('b64-hist').innerHTML = toolState.history.map((h, i) => `<div class="hrow"><span><b>${esc(h.at.toLocaleTimeString('en-GB'))}</b> · ${esc(t(h.mode === 'encode' ? 'tools.encode' : 'tools.decode'))} · ${esc(h.file ? h.file.name : h.input.slice(0, 60))}</span><button class="chip" data-hist="${i}"><span class="ms" aria-hidden="true">undo</span>${esc(t('tools.undo'))}</button></div>`).join('');
   for (const b of $('b64-hist').querySelectorAll('[data-hist]')) b.onclick = () => { const h = toolState.history[+b.dataset.hist]; toolState.mode = h.mode; toolState.file = h.file; $('b64-in').value = h.input; renderTools(); runB64(false); };
 }
 const FROM = ['json', 'csv', 'tsv'], TO = ['csv', 'tsv', 'markdown', 'json'];
@@ -1052,7 +1091,7 @@ $('conv-save').onclick = () => toolState.convOut && saveFile(`converted.${{ mark
 let updates = { state: 'unavailable' }, updateDismissed = null;
 function updatesCard() {
   const st = updates.state;
-  return `<div class="state-card"><strong>${esc(t('upd.title'))}</strong><p class="small ${st === 'failed' ? 'bad-text' : st === 'ready' || st === 'current' ? 'ok-text' : 'muted'}" role="status">${esc(t('upd.state.' + st))}${st === 'failed' && updates.error ? `: ${esc(updates.error)}` : ''}</p>${updates.checkedAt ? `<p class="small muted">${esc(t('upd.lastCheck'))}: ${esc(fmtTime(updates.checkedAt))}</p>` : ''}<p class="small muted">${esc(t('upd.hashNote'))}</p><span class="tools"><button class="chip" data-act="check-updates" ${st === 'unavailable' || st === 'checking' || st === 'downloading' ? 'disabled' : ''}><span class="ms">refresh</span>${esc(t('upd.check'))}</button>${updates.notesUrl ? `<a class="chip" href="${esc(updates.notesUrl)}" data-external="true"><span class="ms">article</span>${esc(t('upd.notes'))}</a>` : ''}</span></div>`;
+  return `<div class="state-card"><strong>${esc(t('upd.title'))}</strong><p class="small ${st === 'failed' ? 'bad-text' : st === 'ready' || st === 'current' ? 'ok-text' : 'muted'}" role="status">${esc(t('upd.state.' + st))}${st === 'failed' && updates.error ? `: ${esc(updates.error)}` : ''}</p>${updates.checkedAt ? `<p class="small muted">${esc(t('upd.lastCheck'))}: ${esc(fmtTime(updates.checkedAt))}</p>` : ''}<p class="small muted">${esc(t('upd.hashNote'))}</p><span class="tools"><button class="chip" data-act="check-updates" ${st === 'unavailable' || st === 'checking' || st === 'downloading' ? 'disabled' : ''}><span class="ms" aria-hidden="true">refresh</span>${esc(t('upd.check'))}</button>${updates.notesUrl ? `<a class="chip" href="${esc(updates.notesUrl)}" data-external="true"><span class="ms" aria-hidden="true">article</span>${esc(t('upd.notes'))}</a>` : ''}</span></div>`;
 }
 function renderUpdate() {
   const show = updates.state === 'ready' && updateDismissed !== (updates.version || 'ready');
@@ -1096,7 +1135,7 @@ async function renderAuth() {
     let code = '—', next = '—';
     if (secret) { try { const key = Tools.base32Decode(secret); code = await Tools.totp(key, { time: now, period: a.period, algorithm: a.algorithm, digits: a.digits }); next = await Tools.totp(key, { time: now + a.period, period: a.period, algorithm: a.algorithm, digits: a.digits }); } catch {} }
     const left = Math.ceil(a.period - (now % a.period));
-    return `<article class="acc" data-acc="${esc(a.id)}"><div class="top"><div><strong>${esc(a.name || a.issuer)}</strong><div class="muted small">${esc(a.issuer || '')}${a.issuer ? ' · ' : ''}${esc(a.algorithm)} · ${a.digits} · ${a.period} s</div></div><span class="ring ${left <= 5 ? 'low' : ''}" data-left="${(left / a.period).toFixed(3)}" role="img" aria-label="${left} ${esc(t('auth.left'))}"><span>${left}</span></span></div><button class="code" data-copy-code="${esc(code)}" aria-label="${esc(t('auth.copy'))}: ${esc(code)}">${esc(groupCode(code))}</button><div class="foot"><span class="next">${esc(t('auth.next'))} ${esc(groupCode(next))}</span><span class="tools"><button class="chip" data-copy-code="${esc(code)}"><span class="ms">content_copy</span>${esc(t('auth.copy'))}</button><button class="icon-btn" data-remove-acc="${esc(a.id)}" aria-label="${esc(t('auth.remove'))}"><span class="ms">delete</span></button></span></div></article>`;
+    return `<article class="acc" data-acc="${esc(a.id)}"><div class="top"><div><strong>${esc(a.name || a.issuer)}</strong><div class="muted small">${esc(a.issuer || '')}${a.issuer ? ' · ' : ''}${esc(a.algorithm)} · ${a.digits} · ${a.period} s</div></div><span class="ring ${left <= 5 ? 'low' : ''}" data-left="${(left / a.period).toFixed(3)}" role="img" aria-label="${left} ${esc(t('auth.left'))}"><span>${left}</span></span></div><button class="code" data-copy-code="${esc(code)}" aria-label="${esc(t('auth.copy'))} ${esc(groupCode(code))}">${esc(groupCode(code))}</button><div class="foot"><span class="next">${esc(t('auth.next'))} ${esc(groupCode(next))}</span><span class="tools"><button class="chip" data-copy-code="${esc(code)}"><span class="ms" aria-hidden="true">content_copy</span>${esc(t('auth.copy'))}</button><button class="icon-btn" data-remove-acc="${esc(a.id)}" aria-label="${esc(t('auth.remove'))}"><span class="ms" aria-hidden="true">delete</span></button></span></div></article>`;
   }));
   const focusedId = document.activeElement?.closest?.('[data-acc]')?.dataset.acc;
   $('auth-list').innerHTML = cards.join('');
@@ -1154,16 +1193,39 @@ function activateTab(id) {
 function closeTab(id) { const i = tabs.findIndex(x => x.id === id); tabs = tabs.filter(x => x.id !== id); store.set('tabs', tabs); if (activeTab === id) activateTab(tabs[Math.max(0, i - 1)]?.id || 'workspace'); else renderTabs(); }
 function renderTabs() {
   const strip = $('tabstrip'); if (!strip) return;
-  strip.hidden = !tabs.length;
-  strip.innerHTML = `<button class="utab" role="tab" data-tab="workspace" aria-selected="${activeTab === 'workspace'}"><span class="ms">home</span><span class="lbl">${esc(t('tabs.workspace'))}</span></button>${tabs.map(x => `<div class="utab" role="tab" tabindex="0" data-tab="${esc(x.id)}" aria-selected="${activeTab === x.id}"><span class="ms">${esc(x.icon)}</span><span class="lbl">${esc(x.title)}</span><button class="x" data-close-tab="${esc(x.id)}" aria-label="${esc(t('tabs.close'))}: ${esc(x.title)}"><span class="ms">close</span></button></div>`).join('')}<button class="newtab" id="newtab" aria-label="${esc(t('tabs.new'))}" title="${esc(t('tabs.new'))} (Ctrl+T)"><span class="ms">add</span></button>`;
-  for (const el of strip.querySelectorAll('[data-tab]')) { el.onclick = e => { if (!e.target.closest('[data-close-tab]')) activateTab(el.dataset.tab); }; el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activateTab(el.dataset.tab); } }; }
+  $('tabbar').hidden = !tabs.length;
+  const tab = (id, icon, title, closable) => `<div class="utab" role="presentation"><button class="utab-btn" role="tab" id="utab-${esc(id)}" data-tab="${esc(id)}" aria-selected="${activeTab === id}" aria-controls="main" tabindex="${activeTab === id ? 0 : -1}"><span class="ms" aria-hidden="true">${esc(icon)}</span><span class="lbl">${esc(title)}</span></button>${closable ? `<button class="x" data-close-tab="${esc(id)}" tabindex="-1" aria-hidden="true" title="${esc(t('tabs.close'))} (Delete)"><span class="ms" aria-hidden="true">close</span></button>` : ''}</div>`;
+  strip.innerHTML = tab('workspace', 'home', t('tabs.workspace'), false) + tabs.map(x => tab(x.id, x.icon, x.title, true)).join('');
+  const all = [...strip.querySelectorAll('[role=tab]')];
+  const focusTab = id => $(`utab-${id}`)?.focus();
+  all.forEach((el, i) => {
+    el.onclick = () => activateTab(el.dataset.tab);
+    el.onkeydown = e => {
+      const to = j => { const n = all[(j + all.length) % all.length].dataset.tab; activateTab(n); focusTab(n); };
+      if (e.key === 'ArrowRight') { e.preventDefault(); to(i + 1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); to(i - 1); }
+      else if (e.key === 'Home') { e.preventDefault(); to(0); }
+      else if (e.key === 'End') { e.preventDefault(); to(all.length - 1); }
+      else if (e.key === 'Delete' && el.dataset.tab !== 'workspace') { e.preventDefault(); closeTab(el.dataset.tab); focusTab(activeTab); }
+    };
+  });
   for (const b of strip.querySelectorAll('[data-close-tab]')) b.onclick = e => { e.stopPropagation(); closeTab(b.dataset.closeTab); };
-  $('newtab').onclick = e => { e.stopPropagation(); openMenu($('newtab'), tabCatalog()); };
 }
+$('newtab').onclick = e => { e.stopPropagation(); openMenu($('newtab'), tabCatalog()); };
 
 // ---------- keyboard ----------
+// Modal dialogs keep keyboard focus inside until they close.
+function trapFocus(e) {
+  const modal = [...document.querySelectorAll('.dialog[aria-modal=true]')].find(d => !d.hidden); if (!modal) return false;
+  const f = [...modal.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea,a[href],[tabindex]:not([tabindex="-1"])')].filter(el => el.getClientRects().length && el.tabIndex >= 0);
+  if (!f.length) return false;
+  const i = f.indexOf(document.activeElement);
+  if (i < 0 || (e.shiftKey && i === 0) || (!e.shiftKey && i === f.length - 1)) { e.preventDefault(); f[i < 0 ? 0 : e.shiftKey ? f.length - 1 : 0].focus(); }
+  return true;
+}
 document.addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
+  if (e.key === 'Tab' && !e.ctrlKey && !e.altKey && trapFocus(e)) return;
   if (e.ctrlKey && e.shiftKey && k === 'f') { e.preventDefault(); $('palette').hidden ? openPalette() : closePalette(); return; }
   if (e.key === 'Escape') {
     if (menuState) { closeMenu(); return; }
@@ -1180,7 +1242,7 @@ document.addEventListener('keydown', e => {
   if (menuState && ['ArrowDown', 'ArrowUp', 'Enter'].includes(e.key)) {
     e.preventDefault();
     if (e.key === 'Enter') { const it = menuState.shown[menuState.index]; if (it && !it.disabled) { closeMenu(false); it.run(); } return; }
-    menuState.index = Math.max(0, Math.min(menuState.shown.length - 1, menuState.index + (e.key === 'ArrowDown' ? 1 : -1))); renderMenuItems(); const it = menuState.shown[menuState.index]; announce(it.control === 'switch' ? `${it.label}, ${settings[it.setting] ? 'on' : 'off'}` : it.control === 'choice' ? `${it.label}, ${optionLabel(it.setting, settings[it.setting])}` : it.label); return;
+    menuState.index = Math.max(0, Math.min(menuState.shown.length - 1, menuState.index + (e.key === 'ArrowDown' ? 1 : -1))); renderMenuItems(); const it = menuState.shown[menuState.index]; announce(it.control === 'switch' ? `${it.label}, ${t(settings[it.setting] ? 'state.on' : 'state.off')}` : it.control === 'choice' ? `${it.label}, ${optionLabel(it.setting, settings[it.setting])}` : it.label); return;
   }
   if ((e.shiftKey && e.key === 'F10') || e.key === 'ContextMenu') { e.preventDefault(); const el = document.activeElement; const r = el?.getBoundingClientRect?.(); openMenu(el, contextItems(el), { x: r?.left || 100, y: (r?.bottom || 100) + 4 }); return; }
   if (!$('palette').hidden || !$('confirm').hidden || !$('onboarding').hidden) return;
@@ -1198,6 +1260,9 @@ document.addEventListener('click', e => { if (menuState && !e.target.closest('#c
 $('theme-toggle').onclick = () => setSetting('theme', isDark() ? 'light' : 'dark');
 
 // ---------- start ----------
+// On Windows the app draws its own title bar; the system caption buttons sit over its right end.
+document.documentElement.dataset.chrome = api?.windowChrome === 'overlay' ? 'overlay' : 'native';
+$('titlebar').hidden = document.documentElement.dataset.chrome !== 'overlay';
 buildBottomNav();
 makeSearch('sessions-search', 'sessions.search', () => renderSessions());
 makeSearch('features-search', 'features.search', () => renderFeatures());

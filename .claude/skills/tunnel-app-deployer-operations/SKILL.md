@@ -30,6 +30,8 @@ Edit sources, then regenerate; never edit generated files by hand.
 
 `scripts/screens/shoot.sh docs/assets/screens` renders the real renderer in headless Chrome with `scripts/screens/scripted-backend.js` standing in for the backend, and `scripts/screens/drive.js` performing the clicks for each state. The images show interface states only; never describe them as live hosting.
 
+`npm run audit:ui` runs `scripts/screens/ui-audit.js`: every app surface (the scripted backend drives each state, dialog and menu) and every website page, in dark and light, English, Cantonese and both, at 390, 768, 960 by 540 and 1440 pixels. It reports console errors, axe-core accessibility violations (WCAG 2.2 AA and best practices), clipped, off-screen or overlapping text, and keyboard focus problems. `--quick`, `--only name,name`, `--shots <folder>` and `--json <file>` narrow or record a run. It exits 1 on any finding; run it before every release. [DESIGN.md](../../../DESIGN.md) is the design system it checks against.
+
 `npm run clip` runs `scripts/screens/clip-matrix.js`: every screen at 360, 768 and 1280 pixels in English, Cantonese and both languages, reporting text that is cut off or pushed past the window edge. It exits 1 on any finding. Run it after layout or wording changes.
 
 ## Release

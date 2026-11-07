@@ -67,6 +67,18 @@ function squirrelCommand(argv, execPath) {
   if (cmd === '--squirrel-obsolete') return { quit: true };
   return { quit: false };
 }
+// On Windows the window has no system frame: the renderer draws a 40 px title bar and Windows keeps its own
+// caption buttons (with Snap layouts) in an overlay at the top right. Other systems keep their normal frame.
+const TITLEBAR_HEIGHT = 40;
+function windowChromeOptions(platform) {
+  return platform === 'win32' ? { titleBarStyle: 'hidden', titleBarOverlay: { color: '#0e1513', symbolColor: '#dde4e1', height: TITLEBAR_HEIGHT } } : {};
+}
+function validateTitlebarColors(colors) {
+  const hex = /^#[0-9a-f]{6}$/i;
+  if (!colors || typeof colors !== 'object' || !hex.test(colors.color) || !hex.test(colors.symbolColor)) throw new Error('Title bar colours must be #rrggbb values.');
+  return { color: colors.color.toLowerCase(), symbolColor: colors.symbolColor.toLowerCase(), height: TITLEBAR_HEIGHT };
+}
+
 const UPDATE_FEED = 'https://github.com/Ding-Ding-Projects/tunnel-app-deployer/releases/latest/download';
 const UPDATE_INTERVAL_MS = 4 * 60 * 60 * 1000;
 function readBuildInfo(file) {
@@ -178,6 +190,7 @@ async function start() {
     return true;
   });
   handle('app:copy-text', text => { if (typeof text !== 'string' || text.length > 20000) throw new Error('Invalid text.'); clipboard.writeText(text); return true; });
+  handle('app:titlebar', colors => { const value = validateTitlebarColors(colors); if (process.platform !== 'win32') return false; window.setTitleBarOverlay(value); return true; });
   handle('app:set-title', title => { if (typeof title !== 'string' || title.length > 80) throw new Error('Invalid title.'); window.setTitle(title.trim() || 'Tunnel App Deployer'); return true; });
   handle('app:open-link', async url => { if (!isAllowedLink(url)) throw new Error('This link cannot be opened.'); await shell.openExternal(url); return true; });
   handle('app:save', async (name, content) => {
@@ -202,7 +215,7 @@ async function start() {
   handle('host:copy', async () => { clipboard.writeText(await verifiedUrl()); return true; });
   handle('host:open', async () => { await shell.openExternal(await verifiedUrl()); return true; });
   const createWindow = () => {
-    window = new BrowserWindow({ width: 1120, height: 800, minWidth: 460, minHeight: 620, backgroundColor: '#0e1513', title: 'Tunnel App Deployer', icon: path.join(__dirname, 'renderer', 'icon.png'),
+    window = new BrowserWindow({ width: 1120, height: 800, minWidth: 460, minHeight: 620, backgroundColor: '#0e1513', title: 'Tunnel App Deployer', icon: path.join(__dirname, 'renderer', 'icon.png'), ...windowChromeOptions(process.platform),
       webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true } });
     window.setMenuBarVisibility(false);
     window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
@@ -224,4 +237,4 @@ async function start() {
   createWindow();
 }
 if (require.main === module || (process.versions.electron && process.type === 'browser')) start().catch(error => { console.error(error.message); process.exitCode = 1; });
-module.exports = { isTunnelUrl, validateOptions, validSender, validateSave, isAllowedLink, readBuildInfo, detectEditors, squirrelCommand };
+module.exports = { isTunnelUrl, validateOptions, validSender, validateSave, isAllowedLink, readBuildInfo, detectEditors, squirrelCommand, windowChromeOptions, validateTitlebarColors };

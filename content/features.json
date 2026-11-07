@@ -114,7 +114,7 @@
    "title": "Material Design 3",
    "status": "built",
    "article": "appearance",
-   "note": "Material 3 colour roles, shapes, type scale, navigation rail and bottom bar, generated from one seed colour.",
+   "note": "Material 3 colour roles, shapes and one type scale, navigation rail and bottom bar, generated from one seed colour; on Windows the app draws its own title bar beside the system caption buttons.",
    "group": "look"
   },
   {
@@ -183,7 +183,7 @@
    "title": "Accessibility and sizing",
    "status": "built",
    "article": "accessibility",
-   "note": "Text size from 90 to 150 percent, comfortable or compact density, visible focus, and layouts tested from 420 px wide.",
+   "note": "Text size from 90 to 150 percent with the whole window always reachable, comfortable or compact density, visible focus everywhere, and every screen audited automatically (WCAG 2.2 AA, keyboard walk, clipping) at four window sizes, both themes and all language modes.",
    "group": "look"
   },
   {
@@ -223,6 +223,13 @@
    "status": "built",
    "article": "command-palette",
    "note": "Ctrl+Shift+F opens every destination, action and setting; picking one jumps to it and highlights it. Card or full-window size is remembered.",
+   "group": "nav"
+  },
+  {
+   "id": "extension-support",
+   "title": "Extension support",
+   "status": "planned",
+   "note": "Not built yet. Planned: extensions tailored to sharing apps, each with a versioned manifest, an out-of-process protocol and declared permissions you allow before it runs, with a searchable manager, useful built-in extensions and an author guide.",
    "group": "nav"
   },
   {

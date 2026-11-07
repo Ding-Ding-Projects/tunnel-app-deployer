@@ -42,7 +42,7 @@ media.addEventListener('change', () => settings.theme === 'system' && apply());
 // ---------- toasts ----------
 function toast(text, kind = 'info') {
   const el = document.createElement('div'); el.className = 'toast';
-  el.innerHTML = `${settings.emoji ? `<span aria-hidden="true">${kind === 'dimsum' ? '🥟' : '💡'}</span>` : '<span class="ms">info</span>'}<span class="msg">${esc(text)}</span><button aria-label="${esc(t('toast.dismiss'))}"><span class="ms">close</span></button>`;
+  el.innerHTML = `${settings.emoji ? `<span aria-hidden="true">${kind === 'dimsum' ? '🥟' : '💡'}</span>` : '<span class="ms" aria-hidden="true">info</span>'}<span class="msg">${esc(text)}</span><button aria-label="${esc(t('toast.dismiss'))}"><span class="ms" aria-hidden="true">close</span></button>`;
   const remove = () => el.remove();
   el.querySelector('button').onclick = remove;
   $('toasts').append(el); setTimeout(remove, 6000);
@@ -53,7 +53,7 @@ const searches = {};
 function makeSearch(slotId, key, onChange) {
   const slot = $(slotId); if (!slot) return null;
   const s = searches[slotId] = { query: '', regex: false, flags: 'i', key, onChange };
-  slot.innerHTML = `<div class="search"><label class="search-box"><span class="ms">search</span><input type="search" autocomplete="off" spellcheck="false"><button class="chip rx-toggle" aria-pressed="false">.*</button></label><div class="rx" hidden></div></div>`;
+  slot.innerHTML = `<div class="search"><label class="search-box"><span class="ms" aria-hidden="true">search</span><input type="search" autocomplete="off" spellcheck="false"><button class="chip rx-toggle" aria-pressed="false">.*</button></label><div class="rx" hidden></div></div>`;
   s.input = slot.querySelector('input'); s.toggle = slot.querySelector('.rx-toggle'); s.panel = slot.querySelector('.rx');
   s.input.oninput = () => { s.query = s.input.value; renderRx(s); onChange(); };
   s.toggle.onclick = e => { e.preventDefault(); s.regex = !s.regex; renderRx(s); onChange(); s.input.focus(); };
@@ -84,7 +84,7 @@ function renderFeatures() {
   count(s, shown.length);
   const limited = !showAll && filter === 'all' && !s?.query;
   const visible = new Set((limited ? shown.slice(0, 12) : shown).map(i => i.id));
-  $('feat-groups').innerHTML = F.groups.map(([g, name]) => { const items = shown.filter(i => i.group === g && visible.has(i.id)); return items.length ? `<section class="fgroup"><h3>${esc(name)}</h3><div class="fcards">${items.map((i, k) => { const inner = `<span class="st ${i.status}">${esc(t('status.' + i.status))}</span><h4>${esc(i.title)}</h4><p>${esc(i.note)}</p>${i.article ? `<span class="more">${esc(t('feat.read'))} →</span>` : ''}`; return i.article ? `<a class="fc" href="#article/${esc(i.article)}">${inner}</a>` : `<div class="fc">${inner}</div>`; }).join('')}</div></section>` : ''; }).join('') + (limited ? `<p><button class="btn outline" id="feat-more"><span class="ms">expand_more</span>${esc(t('feat.all'))} · ${shown.length}</button></p>` : '') || `<p class="muted">${esc(t('pal.none'))}</p>`;
+  $('feat-groups').innerHTML = F.groups.map(([g, name]) => { const items = shown.filter(i => i.group === g && visible.has(i.id)); return items.length ? `<section class="fgroup"><h3>${esc(name)}</h3><div class="fcards">${items.map((i, k) => { const inner = `<span class="st ${i.status}">${esc(t('status.' + i.status))}</span><h4>${esc(i.title)}</h4><p>${esc(i.note)}</p>${i.article ? `<span class="more">${esc(t('feat.read'))} →</span>` : ''}`; return i.article ? `<a class="fc" href="#article/${esc(i.article)}">${inner}</a>` : `<div class="fc">${inner}</div>`; }).join('')}</div></section>` : ''; }).join('') + (limited ? `<p><button class="btn outline" id="feat-more"><span class="ms" aria-hidden="true">expand_more</span>${esc(t('feat.all'))} · ${shown.length}</button></p>` : '') || `<p class="muted">${esc(t('pal.none'))}</p>`;
   $('feat-more')?.addEventListener('click', () => { showAll = true; renderFeatures(); });
 }
 
@@ -111,7 +111,7 @@ function renderGuide(id) {
   const el = $('guide-article');
   if (el.dataset.id !== a.id) {
     el.dataset.id = a.id;
-    el.innerHTML = `<h1>${esc(a.title)}</h1>${MD.render(a.body).replace(/href="#article\//g, 'href="#article/')}<h2>${esc(t('guide.related'))}</h2><div class="related">${a.related.map(r => C.articles.find(x => x.id === r)).filter(Boolean).map(r => `<a href="#article/${r.id}"><span class="ms">article</span>${esc(r.title)}</a>`).join('')}</div>`;
+    el.innerHTML = `<h1>${esc(a.title)}</h1>${MD.render(a.body).replace(/href="#article\//g, 'href="#article/')}<h2>${esc(t('guide.related'))}</h2><div class="related">${a.related.map(r => C.articles.find(x => x.id === r)).filter(Boolean).map(r => `<a href="#article/${r.id}"><span class="ms" aria-hidden="true">article</span>${esc(r.title)}</a>`).join('')}</div>`;
     el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
     if (location.hash.startsWith('#article/')) { scrollTo({ top: 0 }); el.focus({ preventScroll: true }); }
   }
@@ -127,7 +127,7 @@ function renderChangelog() {
   const s = searches['cl-search'], m = matcher(s);
   const list = C.changelog.entries.filter(e => (!clFrom || e.date >= clFrom) && (!clTo || e.date <= clTo) && m.test(`${e.version} ${e.note} ${Object.values(e.changes).flat().join(' ')}`));
   count(s, list.length);
-  $('cl-list').innerHTML = list.map(e => `<div class="rel"><div class="row spread"><strong>${esc(e.version)} · ${esc(e.date)}</strong>${e.commit ? `<a class="mono" href="https://github.com/${REPO}/commit/${esc(e.commit)}">${esc(e.commit.slice(0, 7))}</a>` : `<span class="small muted">${esc(t('cl.this'))}</span>`}</div><p class="small muted">${esc(e.note)}</p>${Object.entries(e.changes).map(([k, v]) => `<h4>${esc(k)}</h4><ul>${v.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</div>`).join('') || `<p class="muted">${esc(t('pal.none'))}</p>`;
+  $('cl-list').innerHTML = list.map(e => `<div class="rel"><div class="row spread"><strong>${esc(e.version)} · ${esc(e.date)}</strong>${e.commit ? `<a class="mono" href="https://github.com/${REPO}/commit/${esc(e.commit)}">${esc(e.commit.slice(0, 7))}</a>` : `<span class="small muted">${esc(t('cl.this'))}</span>`}</div><p class="small muted">${esc(e.note)}</p>${Object.entries(e.changes).map(([k, v]) => `<h2 class="rel-h">${esc(k)}</h2><ul>${v.map(x => `<li>${esc(x)}</li>`).join('')}</ul>`).join('')}</div>`).join('') || `<p class="muted">${esc(t('pal.none'))}</p>`;
 }
 addEventListener('hashchange', () => { const leaving = $('home').hidden; route(); if (!$('home').hidden && leaving) { const target = document.getElementById(location.hash.slice(1)); if (target) target.scrollIntoView(); else scrollTo({ top: 0 }); } });
 document.addEventListener('click', e => { const a = e.target.closest('[data-route="home"]'); if (a) { e.preventDefault(); history.pushState(null, '', location.pathname); route(); scrollTo({ top: 0 }); } });
@@ -191,7 +191,7 @@ function renderPalette() {
   pal.items = commands().filter(c => m.test(`${c.label} ${c.desc || ''}`)).slice(0, 60);
   pal.index = Math.min(pal.index, Math.max(0, pal.items.length - 1));
   let last = '';
-  $('pal-list').innerHTML = pal.items.map((c, i) => { const head = c.sec !== last ? `<div class="psec">${esc(t(c.sec))}</div>` : ''; last = c.sec; return `${head}<button class="pit" role="option" id="pit-${i}" aria-selected="${i === pal.index}" data-i="${i}"><span class="ms">${c.icon}</span><span>${esc(c.label)}${c.desc ? `<span class="d">${esc(c.desc.slice(0, 100))}</span>` : ''}</span></button>`; }).join('') || `<p class="muted pad">${esc(t('pal.none'))}</p>`;
+  $('pal-list').innerHTML = pal.items.map((c, i) => { const head = c.sec !== last ? `<div class="psec">${esc(t(c.sec))}</div>` : ''; last = c.sec; return `${head}<button class="pit" role="option" id="pit-${i}" aria-selected="${i === pal.index}" data-i="${i}" tabindex="-1"><span class="ms" aria-hidden="true">${c.icon}</span><span>${esc(c.label)}${c.desc ? `<span class="d">${esc(c.desc.slice(0, 100))}</span>` : ''}</span></button>`; }).join('') || `<p class="muted pad">${esc(t('pal.none'))}</p>`;
   $('pal-input').setAttribute('aria-activedescendant', pal.items.length ? `pit-${pal.index}` : '');
   for (const b of $('pal-list').querySelectorAll('[data-i]')) b.onclick = () => runPal(+b.dataset.i);
   $('pal-list').querySelector('[aria-selected=true]')?.scrollIntoView({ block: 'nearest' });
@@ -208,7 +208,16 @@ $('pal-rx').onclick = () => { pal.regex = !pal.regex; renderPalette(); $('pal-in
 $('pal-input').onkeydown = e => { if (e.key === 'ArrowDown') { e.preventDefault(); pal.index = Math.min(pal.index + 1, pal.items.length - 1); renderPalette(); } else if (e.key === 'ArrowUp') { e.preventDefault(); pal.index = Math.max(pal.index - 1, 0); renderPalette(); } else if (e.key === 'Enter') { e.preventDefault(); runPal(pal.index); } };
 $('open-palette').onclick = openPalette;
 $('scrim').onclick = () => { closePalette(); closeSettings(); };
+// Open dialogs keep keyboard focus inside until they close.
+function trapFocus(e) {
+  const modal = [$('palette'), $('settings')].find(d => !d.hidden); if (!modal) return;
+  const f = [...modal.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])')].filter(el => el.getClientRects().length && el.tabIndex >= 0);
+  if (!f.length) return;
+  const i = f.indexOf(document.activeElement);
+  if (i < 0 || (e.shiftKey && i === 0) || (!e.shiftKey && i === f.length - 1)) { e.preventDefault(); f[i < 0 ? 0 : e.shiftKey ? f.length - 1 : 0].focus(); }
+}
 document.addEventListener('keydown', e => {
+  if (e.key === 'Tab' && !e.ctrlKey && !e.altKey) trapFocus(e);
   if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'f') { e.preventDefault(); $('palette').hidden ? openPalette() : closePalette(); }
   else if (e.key === 'Escape') { if (!$('palette').hidden) closePalette(); else if (!$('settings').hidden) closeSettings(); }
 });
