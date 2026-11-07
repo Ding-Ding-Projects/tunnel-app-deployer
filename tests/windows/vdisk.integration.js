@@ -137,6 +137,7 @@ const p = name => path.join(root, name);
     if (letter) {
       for (const [rel, h] of Object.entries(hashes)) { assert.equal(crypto.createHash('sha256').update(fs.readFileSync(`${letter}:\\trip\\${rel}`)).digest('hex'), h); checked++; }
       assert.match(fs.readFileSync(`${letter}:\\trip\\note.txt:Zone.Identifier`, 'utf8'), /ZoneId=3/);
+      assert.equal(fs.statSync(`${letter}:\\trip\\note.txt`).mode & 0o222, 0, 'the read-only flag came along');
     }
     await run('detach', { path: plan.path });
     const plan2 = packPlan([src]);

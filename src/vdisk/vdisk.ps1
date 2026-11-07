@@ -558,10 +558,15 @@ function Op-Pack($r) {
       }
       if ($dst) {
         $si = New-Object IO.FileInfo (Long $f.src)
+        # The copy carries the read-only flag along, and .NET Framework opens a file for writing to
+        # set its times, so the flags are cleared first and put back once the copy is checked.
+        [IO.File]::SetAttributes((Long $dst), [IO.FileAttributes]::Normal)
         [IO.File]::SetCreationTimeUtc((Long $dst), $si.CreationTimeUtc); [IO.File]::SetLastWriteTimeUtc((Long $dst), $si.LastWriteTimeUtc); [IO.File]::SetLastAccessTimeUtc((Long $dst), $si.LastAccessTimeUtc)
         if ($r.keepAcl) { try { Set-Acl -LiteralPath $dst -AclObject (Get-Acl -LiteralPath $f.src) } catch { } }
         if ((Hash $f.src) -ne (Hash $dst)) { Stop-With 'verify' 'A copied file did not match its original.' @{ file = $f.rel } }
-        [IO.File]::SetAttributes((Long $dst), $si.Attributes)
+        # Read-only, hidden, system, archive and not-indexed are the flags a file can be given directly.
+        $keep = [int]$si.Attributes -band 0x2027
+        [IO.File]::SetAttributes((Long $dst), [IO.FileAttributes]$(if ($keep) { $keep } else { 0x80 }))
       }
       $done += $f.size
       Step 'copy' $done $total @{ file = $f.rel; index = $index; count = $files.Count }
