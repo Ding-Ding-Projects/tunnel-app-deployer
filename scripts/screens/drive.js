@@ -25,6 +25,7 @@ window.addEventListener('load', () => setTimeout(async () => {
   if (act?.startsWith('vd')) {
     document.querySelector('[data-tool="vdisk"]').click(); await new Promise(r => setTimeout(r, 200));
     if (act === 'vd') { document.querySelector('[data-vdi="photos"]')?.click(); await new Promise(r => setTimeout(r, 120)); $('vd-more')?.click(); await new Promise(r => setTimeout(r, 120)); }
+    if (act === 'vdrx') { const box = document.querySelector('#vd-search .search-box'); box.querySelector('.rx-toggle').click(); const i = box.querySelector('input'); i.value = '\\.vhdx?$'; i.dispatchEvent(new Event('input')); await tick(); }
     if (act === 'vdnew') { $('vd-new').click(); await tick(); $('vd-s-target').click(); await new Promise(r => setTimeout(r, 120)); }
     if (act === 'vdpack') {
       const dt = new DataTransfer(); for (const n of ['IMG_2201.jpg', 'IMG_2202.jpg', 'itinerary.pdf']) dt.items.add(new File([new Uint8Array(64)], n));

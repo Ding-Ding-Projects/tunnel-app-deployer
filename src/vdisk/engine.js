@@ -162,7 +162,7 @@ class Engine {
     job.done = true; this.jobs.delete(id);
     let result;
     try { result = JSON.parse(fs.readFileSync(path.join(dir, 'result.json'), 'utf8').replace(/^\uFEFF/, '')); }
-    catch { result = exit.code === 1223 ? { ok: false, code: 'declined', message: 'Administrator permission was not given. Nothing changed.' } : { ok: false, code: 'failed', message: (exit.stderr || 'PowerShell stopped without a result.').trim().slice(0, 2000) }; }
+    catch { result = exit.code === 1223 ? { ok: false, code: 'declined', message: 'Administrator permission was not given. Nothing changed.' } : { ok: false, code: 'failed', exitCode: exit.code, message: (exit.stderr || `PowerShell stopped without a result (exit code ${exit.code}).`).trim().slice(0, 2000) }; }
     if (!job.keep) fs.rm(dir, { recursive: true, force: true }, () => {});
     return { ...result, id, route: op === 'list' || op === 'state' ? 'Storage module' : op === 'pack' ? 'VirtDisk API and Storage module' : 'VirtDisk API', elevated: needs };
   }

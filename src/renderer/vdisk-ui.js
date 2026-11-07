@@ -99,7 +99,9 @@
   const count = f => VD.items.filter(i => matches(i, f)).length;
   function visible() {
     const m = matcherFor(searches['vd-search']);
-    return VD.items.filter(i => matches(i, VD.filter) && m.test([i.name, i.folder, fmt(i.format), i.type || '', i.label || '', ...(i.volumes || []).map(v => (v.letter ? `${v.letter}:` : ''))].join(' ')));
+    // Each field is tested on its own, so an anchored pattern such as \.vhdx$ means "a name ending in .vhdx".
+    const fields = i => [i.name, i.folder, fmt(i.format), i.type, i.label, ...(i.volumes || []).map(v => (v.letter ? `${v.letter}:` : ''))].filter(Boolean);
+    return VD.items.filter(i => matches(i, VD.filter) && (!searches['vd-search']?.query || fields(i).some(f => m.test(f))));
   }
 
   function render() {
@@ -584,7 +586,8 @@
       keepSheet();
       const p = PRESETS[b.dataset.vdp];
       Object.assign(s, { preset: b.dataset.vdp }, p);
-      if (p.format && s.target && !s.target.name.toLowerCase().endsWith(`.${p.format}`)) s.target = null;
+      if (s.type === 'differencing' && s.format === 'vhdset') s.format = 'vhdx';
+      if (s.target && !s.target.name.toLowerCase().endsWith(`.${s.format === 'vhdset' ? 'vhds' : s.format}`)) s.target = null;
       drawSheet();
     };
     wireSeg(box, 'vdsf', v => {

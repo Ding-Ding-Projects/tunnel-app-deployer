@@ -40,6 +40,7 @@ const APP_SURFACES = [
   ['tools-base64-files', 'state=ready&view=tools&act=b64drop'],
   ['tools-base64-working', 'state=ready&view=tools&act=b64work&b64=working'],
   ['tools-vdisks', 'state=ready&view=tools&act=vd'],
+  ['tools-vdisks-regex', 'state=ready&view=tools&act=vdrx'],
   ['tools-vdisks-new', 'state=ready&view=tools&act=vdnew'],
   ['tools-vdisks-permission', 'state=ready&view=tools&act=vdpack&vd=permission'],
   ['tools-vdisks-packing', 'state=ready&view=tools&act=vdpack&vd=working'],

@@ -62,6 +62,9 @@ public static class VDiskApi {
   [DllImport("virtdisk.dll")] static extern int DeleteVirtualDiskMetadata(IntPtr handle, ref Guid item);
   [DllImport("kernel32.dll", SetLastError = true)] static extern bool CloseHandle(IntPtr handle);
   [DllImport("kernel32.dll", SetLastError = true)] static extern bool CancelIoEx(IntPtr handle, IntPtr overlapped);
+  [DllImport("kernel32.dll", SetLastError = true)] static extern bool GetOverlappedResultEx(IntPtr handle, IntPtr overlapped, out uint transferred, uint milliseconds, bool alertable);
+  // True when an operation could not be confirmed stopped; its OVERLAPPED and event are then kept, not freed.
+  static bool inFlight;
   [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)] static extern bool ConvertStringSecurityDescriptorToSecurityDescriptor(string sddl, int revision, out IntPtr sd, IntPtr size);
   [DllImport("kernel32.dll")] static extern IntPtr LocalFree(IntPtr memory);
   [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] static extern bool GetDiskFreeSpaceEx(string directory, out ulong available, out ulong total, out ulong free);
@@ -78,17 +81,25 @@ public static class VDiskApi {
   static int Wait(IntPtr handle, IntPtr overlapped, int rc, Tick tick) {
     if (rc != IoPending) return rc;
     IntPtr progress = Alloc(24);
-    bool cancelled = false;
+    bool cancelled = false, finished = false;
     try {
       while (true) {
         int r = GetVirtualDiskOperationProgress(handle, overlapped, progress);
         if (r != 0) return r;
         int status = Marshal.ReadInt32(progress, 0);
-        if (status != IoPending) return cancelled && status == Aborted ? Aborted : status;
+        if (status != IoPending) { finished = true; return cancelled && status == Aborted ? Aborted : status; }
         if (tick != null && !cancelled && !tick(Marshal.ReadInt64(progress, 8), Marshal.ReadInt64(progress, 16))) { cancelled = true; CancelIoEx(handle, overlapped); }
         Thread.Sleep(200);
       }
-    } finally { Marshal.FreeHGlobal(progress); }
+    } finally {
+      // Leaving early (an error or an exception from Tick) must not free the OVERLAPPED while Windows
+      // may still write to it: cancel the operation and wait until it has really stopped.
+      if (!finished) {
+        uint moved; CancelIoEx(handle, overlapped);
+        if (!GetOverlappedResultEx(handle, overlapped, out moved, 60000, false)) { int e = Marshal.GetLastWin32Error(); inFlight = e == 258 || e == 996; }
+      }
+      Marshal.FreeHGlobal(progress);
+    }
   }
   static IntPtr Overlapped(ManualResetEvent evt) { IntPtr ov = Alloc(32); Marshal.WriteIntPtr(ov, 24, evt.SafeWaitHandle.DangerousGetHandle()); return ov; }
 
@@ -123,8 +134,8 @@ public static class VDiskApi {
       if (parentPtr != IntPtr.Zero) Marshal.FreeHGlobal(parentPtr);
       if (sourcePtr != IntPtr.Zero) Marshal.FreeHGlobal(sourcePtr);
       if (sd != IntPtr.Zero) LocalFree(sd);
-      if (ov != IntPtr.Zero) Marshal.FreeHGlobal(ov);
-      GC.KeepAlive(evt); evt.Dispose();
+      if (ov != IntPtr.Zero && !inFlight) Marshal.FreeHGlobal(ov);
+      GC.KeepAlive(evt); if (!inFlight) evt.Dispose();
     }
   }
 
@@ -136,7 +147,7 @@ public static class VDiskApi {
       Marshal.WriteInt32(p, 0, 1); Marshal.WriteInt64(p, 8, smallest ? 0 : size);
       ov = Overlapped(evt);
       Check(Wait(handle, ov, ResizeVirtualDisk(handle, (allowUnsafe ? 1 : 0) | (smallest ? 2 : 0), p, ov), tick));
-    } finally { Close(handle); Marshal.FreeHGlobal(p); if (ov != IntPtr.Zero) Marshal.FreeHGlobal(ov); GC.KeepAlive(evt); evt.Dispose(); }
+    } finally { Close(handle); Marshal.FreeHGlobal(p); if (ov != IntPtr.Zero && !inFlight) Marshal.FreeHGlobal(ov); GC.KeepAlive(evt); if (!inFlight) evt.Dispose(); }
   }
 
   // COMPACT_VIRTUAL_DISK_FLAG 1 skips the zero scan (quick).
@@ -147,7 +158,7 @@ public static class VDiskApi {
       Marshal.WriteInt32(p, 0, 1);
       ov = Overlapped(evt);
       Check(Wait(handle, ov, CompactVirtualDisk(handle, quick ? 1 : 0, p, ov), tick));
-    } finally { Close(handle); Marshal.FreeHGlobal(p); if (ov != IntPtr.Zero) Marshal.FreeHGlobal(ov); GC.KeepAlive(evt); evt.Dispose(); }
+    } finally { Close(handle); Marshal.FreeHGlobal(p); if (ov != IntPtr.Zero && !inFlight) Marshal.FreeHGlobal(ov); GC.KeepAlive(evt); if (!inFlight) evt.Dispose(); }
   }
 
   // MERGE_VIRTUAL_DISK_PARAMETERS version 2: source depth 1 is the child, target depth 2 its parent.
@@ -158,7 +169,7 @@ public static class VDiskApi {
       Marshal.WriteInt32(p, 0, 2); Marshal.WriteInt32(p, 4, 1); Marshal.WriteInt32(p, 8, targetDepth);
       ov = Overlapped(evt);
       Check(Wait(handle, ov, MergeVirtualDisk(handle, 0, p, ov), tick));
-    } finally { Close(handle); Marshal.FreeHGlobal(p); if (ov != IntPtr.Zero) Marshal.FreeHGlobal(ov); GC.KeepAlive(evt); evt.Dispose(); }
+    } finally { Close(handle); Marshal.FreeHGlobal(p); if (ov != IntPtr.Zero && !inFlight) Marshal.FreeHGlobal(ov); GC.KeepAlive(evt); if (!inFlight) evt.Dispose(); }
   }
 
   // SET_VIRTUAL_DISK_INFO: version 1 parent path, version 2 identifier.

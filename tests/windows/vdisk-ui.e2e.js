@@ -29,7 +29,7 @@ const SLOW = { timeout: 180000 };
   const errors = [];
   page.on('pageerror', e => errors.push(String(e.message)));
   page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
-  const shot = name => page.screenshot({ path: path.join(out, `${String(results.length + 1).padStart(2, '0')}-${name}.png`) });
+  const shot = name => page.screenshot({ path: path.join(out, `${String(results.length).padStart(2, '0')}-${name}.png`) });
   const answerSave = file => app.evaluate(({ dialog }, p) => { dialog.showSaveDialog = async () => ({ canceled: false, filePath: p }); }, file);
   const answerOpen = paths => app.evaluate(({ dialog }, p) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: p }); }, paths);
   const detailIs = name => page.waitForFunction(n => document.getElementById('vd-detail-h')?.textContent.includes(n) && !document.querySelector('#vd-detail .vd-spin'), name, SLOW);

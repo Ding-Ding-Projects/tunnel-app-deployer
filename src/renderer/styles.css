@@ -574,7 +574,7 @@ textarea.area:focus{outline:none;border-color:var(--p);box-shadow:0 0 0 1px var(
 
 /* ---------- Tools > Virtual disks ---------- */
 .vd{display:flex;flex-direction:column;gap:var(--gap);animation:viewin var(--t3) var(--e) both}
-.vd-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.vd-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start}
 .vd-search{flex:1 1 240px;min-width:200px}
 .vd-filters{display:flex;flex-wrap:wrap;gap:8px}
 .vd-n{font-family:var(--mono);font-size:var(--fs-label-s);opacity:.8}
